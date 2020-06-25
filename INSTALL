@@ -1,0 +1,85 @@
+Because JMcmprsk  needs to compile C++ code and GSL for matrix multiplication routines, additional steps for JMcmprsk to run under Windows are required:
+
+1. Rtools must be installed (to compile  C++). 
+2. GSL libraries must be installed (for use of GSL) and an environment variable for GSL called "LIB_GSL" must be created. 
+
+The first step is easy: just download the latest Rtools for your R version from 
+
+       https://cran.r-project.org/bin/windows/Rtools/
+
+There are various ways to do accomplish the second step.
+
+Simple mode:
+
+1. Install GSL (use the binary installer shown in 
+http://www.stats.ox.ac.uk/pub/Rtools/libs.html). 
+
+The path cannot contain any whitespaces, i.e. C:/Program Files/local300 will not work but C:/local300 will work 
+
+2. Second, add LIB GSL variable into your environment by selecting
+Control Panel -> System -> Advanced -> Environment Variables
+-> New
+Add a variable with name LIB_GSL and the variable value will be the path to GSL
+(where you installed it).
+Caution: if you installed GSL at C:\GSL for example, the value you
+need to input for LIB_GSL variable is C:/GSL, NOT C:\GSL! You need
+to use "/" to replace "\"!  For example: 
+"LIB_GSL" = "D:/R/jcc/gsl" # this is where the library is located
+
+The compiler looks at LIB_GSL/lib for libgsl.a and libgslcblas.a (-lgsl and -lgslcblas). 
+If you installed GSL from the above address: http://www.stats.ox.ac.uk/pub/Rtools/libs.html.
+Makevars.win in the package does not need any change and it will choose i386 or x64 lib  automatically depending on your windows system.
+
+If you have difficulty in setting environment variables in Windows, you can also just set the 
+environment variable by issuing the following R command
+
+Sys.setenv("LIB_GSL" = "D:/R/jcc/gsl") # this is where the library is located.
+
+NOTE: "Sys.setenv" only sets environment variables for the current R session. Next you want to use or reinstall the JMcmprsk package, you will have to issue the above command again.
+
+3. Install and run JMcmprsk package. 
+
+Adanced mode:
+
+1. Install GSL either build it from source code or the binary package from other websites such as
+   
+   http://gnuwin32.sourceforge.net/packages/gsl.htm  (32bit windows only)
+   https://code.google.com/archive/p/oscats/downloads (both 32bit and 64bit are supported)
+
+2. Second, add LIB GSL variable into your environment by selecting
+Control Panel -> System -> Advanced -> Environment Variables
+-> Add
+Add a variable with name LIB_GSL and the variable value will be the path to GSL
+(where you installed it).
+Caution: if you installed GSL at C:\GSL for example, the value you
+need to input for LIB_GSL variable is C:/GSL, NOT C:\GSL! You need
+to use "/" to replace "\"!
+
+"LIB_GSL" = "D:/R/jcc/gsl" # this is where the library is located 
+#For R Use:  Sys.setenv("LIB_GSL" = "D:/R/jcc/gsl")
+
+The compiler looks at LIB_GSL/lib/i386 or LIB_GSL/lib/x64 for libgsl.a and libgslcblas.a (-lgsl and -lgslcblas). 
+
+Some installers only provide either 32 bit version or 64 bit version. So please  create a new directory  "i386" or "x64" under "LIB_GSL/lib/" and copy all the orginal files under "LIB_GSL/lib/" to "i386" or "x64". 
+
+If you don't want to change your environment or have trouble to add LIB_GSL
+variable, you can do the following instead.
+
+you can unzip the source code from JMcmprsk package and find Makevars.win under the directory of 
+
+Open it with an editor and you will see
+## This assumes that the LIB_GSL variable points to .......
+PKG_CPPFLAGS=-I$(LIB_GSL)/include -I../inst/include
+PKG_LIBS=-L$(LIB_GSL)/lib -lgsl -lgslcblas $(shell $(R_HOME)/.......
+
+Change "$LIB_GSL" to "D:/R/jcc/gsl"(the directory whether GSL lib lies) manually.
+
+3. Check PATH variable to make sure the paths for \Rtools", R, and GSL are
+already added. Go to
+Control Panel -> System -> Advanced -> Environment Variables
+-> PATH (edit it!)
+
+The following paths should be added,
+C:\Rtools\bin;C:\Rtools\MinGW\bin;
+C:\Program files\R\R-3.3.3\bin\i386;
+C:\GSL\bin
