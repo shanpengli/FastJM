@@ -1,0 +1,14 @@
+## This assumes that the LIB_GSL variable points to working GSL libraries
+
+	PKG_CPPFLAGS=-I$(LIB_GSL)/include -I../inst/include
+	  
+	ifeq "$(WIN)" "64"
+		PKG_LIBS=-L$(LIB_GSL)/lib/x64 -lgsl -lgslcblas 
+	else
+		PKG_LIBS=-L$(LIB_GSL)/lib/i386 -lgsl -lgslcblas 
+	endif
+
+  
+ 
+## PKG_CPPFLAGS=-I$(LIB_GSL)/include
+## PKG_LIBS=-L$(LIB_GSL)/lib -lgsl -lgslcblas

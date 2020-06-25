@@ -1,0 +1,21 @@
+Package: FastJM
+Type: Package
+Title: Fast Fitting of Joint Models for Longitudinal Measurements and Competing Risks
+        Failure Time Data
+Version: 0.1.0
+Author: Shanpeng Li
+Maintainer: Shanpeng Li <lishanpeng0913@g.ucla.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL (>= 2)
+Imports: Rcpp,MASS,stats,utils,statmod,lme4
+LinkingTo: Rcpp
+Encoding: UTF-8
+LazyData: true
+NeedsCompilation: yes
+RoxygenNote: 7.1.0
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+Packaged: 2020-06-17; SL
+Repository: CRAN
+Date/Publication: 2019-05-17 08:30:03 UTC
