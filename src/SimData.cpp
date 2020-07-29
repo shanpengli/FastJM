@@ -239,7 +239,7 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
     size_t p1a=as<int> (p1a_val);
     size_t p2=as<int> (p2_val);
     size_t g=as<int> (g_val);
-    size_t n=0,n1,array_size=k*20;
+    size_t n=0,n1,array_size=k*100;
     size_t i,j;
 
     std::string yfile=as<std::string>(yfn);

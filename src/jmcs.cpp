@@ -25,20 +25,20 @@ namespace jmcsspace {
         for (j=0;j<k;j++)
         {
             i=(int)gsl_vector_get(M1,j);
-            gsl_matrix *Z = gsl_matrix_alloc(i, p1a);
-            gsl_matrix *ZT = gsl_matrix_alloc(p1a, i);
-            gsl_matrix *ZZT = gsl_matrix_alloc(i, i);
-            gsl_matrix *DZT = gsl_matrix_alloc(p1a, i);
-            gsl_matrix *DZT1 = gsl_matrix_alloc(p1a, i);
-            gsl_matrix *V = gsl_matrix_alloc(i, i);
-            gsl_matrix *X =gsl_matrix_alloc(i, p1);
-            gsl_matrix *XT = gsl_matrix_alloc(p1, i);
-            gsl_matrix *XTV = gsl_matrix_alloc(p1, i);
-            gsl_matrix *XTX = gsl_matrix_alloc(p1, p1);
+            gsl_matrix *Z = gsl_matrix_calloc(i, p1a);
+            gsl_matrix *ZT = gsl_matrix_calloc(p1a, i);
+            gsl_matrix *ZZT = gsl_matrix_calloc(i, i);
+            gsl_matrix *DZT = gsl_matrix_calloc(p1a, i);
+            gsl_matrix *DZT1 = gsl_matrix_calloc(p1a, i);
+            gsl_matrix *V = gsl_matrix_calloc(i, i);
+            gsl_matrix *X =gsl_matrix_calloc(i, p1);
+            gsl_matrix *XT = gsl_matrix_calloc(p1, i);
+            gsl_matrix *XTV = gsl_matrix_calloc(p1, i);
+            gsl_matrix *XTX = gsl_matrix_calloc(p1, p1);
             gsl_matrix_set_identity(V);
-            gsl_vector *res = gsl_vector_alloc(i);
-            gsl_vector *y = gsl_vector_alloc(i);
-            gsl_vector *bi = gsl_vector_alloc(p1a);
+            gsl_vector *res = gsl_vector_calloc(i);
+            gsl_vector *y = gsl_vector_calloc(i);
+            gsl_vector *bi = gsl_vector_calloc(p1a);
             for(w=f;w<i+f;w++)
             {
                 for (t=0;t<p1a;t++) gsl_matrix_set(Z, w-f, t, gsl_matrix_get(Y, w, t+1));
@@ -98,21 +98,21 @@ namespace jmcsspace {
          for (j=0;j<k;j++)
          {
              i=(int)gsl_vector_get(M1,j);
-             gsl_matrix *Z = gsl_matrix_alloc(i, p1a);
-             gsl_matrix *ZT = gsl_matrix_alloc(p1a, i);
-             gsl_matrix *ZZT = gsl_matrix_alloc(i, i);
-             gsl_matrix *DZT = gsl_matrix_alloc(p1a, i);
-             gsl_matrix *ZDT = gsl_matrix_alloc(i, p1a);
-             gsl_matrix *V = gsl_matrix_alloc(i, i);
-             gsl_matrix *X =gsl_matrix_alloc(i, p1);
-             gsl_matrix *VX = gsl_matrix_alloc(i, p1);
-             gsl_matrix *XT = gsl_matrix_alloc(p1, i);
-             gsl_matrix *XXT = gsl_matrix_alloc(i, i);
-             gsl_matrix *XXTV = gsl_matrix_alloc(i, i);
-             gsl_matrix *cov = gsl_matrix_alloc(p1a, p1a);
-             gsl_matrix *covT = gsl_matrix_alloc(p1a, p1a);
+             gsl_matrix *Z = gsl_matrix_calloc(i, p1a);
+             gsl_matrix *ZT = gsl_matrix_calloc(p1a, i);
+             gsl_matrix *ZZT = gsl_matrix_calloc(i, i);
+             gsl_matrix *DZT = gsl_matrix_calloc(p1a, i);
+             gsl_matrix *ZDT = gsl_matrix_calloc(i, p1a);
+             gsl_matrix *V = gsl_matrix_calloc(i, i);
+             gsl_matrix *X =gsl_matrix_calloc(i, p1);
+             gsl_matrix *VX = gsl_matrix_calloc(i, p1);
+             gsl_matrix *XT = gsl_matrix_calloc(p1, i);
+             gsl_matrix *XXT = gsl_matrix_calloc(i, i);
+             gsl_matrix *XXTV = gsl_matrix_calloc(i, i);
+             gsl_matrix *cov = gsl_matrix_calloc(p1a, p1a);
+             gsl_matrix *covT = gsl_matrix_calloc(p1a, p1a);
              gsl_matrix_set_identity(V);
-             gsl_vector *bi = gsl_vector_alloc(p1a);
+             gsl_vector *bi = gsl_vector_calloc(p1a);
              for(w=f;w<i+f;w++)
              {
                  for (t=0;t<p1a;t++) gsl_matrix_set(Z, w-f, t, gsl_matrix_get(Y, w, t+1));
@@ -204,66 +204,46 @@ namespace jmcsspace {
 
         int p,q,j,t,u;
 
-        gsl_matrix *FUNB=gsl_matrix_alloc(p1a,k),
-                   *FUNBS=gsl_matrix_alloc(p1a*(p1a+1)/2,k),
-                   *FUNBSE=gsl_matrix_alloc(g*p1a*(p1a+1)/2,k),
-                   *FUNBE=gsl_matrix_alloc(g*p1a,k),
-                   *FUNE=gsl_matrix_alloc(g,k);
-        //define new matrix
-        /*
-        gsl_matrix *FUNE_new=gsl_matrix_alloc(g,k),
-                   *FUNBSE_new=gsl_matrix_alloc(g*p1a*(p1a+1)/2,k),
-                   *FUNBE_new=gsl_matrix_alloc(g*p1a,k);
-        gsl_vector *FU = gsl_vector_alloc(g),
-                   *FUSE = gsl_vector_alloc(g*p1a*(p1a+1)/2),
-                   *FUE = gsl_vector_alloc(g*p1a);
-         */
+        gsl_matrix *FUNB=gsl_matrix_calloc(p1a,k),
+                   *FUNBS=gsl_matrix_calloc(p1a*(p1a+1)/2,k),
+                   *FUNBSE=gsl_matrix_calloc(g*p1a*(p1a+1)/2,k),
+                   *FUNBE=gsl_matrix_calloc(g*p1a,k),
+                   *FUNE=gsl_matrix_calloc(g,k);
 
         int status;
-
-        //auto start_E = std::chrono::high_resolution_clock::now();
-
         status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,vee2,H01,H02,*sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
-
-
-        //auto finish_E = std::chrono::high_resolution_clock::now();
-        //std::chrono::duration<double> elapsed = finish_E - start_E;
-        //printf("Elapsed time for E step: %f\n", elapsed.count());
-
-        //auto start_M = std::chrono::high_resolution_clock::now();
-
         if (status==100) return status;
 
-        gsl_vector * SX = gsl_vector_alloc(p2);
-        gsl_matrix * SXX = gsl_matrix_alloc(p2,p2);
-        gsl_matrix * XX = gsl_matrix_alloc(p2,p2);
-        gsl_vector * X = gsl_vector_alloc(p2);
-        gsl_vector * gammai = gsl_vector_alloc(p2);
+        gsl_vector * SX = gsl_vector_calloc(p2);
+        gsl_matrix * SXX = gsl_matrix_calloc(p2,p2);
+        gsl_matrix * XX = gsl_matrix_calloc(p2,p2);
+        gsl_vector * X = gsl_vector_calloc(p2);
+        gsl_vector * gammai = gsl_vector_calloc(p2);
 
         double scalef;
 
-        gsl_vector * Z = gsl_vector_alloc(p1);                         /* covariates for Y */
-        gsl_vector * SZ = gsl_vector_alloc(p1);
-        gsl_matrix * SZZ = gsl_matrix_alloc(p1,p1);                    /* store sum of ZZ' */
-        gsl_matrix * ZZ = gsl_matrix_alloc(p1,p1);                      /* store ZZ' */
+        gsl_vector * Z = gsl_vector_calloc(p1);                         /* covariates for Y */
+        gsl_vector * SZ = gsl_vector_calloc(p1);
+        gsl_matrix * SZZ = gsl_matrix_calloc(p1,p1);                    /* store sum of ZZ' */
+        gsl_matrix * ZZ = gsl_matrix_calloc(p1,p1);                      /* store ZZ' */
 
-        gsl_vector * bi = gsl_vector_alloc(p1a);
-        gsl_matrix * bs = gsl_matrix_alloc(p1a,p1a);
-        gsl_vector * xtilde = gsl_vector_alloc(p1a);
-        gsl_vector * xtilde1 = gsl_vector_alloc(p1a);
+        gsl_vector * bi = gsl_vector_calloc(p1a);
+        gsl_matrix * bs = gsl_matrix_calloc(p1a,p1a);
+        gsl_vector * xtilde = gsl_vector_calloc(p1a);
+        gsl_vector * xtilde1 = gsl_vector_calloc(p1a);
 
-        gsl_matrix *D=gsl_matrix_alloc(p1a,p1a);
-        gsl_vector *N=gsl_vector_alloc(p1a);
+        gsl_matrix *D=gsl_matrix_calloc(p1a,p1a);
+        gsl_vector *N=gsl_vector_calloc(p1a);
 
-        gsl_matrix *TD=gsl_matrix_alloc(p1a,p1a);
-        gsl_vector *TN=gsl_vector_alloc(p1a);
+        gsl_matrix *TD=gsl_matrix_calloc(p1a,p1a);
+        gsl_vector *TN=gsl_vector_calloc(p1a);
         gsl_matrix *TDD=gsl_matrix_calloc(p1a,p1a);
         gsl_vector *TNN=gsl_vector_calloc(p1a);
 
-        gsl_vector * SX_inter = gsl_vector_alloc(p2);
-        gsl_vector * SX_new = gsl_vector_alloc(p2);
-        gsl_matrix * SXX_new = gsl_matrix_alloc(p2,p2);
-        gsl_vector * X_new = gsl_vector_alloc(p2);
+        gsl_vector * SX_inter = gsl_vector_calloc(p2);
+        gsl_vector * SX_new = gsl_vector_calloc(p2);
+        gsl_matrix * SXX_new = gsl_matrix_calloc(p2,p2);
+        gsl_vector * X_new = gsl_vector_calloc(p2);
 
         /* calculate beta, sig */
 
@@ -1015,11 +995,11 @@ namespace jmcsspace {
         gsl_matrix *SS= gsl_matrix_calloc(d,d);
 
 
-        gsl_matrix *FUNB=gsl_matrix_alloc(p1a,k),
-                   *FUNBS=gsl_matrix_alloc(p1a*(p1a+1)/2,k),
-                   *FUNE=gsl_matrix_alloc(g,k),
-                   *FUNBSE=gsl_matrix_alloc(g*p1a*(p1a+1)/2,k),
-                   *FUNBE=gsl_matrix_alloc(g*p1a,k);
+        gsl_matrix *FUNB=gsl_matrix_calloc(p1a,k),
+                   *FUNBS=gsl_matrix_calloc(p1a*(p1a+1)/2,k),
+                   *FUNE=gsl_matrix_calloc(g,k),
+                   *FUNBSE=gsl_matrix_calloc(g*p1a*(p1a+1)/2,k),
+                   *FUNBE=gsl_matrix_calloc(g*p1a,k);
 
         int status;
         status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,vee2,H01,H02,sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
@@ -1030,9 +1010,9 @@ namespace jmcsspace {
 
 
 
-        gsl_matrix *VC = gsl_matrix_alloc(p1a,p1a);
-        gsl_matrix *VI = gsl_matrix_alloc(p1a,p1a);
-        gsl_matrix *HE = gsl_matrix_alloc(p1a,p1a);
+        gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
+        gsl_matrix *VI = gsl_matrix_calloc(p1a,p1a);
+        gsl_matrix *HE = gsl_matrix_calloc(p1a,p1a);
 
 
         gsl_matrix_memcpy(VC,sig);
@@ -1044,7 +1024,7 @@ namespace jmcsspace {
             }
         }
         gsl_matrix_memcpy(VI,VC);
-        gsl_permutation * vp = gsl_permutation_alloc(p1a);
+        gsl_permutation * vp = gsl_permutation_calloc(p1a);
         gsl_linalg_LU_decomp (VI, vp, &i);
         double vdet=gsl_linalg_LU_det(VI,i);
 
@@ -1058,12 +1038,12 @@ namespace jmcsspace {
 
 
 
-        gsl_vector * Z = gsl_vector_alloc(p1);                         /* covariates for Y */
-        gsl_vector * SZ= gsl_vector_alloc(p1);
-        gsl_vector * xtilde = gsl_vector_alloc(p1a);
-        gsl_vector * xtilde1 = gsl_vector_alloc(p1a);
-        gsl_vector * bi = gsl_vector_alloc(p1a);
-        gsl_matrix * bs = gsl_matrix_alloc(p1a,p1a);
+        gsl_vector * Z = gsl_vector_calloc(p1);                         /* covariates for Y */
+        gsl_vector * SZ= gsl_vector_calloc(p1);
+        gsl_vector * xtilde = gsl_vector_calloc(p1a);
+        gsl_vector * xtilde1 = gsl_vector_calloc(p1a);
+        gsl_vector * bi = gsl_vector_calloc(p1a);
+        gsl_matrix * bs = gsl_matrix_calloc(p1a,p1a);
 
         gsl_vector * X = gsl_vector_calloc(p2);                         /* covariates for C */
         gsl_vector * RX= gsl_vector_calloc(p2);
@@ -2087,15 +2067,15 @@ namespace jmcsspace {
         double cuh01,cuh02,haz01,haz02,xgamma1,xgamma2;
 
 
-        gsl_vector *Z = gsl_vector_alloc(p1),
-                   *X = gsl_vector_alloc(p2),
-                   *xtilde = gsl_vector_alloc(p1a),
-                   *gammai = gsl_vector_alloc(p2);
+        gsl_vector *Z = gsl_vector_calloc(p1),
+                   *X = gsl_vector_calloc(p2),
+                   *xtilde = gsl_vector_calloc(p1a),
+                   *gammai = gsl_vector_calloc(p2);
 
         int db0,db1,db2;
 
-        gsl_vector *xi = gsl_vector_alloc(point);
-        gsl_vector *wi = gsl_vector_alloc(point);
+        gsl_vector *xi = gsl_vector_calloc(point);
+        gsl_vector *wi = gsl_vector_calloc(point);
 
 
         for(i=0;i<point/2;i++)   gsl_vector_set(xi,i,xs[i]);
@@ -2104,12 +2084,12 @@ namespace jmcsspace {
         for(i=0;i<point/2;i++)   gsl_vector_set(xi,point-i-1, 0-gsl_vector_get(xi,i));
         for(i=0;i<point/2;i++)   gsl_vector_set(wi,point-i-1, gsl_vector_get(wi,i));
 
-        gsl_vector *ti=gsl_vector_alloc(p1a);
-        gsl_vector *bi=gsl_vector_alloc(p1a);
-        gsl_vector *ci=gsl_vector_alloc(p1a);
-        gsl_matrix *covi=gsl_matrix_alloc(p1a,p1a);
-        gsl_vector *rii=gsl_vector_alloc(p1a);
-        gsl_vector *tii=gsl_vector_alloc(p1a);
+        gsl_vector *ti=gsl_vector_calloc(p1a);
+        gsl_vector *bi=gsl_vector_calloc(p1a);
+        gsl_vector *ci=gsl_vector_calloc(p1a);
+        gsl_matrix *covi=gsl_matrix_calloc(p1a,p1a);
+        gsl_vector *rii=gsl_vector_calloc(p1a);
+        gsl_vector *tii=gsl_vector_calloc(p1a);
 
         m=0;
 
@@ -2302,6 +2282,7 @@ namespace jmcsspace {
                 gsl_matrix_set_row(covi, i, ci);
             }
 
+
             if(p1a==1)
             {
 
@@ -2357,8 +2338,6 @@ namespace jmcsspace {
 
             if(p1a==2)
             {
-
-                //printf("p1a is: %d\n", p1a);
                 for (db0=0;db0<point;db0++)
                 {
                     for(db1=0;db1<point;db1++)
@@ -2369,7 +2348,6 @@ namespace jmcsspace {
                             gsl_vector_scale(tii, sqrt(2));
                             gsl_vector_add(tii, bi);
                             gsl_vector_memcpy(ti, tii);
-                            //MulM(VV,ri,ti);
                             temp=exp(10);
 
                             for(i=0;i<q;i++)
@@ -2592,18 +2570,18 @@ namespace jmcsspace {
         double cuh01,cuh02,haz01,haz02,xgamma1,xgamma2;
 
 
-        gsl_vector *Z = gsl_vector_alloc(p1),
-                   *X = gsl_vector_alloc(p2),
-                   *xtilde = gsl_vector_alloc(p1a),
-                   *gammai = gsl_vector_alloc(p2);
+        gsl_vector *Z = gsl_vector_calloc(p1),
+                   *X = gsl_vector_calloc(p2),
+                   *xtilde = gsl_vector_calloc(p1a),
+                   *gammai = gsl_vector_calloc(p2);
 
 
 
         int db0,db1,db2;
 
 
-        gsl_vector *xi = gsl_vector_alloc(point);
-        gsl_vector *wi = gsl_vector_alloc(point);
+        gsl_vector *xi = gsl_vector_calloc(point);
+        gsl_vector *wi = gsl_vector_calloc(point);
 
 
         for(i=0;i<point/2;i++)   gsl_vector_set(xi,i,xs[i]);
@@ -2613,12 +2591,12 @@ namespace jmcsspace {
         for(i=0;i<point/2;i++)   gsl_vector_set(wi,point-i-1, gsl_vector_get(wi,i));
 
 
-        gsl_vector *ti=gsl_vector_alloc(p1a);
-        gsl_vector *bi=gsl_vector_alloc(p1a);
-        gsl_vector *ci=gsl_vector_alloc(p1a);
-        gsl_matrix *covi=gsl_matrix_alloc(p1a,p1a);
-        gsl_vector *rii=gsl_vector_alloc(p1a);
-        gsl_vector *tii=gsl_vector_alloc(p1a);
+        gsl_vector *ti=gsl_vector_calloc(p1a);
+        gsl_vector *bi=gsl_vector_calloc(p1a);
+        gsl_vector *ci=gsl_vector_calloc(p1a);
+        gsl_matrix *covi=gsl_matrix_calloc(p1a,p1a);
+        gsl_vector *rii=gsl_vector_calloc(p1a);
+        gsl_vector *tii=gsl_vector_calloc(p1a);
 
 
         double loglik=0;
@@ -2736,6 +2714,16 @@ namespace jmcsspace {
             else continue;
         }
 
+        gsl_matrix *VV = gsl_matrix_calloc(p1a, p1a);
+        gsl_matrix_memcpy(VV, sig);
+
+        for(i=0;i<p1a;i++)
+        {
+            for(j=0;j<i;j++)    gsl_matrix_set(VV,i,j,gsl_matrix_get(VV,j,i));
+        }
+
+        double u = sqrt(exp(gsl_linalg_LU_lndet(VV)));
+
         m=0;
         for(j=0;j<k;j++)
         {
@@ -2764,7 +2752,6 @@ namespace jmcsspace {
                 gsl_matrix_get_row(ci, Poscov, j*p1a+i);
                 gsl_matrix_set_row(covi, i, ci);
             }
-
             temp1=0;
 
             if(p1a==1)
@@ -2796,6 +2783,8 @@ namespace jmcsspace {
 
                         temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
                         temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0);
+                        for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
+                        temp/=u;
 
                         temp1+=temp;
 
@@ -2835,6 +2824,8 @@ namespace jmcsspace {
 
                         temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
                         temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
+                        for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
+                        temp/=u;
 
                         temp1+=temp;
 
@@ -2876,6 +2867,8 @@ namespace jmcsspace {
 
                             temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
                             temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
+                            for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
+                            temp/=u;
 
                             temp1+=temp;
 
@@ -3294,9 +3287,9 @@ namespace jmcsspace {
 
        int status;
 
-       gsl_vector *temp_vector=gsl_vector_alloc(k),
-                  *solution=gsl_vector_alloc(k);
-       gsl_matrix *out = gsl_matrix_alloc(k,k);
+       gsl_vector *temp_vector=gsl_vector_calloc(k),
+                  *solution=gsl_vector_calloc(k);
+       gsl_matrix *out = gsl_matrix_calloc(k,k);
 
        for(i=0;i<k;i++)
        {
@@ -3329,14 +3322,14 @@ namespace jmcsspace {
     {
         int g=2;
         /* allocate space for data */
-        gsl_matrix *C = gsl_matrix_alloc(k,p2+2);
-        gsl_matrix *Y= gsl_matrix_alloc(n1, p1+p1a+1);
-        gsl_vector *M1= gsl_vector_alloc(k);
-        gsl_matrix *Posbi=gsl_matrix_alloc(k, p1a);
-        gsl_matrix *Poscov=gsl_matrix_alloc(k*p1a, p1a);
-        gsl_matrix *Sigcov=gsl_matrix_alloc(p1a, p1a);
-        gsl_vector *Betasigma=gsl_vector_alloc(p1+1);
-        gsl_matrix * Cov=gsl_matrix_alloc(p1+g*p2+g*p1a+p1a*(p1a+1)/2+1,p1+g*p2+g*p1a+p1a*(p1a+1)/2+1);
+        gsl_matrix *C = gsl_matrix_calloc(k,p2+2);
+        gsl_matrix *Y= gsl_matrix_calloc(n1, p1+p1a+1);
+        gsl_vector *M1= gsl_vector_calloc(k);
+        gsl_matrix *Posbi=gsl_matrix_calloc(k, p1a);
+        gsl_matrix *Poscov=gsl_matrix_calloc(k*p1a, p1a);
+        gsl_matrix *Sigcov=gsl_matrix_calloc(p1a, p1a);
+        gsl_vector *Betasigma=gsl_vector_calloc(p1+1);
+        gsl_matrix * Cov=gsl_matrix_calloc(p1+g*p2+g*p1a+p1a*(p1a+1)/2+1,p1+g*p2+g*p1a+p1a*(p1a+1)/2+1);
 
         /* read Y matrix  */
          {
@@ -3494,11 +3487,11 @@ namespace jmcsspace {
 
         int i,j,iter,status;
         /* allocate space for estimated parameters */
-        gsl_matrix * gamma=gsl_matrix_alloc(g, p2);
-        gsl_vector * vee1=gsl_vector_alloc(p1a);
-        gsl_vector * vee2=gsl_vector_alloc(p1a);
-        gsl_vector * beta=gsl_vector_alloc(p1);
-        gsl_matrix * sig=gsl_matrix_alloc(p1a, p1a);
+        gsl_matrix * gamma=gsl_matrix_calloc(g, p2);
+        gsl_vector * vee1=gsl_vector_calloc(p1a);
+        gsl_vector * vee2=gsl_vector_calloc(p1a);
+        gsl_vector * beta=gsl_vector_calloc(p1);
+        gsl_matrix * sig=gsl_matrix_calloc(p1a, p1a);
 
         double sigma;
         for (i=0;i<p1;i++) gsl_vector_set(beta, i, gsl_vector_get(Betasigma, i));
@@ -3512,28 +3505,28 @@ namespace jmcsspace {
         GetPoscov(Y,beta,M1,Sigcov,sigma,Xinv,Poscov,k,p1,p1a);
         /* allocate space for pre parameters */
 
-        gsl_vector * prebeta=gsl_vector_alloc(p1);
-        gsl_matrix * pregamma=gsl_matrix_alloc(g,p2);
-        gsl_vector * prevee1=gsl_vector_alloc(p1a);
-        gsl_vector * prevee2=gsl_vector_alloc(p1a);
-        gsl_matrix * presig=gsl_matrix_alloc(p1a, p1a);
+        gsl_vector * prebeta=gsl_vector_calloc(p1);
+        gsl_matrix * pregamma=gsl_matrix_calloc(g,p2);
+        gsl_vector * prevee1=gsl_vector_calloc(p1a);
+        gsl_vector * prevee2=gsl_vector_calloc(p1a);
+        gsl_matrix * presig=gsl_matrix_calloc(p1a, p1a);
 
         double presigma;
 
         /*allocate space for standard error estimate*/
-        gsl_vector * vbeta=gsl_vector_alloc(p1);
-        gsl_matrix * vgamma=gsl_matrix_alloc(g,p2);
-        gsl_vector * vvee1=gsl_vector_alloc(p1a);
-        gsl_vector * vvee2=gsl_vector_alloc(p1a);
-        gsl_vector * vsig=gsl_vector_alloc(p1a*(p1a+1)/2);
+        gsl_vector * vbeta=gsl_vector_calloc(p1);
+        gsl_matrix * vgamma=gsl_matrix_calloc(g,p2);
+        gsl_vector * vvee1=gsl_vector_calloc(p1a);
+        gsl_vector * vvee2=gsl_vector_calloc(p1a);
+        gsl_vector * vsig=gsl_vector_calloc(p1a*(p1a+1)/2);
         double v_sigma;
 
         //Define C_new matrix for risk set calculation
-        gsl_matrix *C_new = gsl_matrix_alloc(k,2+p2);
-        gsl_vector *p = gsl_vector_alloc(k);
-        gsl_vector *pi = gsl_vector_alloc(2+p2);
-        gsl_permutation * perm = gsl_permutation_alloc(k);
-        gsl_permutation * rank = gsl_permutation_alloc(k);
+        gsl_matrix *C_new = gsl_matrix_calloc(k,2+p2);
+        gsl_vector *p = gsl_vector_calloc(k);
+        gsl_vector *pi = gsl_vector_calloc(2+p2);
+        gsl_permutation * perm = gsl_permutation_calloc(k);
+        gsl_permutation * rank = gsl_permutation_calloc(k);
         //return rank index
         //auto start_rank = std::chrono::high_resolution_clock::now();
         gsl_matrix_get_col(p, C, 0);
@@ -3634,7 +3627,7 @@ namespace jmcsspace {
             printf("No failure time information for risk 1; Program exits\n");
             return R_NilValue;
         }
-        gsl_matrix * H01 = gsl_matrix_alloc(3,a);
+        gsl_matrix * H01 = gsl_matrix_calloc(3,a);
         for(i=0;i<3;i++)
         {
             if(i<=1)
@@ -3726,7 +3719,7 @@ namespace jmcsspace {
             printf("No failure time information for risk 2; Program exits\n");
             return R_NilValue;
         }
-        gsl_matrix * H02 = gsl_matrix_alloc(3,b);
+        gsl_matrix * H02 = gsl_matrix_calloc(3,b);
         for(i=0;i<3;i++)
         {
             if(i<=1)
@@ -3739,8 +3732,8 @@ namespace jmcsspace {
             }
         }
 
-        gsl_matrix * preH01 = gsl_matrix_alloc(3,a);
-        gsl_matrix * preH02 = gsl_matrix_alloc(3,b);
+        gsl_matrix * preH01 = gsl_matrix_calloc(3,a);
+        gsl_matrix * preH02 = gsl_matrix_calloc(3,b);
 
         /* initialize the parameters */
 
@@ -3751,10 +3744,10 @@ namespace jmcsspace {
 
         int index1;
         /*Sort data*/
-        gsl_vector *M1_new = gsl_vector_alloc(k);
-        gsl_vector *Posbivec = gsl_vector_alloc(p1a);
-        gsl_matrix *Posbi_new = gsl_matrix_alloc(k,p1a);
-        gsl_matrix *Poscov_new = gsl_matrix_alloc(k*p1a,p1a);
+        gsl_vector *M1_new = gsl_vector_calloc(k);
+        gsl_vector *Posbivec = gsl_vector_calloc(p1a);
+        gsl_matrix *Posbi_new = gsl_matrix_calloc(k,p1a);
+        gsl_matrix *Poscov_new = gsl_matrix_calloc(k*p1a,p1a);
         for (j=0;j<k;j++)
         {
           gsl_matrix_get_row(Posbivec,Posbi,j);
@@ -3766,8 +3759,8 @@ namespace jmcsspace {
         gsl_vector *M1_rank = gsl_vector_calloc(k);
         gsl_vector *M1_new_rank = gsl_vector_calloc(k);
         int n2 = Y->size2;
-        gsl_vector *Y_row = gsl_vector_alloc(n2);
-        gsl_matrix *Y_new = gsl_matrix_alloc(n1,n2);
+        gsl_vector *Y_row = gsl_vector_calloc(n2);
+        gsl_matrix *Y_new = gsl_matrix_calloc(n1,n2);
         double temp1=0;
         for (j=1;j<k;j++)
         {
