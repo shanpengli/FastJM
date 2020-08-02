@@ -2721,8 +2721,11 @@ namespace jmcsspace {
         {
             for(j=0;j<i;j++)    gsl_matrix_set(VV,i,j,gsl_matrix_get(VV,j,i));
         }
+        gsl_permutation * vp = gsl_permutation_calloc(p1a);
+        gsl_linalg_LU_decomp (VV, vp, &i);
+        double u=sqrt(gsl_linalg_LU_det(VV,i));
 
-        double u = sqrt(exp(gsl_linalg_LU_lndet(VV)));
+        //Rprintf("det=%f\n",u);
 
         m=0;
         for(j=0;j<k;j++)
@@ -2823,7 +2826,7 @@ namespace jmcsspace {
                         if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
                         temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
-                        temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
+                        temp*=1/sqrt(gsl_pow_2(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
                         for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                         temp/=u;
 
@@ -2866,7 +2869,7 @@ namespace jmcsspace {
                             if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
                             temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
-                            temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
+                            temp*=1/sqrt(gsl_pow_3(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
                             for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                             temp/=u;
 
@@ -2905,6 +2908,7 @@ namespace jmcsspace {
         gsl_vector_free(HAZ02);
         gsl_vector_free(CumuH01);
         gsl_vector_free(CumuH02);
+        gsl_permutation_free(vp);
 
 
         return loglik;

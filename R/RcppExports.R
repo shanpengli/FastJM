@@ -10,3 +10,8 @@ SimData <- function(k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, 
     .Call(`_FastJM_SimData`, k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee1, truevee2, randeffect, yfn, cfn, mfn)
 }
 
+#' @export
+SimDataSF <- function(k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee, randeffect, yfn, cfn, mfn) {
+    .Call(`_FastJM_SimDataSF`, k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee, randeffect, yfn, cfn, mfn)
+}
+

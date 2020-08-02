@@ -5,6 +5,7 @@
 //  Created by Shanpeng Li on 6/22/20.
 //
 #include <Rcpp.h>
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -25,16 +26,15 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+
 #include "comp.h"
-
-
 
 using namespace Rcpp;
 
 //' @export
 // [[Rcpp::export]]
 
-Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, SEXP truebeta, SEXP truegamma, SEXP truevee1, SEXP truevee2, SEXP randeffect, SEXP yfn, SEXP cfn, SEXP mfn)
+Rcpp::List SimDataSF(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, SEXP truebeta, SEXP truegamma, SEXP truevee, SEXP randeffect, SEXP yfn, SEXP cfn, SEXP mfn)
 
 {
     size_t k=as<int> (k_val);
@@ -51,16 +51,16 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
     const std::vector <double> tbeta_val=as<std::vector<double> >(truebeta);
     const std::vector <double> tgamma_val=as<std::vector<double> >(truegamma);
     const std::vector <double> reffect_val=as<std::vector<double> >(randeffect);
-    const std::vector <double> tvee1_val=as<std::vector<double> >(truevee1);
-    const std::vector <double> tvee2_val=as<std::vector<double> >(truevee2);
+    const std::vector <double> tvee_val=as<std::vector<double> >(truevee);
+
     if (tbeta_val.size() != p1)
     {
         Rprintf("Error in parameter p1 or truebeta.\n");
         return R_NilValue;
     }
-    if (tgamma_val.size() != p2*2)
+    if (tgamma_val.size() != p2)
     {
-        Rprintf("Error in parameter p2 (for two competing risks) or truegamma.\n");
+        Rprintf("Error in parameter p2 or truegamma.\n");
         return R_NilValue;
     }
 
@@ -71,8 +71,8 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
 
     /* allocate space for true parameters */
     gsl_vector *tbeta = gsl_vector_calloc(p1);
-    gsl_vector *tvee1 = gsl_vector_calloc(p1a);
-    gsl_vector *tvee2 = gsl_vector_calloc(p1a);
+    gsl_vector *tvee = gsl_vector_calloc(p1a);
+
     gsl_matrix *tgamma = gsl_matrix_calloc(g,p2);
 
     gsl_matrix *VC= gsl_matrix_calloc(p1a,p1a);
@@ -97,8 +97,8 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
         }
     }
 
-    for (size_t i=0;i<p1a;i++) gsl_vector_set(tvee1, i, tvee1_val[i]);
-    for (size_t i=0;i<p1a;i++) gsl_vector_set(tvee2, i, tvee2_val[i]);
+    for (size_t i=0;i<p1a;i++) gsl_vector_set(tvee, i, tvee_val[i]);
+
 
     gsl_matrix_set(VC,0,0,tsigmab0);
     gsl_matrix_set(VC,1,1,tsigmab1);
@@ -120,13 +120,13 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
     T = gsl_rng_default;
     r = gsl_rng_alloc (T);
 
-    double lamda01=0.05, lamda02=0.1;               /* baseline hazard; constant over time */
-    double temp,x1,x2,t1,t2,censor,u,b0,b1,error;
-    double crate,rate1,rate2,max_censor=5;
+    double lamda01=0.05;               /* baseline hazard; constant over time */
+    double temp,x1,x2,t1,censor,u,b0,b1,error;
+    double crate,rate1,max_censor=5;
 
     crate=0;
     rate1=0;
-    rate2=0;
+
 
     for(j=0;j<k;j++)
         {
@@ -145,17 +145,11 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
             gsl_matrix_set(C,j,3,x2);
 
             temp=gsl_matrix_get(tgamma,0,0)*x1+gsl_matrix_get(tgamma,0,1)*x2;
-            temp=exp(temp+gsl_vector_get(tvee1,0)*b0+gsl_vector_get(tvee1,1)*b1);
+            temp=exp(temp+gsl_vector_get(tvee,0)*b0+gsl_vector_get(tvee,1)*b1);
             temp=lamda01*temp;
             t1=gsl_ran_exponential(r, 1/temp);
 
-            temp=gsl_matrix_get(tgamma,1,0)*x1+gsl_matrix_get(tgamma,1,1)*x2;
-            temp=exp(temp+gsl_vector_get(tvee2,0)*b0+gsl_vector_get(tvee2,1)*b1);
-            temp=lamda02*temp;
-            t2=gsl_ran_exponential(r, 1/temp);
-
-
-            if(t1<=t2 && t1<=censor && t1<=max_censor)
+            if(t1<=censor && t1<=max_censor)
             {
                 rate1+=1;
                 gsl_matrix_set(C,j,0,t1);
@@ -163,15 +157,7 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
                 n=GetN(t1);
             }
 
-            if(t2<=t1 && t2<=censor && t2<=max_censor)
-            {
-                rate2+=1;
-                gsl_matrix_set(C,j,0,t2);
-                gsl_matrix_set(C,j,1,2);
-                n=GetN(t2);
-            }
-
-            if(Min(censor, max_censor)<=t1 && Min(censor, max_censor)<=t2)
+            if(Min(censor, max_censor)<=t1)
             {
                 crate+=1;
                 gsl_matrix_set(C,j,0,Min(max_censor,censor));
@@ -287,14 +273,12 @@ Rcpp::List SimData(SEXP k_val,SEXP p1_val,SEXP p1a_val,SEXP p2_val, SEXP g_val, 
         gsl_vector_free(W);
 
         gsl_vector_free(tbeta);
-        gsl_vector_free(tvee1);
-        gsl_vector_free(tvee2);
+        gsl_vector_free(tvee);
         gsl_matrix_free(tgamma);
 
         Rcpp::List ret;
         ret["censoring_rate"] = crate/(double)k;
-        ret["rate1"] = rate1/(double)k;
-        ret["rate2"] = rate2/(double)k;
+        ret["rate"] = rate1/(double)k;
         ret["yfn"] = yfile.c_str();
         ret["cfn"] = cfile.c_str();
         ret["mfn"] = mfile.c_str();
