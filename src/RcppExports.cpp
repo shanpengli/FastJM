@@ -30,6 +30,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// jmcsf_main
+Rcpp::List jmcsf_main(SEXP k, SEXP n1, SEXP p1, SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs, SEXP ws, SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP trace);
+RcppExport SEXP _FastJM_jmcsf_main(SEXP kSEXP, SEXP n1SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP p1aSEXP, SEXP maxiterSEXP, SEXP pointSEXP, SEXP xsSEXP, SEXP wsSEXP, SEXP yfileSEXP, SEXP cfileSEXP, SEXP mfileSEXP, SEXP BetasigmafileSEXP, SEXP SigcovfileSEXP, SEXP traceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type k(kSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type n1(n1SEXP);
+    Rcpp::traits::input_parameter< SEXP >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< SEXP >::type p2(p2SEXP);
+    Rcpp::traits::input_parameter< SEXP >::type p1a(p1aSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type point(pointSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type ws(wsSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type yfile(yfileSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type cfile(cfileSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type mfile(mfileSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Betasigmafile(BetasigmafileSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Sigcovfile(SigcovfileSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type trace(traceSEXP);
+    rcpp_result_gen = Rcpp::wrap(jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, trace));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SimData
 Rcpp::List SimData(SEXP k_val, SEXP p1_val, SEXP p1a_val, SEXP p2_val, SEXP g_val, SEXP truebeta, SEXP truegamma, SEXP truevee1, SEXP truevee2, SEXP randeffect, SEXP yfn, SEXP cfn, SEXP mfn);
 RcppExport SEXP _FastJM_SimData(SEXP k_valSEXP, SEXP p1_valSEXP, SEXP p1a_valSEXP, SEXP p2_valSEXP, SEXP g_valSEXP, SEXP truebetaSEXP, SEXP truegammaSEXP, SEXP truevee1SEXP, SEXP truevee2SEXP, SEXP randeffectSEXP, SEXP yfnSEXP, SEXP cfnSEXP, SEXP mfnSEXP) {
@@ -78,6 +103,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_FastJM_jmcs_main", (DL_FUNC) &_FastJM_jmcs_main, 15},
+    {"_FastJM_jmcsf_main", (DL_FUNC) &_FastJM_jmcsf_main, 15},
     {"_FastJM_SimData", (DL_FUNC) &_FastJM_SimData, 13},
     {"_FastJM_SimDataSF", (DL_FUNC) &_FastJM_SimDataSF, 12},
     {NULL, NULL, 0}

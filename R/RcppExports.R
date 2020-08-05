@@ -5,6 +5,10 @@ jmcs_main <- function(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, 
     .Call(`_FastJM_jmcs_main`, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, trace)
 }
 
+jmcsf_main <- function(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, trace) {
+    .Call(`_FastJM_jmcsf_main`, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, trace)
+}
+
 #' @export
 SimData <- function(k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee1, truevee2, randeffect, yfn, cfn, mfn) {
     .Call(`_FastJM_SimData`, k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee1, truevee2, randeffect, yfn, cfn, mfn)

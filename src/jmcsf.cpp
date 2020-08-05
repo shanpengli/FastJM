@@ -1,12 +1,12 @@
 //
-//  jmcs.cpp
+//  jmcsf.cpp
 //  FastJM
 //
 //  Created by Shanpeng Li on 6/16/20.
 //
 
-#include "jmcs.hpp"
-namespace jmcsspace {
+#include "jmcsf.hpp"
+namespace jmcsfspace {
 
     double GetPosbi(
                     const gsl_matrix *Y,
@@ -175,9 +175,7 @@ namespace jmcsspace {
            gsl_vector *beta,
            gsl_matrix *gamma,
            gsl_vector *vee1,
-           gsl_vector *vee2,
            gsl_matrix *H01,
-           gsl_matrix *H02,
            double *sigma,
            gsl_matrix *sig,
            const int p1a,
@@ -197,7 +195,6 @@ namespace jmcsspace {
         int p2=gamma->size2;
         int g =gamma->size1;
         int a =H01->size2;
-        int b =H02->size2;
 
         int n1 = Y->size1;
         int k = M1->size;
@@ -211,7 +208,7 @@ namespace jmcsspace {
                    *FUNE=gsl_matrix_calloc(g,k);
 
         int status;
-        status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,vee2,H01,H02,*sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
+        status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,H01,*sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
         if (status==100) return status;
 
         gsl_vector * SX = gsl_vector_calloc(p2);
@@ -282,22 +279,11 @@ namespace jmcsspace {
 
         }
 
-        //for (p=0;p<p1a;p++)
-        //{
-            //printf("sig is: %f\n", gsl_matrix_get(sig, 0, p));
-        //}
-
         gsl_matrix_scale(sig,1/(double)k);
 
         status=inv_matrix(SZZ);
         if(status==100)    return status;
         MulM(SZZ,SZ,beta);
-
-
-        //for (p=0;p<3;p++)
-         //{
-             //printf("beta is: %f\n", gsl_vector_get(beta,p));
-         //}
 
         /* calculate sigma */
         *sigma=0;
@@ -336,12 +322,11 @@ namespace jmcsspace {
 
 
 
-        /* calculate H01 H02 */
+        /* calculate H01*/
 
 
         double dem;
         int risk1_index=a-1;
-        int risk2_index=b-1;
         /*New risk set calculation*/
          dem=0;
             for (j=0;j<k;j++)
@@ -399,67 +384,12 @@ namespace jmcsspace {
                 }
              else continue;
             }
-            dem=0;
-            for (j=0;j<k;j++)
-            {
-                for(u=0;u<p2;u++)
-                {
-                    gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                    gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-                }
-                dem = dem + gsl_matrix_get(FUNE,1,j)*exp(MulVV(X,gammai));
 
-                if (gsl_matrix_get(C,j,1) == 2)
-                {
-                    if (j == k-1)
-                    {
-                        //dem_2[risk2_index] = dem;
-                        gsl_matrix_set(H02,2,risk2_index,gsl_matrix_get(H02,1,risk2_index)/dem);
-                        risk2_index--;
-                    }
-                    else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                    {
-                        //dem_2[risk2_index] = dem;
-                        gsl_matrix_set(H02,2,risk2_index,gsl_matrix_get(H02,1,risk2_index)/dem);
-                        risk2_index--;
-                    }
-
-                    else
-                    {
-                        for (j=j+1;j<k;j++)
-                        {
-                            for(u=0;u<p2;u++)
-                            {
-                                gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                                gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-                            }
-                            dem = dem + gsl_matrix_get(FUNE,1,j)*exp(MulVV(X,gammai));
-                            if (j == k-1)
-                            {
-                                gsl_matrix_set(H02,2,risk2_index,gsl_matrix_get(H02,1,risk2_index)/dem);
-                                risk2_index--;
-                                break;
-                            }
-                            else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                            {
-                                //dem_2[risk2_index] = dem;
-                                gsl_matrix_set(H02,2,risk2_index,gsl_matrix_get(H02,1,risk2_index)/dem);
-                                risk2_index--;
-                                break;
-                            }
-                            else continue;
-                        }
-                    }
-                }
-             else continue;
-            }
 
         /* calculate gamma */
         /*New algorithm*/
-        double scalefH01, scalefH02;
-        /*auto start = std::chrono::high_resolution_clock::now();*/
+        double scalefH01;
         risk1_index=a-1;
-        risk2_index=b-1;
         gsl_matrix_set_zero(SXX);
         gsl_vector_set_zero(SX);
         gsl_matrix_set_zero(SXX_new);
@@ -570,127 +500,11 @@ namespace jmcsspace {
         MulM(SXX_new,SX_inter,X_new);
 
         for(j=0;j<p2;j++) gsl_matrix_set(gamma,0,j,gsl_matrix_get(gamma,0,j)+gsl_vector_get(X_new,j));
-        gsl_matrix_set_zero(SXX);
-        gsl_vector_set_zero(SX);
-        gsl_matrix_set_zero(SXX_new);
-        gsl_vector_set_zero(SX_new);
-        gsl_vector_set_zero(SX_inter);
-
-        for (j=0; j<k; j++)
-        {
-            for(u=0;u<p2;u++)
-            {
-                gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-            }
-            MulV(X,XX);
-            scalef = gsl_matrix_get(FUNE,1,j)*exp(MulVV(X,gammai));
-
-            gsl_matrix_scale(XX, scalef);
-            gsl_matrix_add(SXX, XX);
-            gsl_vector_scale(X, scalef);
-            gsl_vector_add(SX, X);
-
-            if (gsl_matrix_get(C,j,1) == 2)
-            {
-                if (j == k-1)
-                {
-                    scalefH02 = gsl_matrix_get(H02, 2, risk2_index);
-                    gsl_matrix_scale(SXX, scalefH02);
-                    gsl_matrix_add(SXX_new, SXX);
-                    gsl_matrix_scale(SXX, 1/scalefH02);
-                    gsl_vector_scale(SX, scalefH02);
-                    gsl_vector_add(SX_new, SX);
-                    gsl_vector_scale(SX, 1/scalefH02);
-                    risk2_index--;
-                }
-                else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                {
-                    scalefH02 = gsl_matrix_get(H02, 2, risk2_index);
-                    gsl_matrix_scale(SXX, scalefH02);
-                    gsl_matrix_add(SXX_new, SXX);
-                    gsl_matrix_scale(SXX, 1/scalefH02);
-                    gsl_vector_scale(SX, scalefH02);
-                    gsl_vector_add(SX_new, SX);
-                    gsl_vector_scale(SX, 1/scalefH02);
-                    risk2_index--;
-                }
-
-                else
-                {
-                    for (j=j+1;j<k;j++)
-                    {
-                        for(u=0;u<p2;u++)
-                        {
-                            gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                            gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-                        }
-
-                        MulV(X,XX);
-                        scalef = gsl_matrix_get(FUNE,1,j)*exp(MulVV(X,gammai));
-
-                        gsl_matrix_scale(XX, scalef);
-                        gsl_matrix_add(SXX, XX);
-                        gsl_vector_scale(X, scalef);
-                        gsl_vector_add(SX, X);
-
-                        if (j == k-1)
-                        {
-                            scalefH02 = gsl_matrix_get(H02, 2, risk2_index);
-                            gsl_matrix_scale(SXX, scalefH02);
-                            gsl_matrix_add(SXX_new, SXX);
-                            gsl_matrix_scale(SXX, 1/scalefH02);
-                            gsl_vector_scale(SX, scalefH02);
-                            gsl_vector_add(SX_new, SX);
-                            gsl_vector_scale(SX, 1/scalefH02);
-                            risk2_index--;
-                            break;
-                        }
-                        else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                        {
-                            scalefH02 = gsl_matrix_get(H02, 2, risk2_index);
-                            gsl_matrix_scale(SXX, scalefH02);
-                            gsl_matrix_add(SXX_new, SXX);
-                            gsl_matrix_scale(SXX, 1/scalefH02);
-                            gsl_vector_scale(SX, scalefH02);
-                            gsl_vector_add(SX_new, SX);
-                            gsl_vector_scale(SX, 1/scalefH02);
-                            risk2_index--;
-                            break;
-                        }
-                        else continue;
-                    }
-                }
-            }
-            else continue;
-        }
-
-        for (j=0;j<k;j++)
-        {
-            for(u=0;u<p2;u++)
-            {
-                gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-            }
-            if ((int)gsl_matrix_get(C,j,1) == 2)
-            {
-                gsl_vector_add(SX_inter, X);
-            }
-        }
-        gsl_vector_scale(SX_new, -1);
-        gsl_vector_add(SX_inter, SX_new);
-        status=inv_matrix(SXX_new);
-        if(status==100)  return status;
-        MulM(SXX_new,SX_inter,X_new);
-
-        for(j=0;j<p2;j++)  gsl_matrix_set(gamma,1,j,gsl_matrix_get(gamma,1,j)+gsl_vector_get(X_new,j));
 
         /* calculate vee */
-
-
         gsl_matrix_set_zero(TD);
         gsl_vector_set_zero(TN);
         risk1_index = a-1;
-        risk2_index = b-1;
 
         for (j=0;j<k;j++)
         {
@@ -809,122 +623,6 @@ namespace jmcsspace {
         gsl_vector_set_zero(TN);
         gsl_vector_set_zero(TNN);
 
-        for (j=0;j<k;j++)
-         {
-             for(t=0;t<p1a;t++)   gsl_matrix_set(D,t,t,gsl_matrix_get(FUNBSE,p1a*(p1a+1)/2+t,j));
-
-             if(p1a>1)
-             {
-                 for(i=1;i<p1a;i++)
-                 {
-                     for(t=0;t<p1a-i;t++)   gsl_matrix_set(D,t,i+t,gsl_matrix_get(FUNBSE,p1a*(p1a+1)/2+p1a+t+(i-1)*(p1a-1),j));
-                 }
-             }
-             for(t=0;t<p1a;t++)
-             {
-                 for(i=0;i<t;i++)   gsl_matrix_set(D,t,i,gsl_matrix_get(D,i,t));
-             }
-
-             for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,j));
-
-             for(u=0;u<p2;u++)
-             {
-                 gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                 gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-             }
-             gsl_matrix_scale(D,exp(MulVV(X,gammai)));
-             gsl_matrix_add(TD,D);
-             gsl_vector_scale(N,exp(MulVV(X,gammai)));
-             gsl_vector_add(TN,N);
-
-             if (gsl_matrix_get(C,j,1) == 2)
-             {
-               if (j == k-1)
-               {
-                 gsl_matrix_scale(TD, gsl_matrix_get(H02, 2, risk2_index));
-                 gsl_matrix_add(TDD,TD);
-                 gsl_matrix_scale(TD, 1/gsl_matrix_get(H02, 2, risk2_index));
-                 gsl_vector_scale(TN, gsl_matrix_get(H02, 2, risk2_index));
-                 gsl_vector_add(TNN,TN);
-                 gsl_vector_scale(TN, 1/gsl_matrix_get(H02, 2, risk2_index));
-                 risk2_index--;
-
-
-               }
-               else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-               {
-                  gsl_matrix_scale(TD, gsl_matrix_get(H02, 2, risk2_index));
-                  gsl_matrix_add(TDD,TD);
-                  gsl_matrix_scale(TD, 1/gsl_matrix_get(H02, 2, risk2_index));
-                  gsl_vector_scale(TN, gsl_matrix_get(H02, 2, risk2_index));
-                  gsl_vector_add(TNN,TN);
-                  gsl_vector_scale(TN, 1/gsl_matrix_get(H02, 2, risk2_index));
-                  risk2_index--;
-               }
-               else
-               {
-                  for (j=j+1;j<k;j++)
-                  {
-                     for(u=0;u<p2;u++)
-                     {
-                        gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                        gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-                     }
-                     gsl_matrix_scale(D,exp(MulVV(X,gammai)));
-                     gsl_matrix_add(TD,D);
-                     gsl_vector_scale(N,exp(MulVV(X,gammai)));
-                     gsl_vector_add(TN,N);
-
-                     if (j == k-1)
-                     {
-                        gsl_matrix_scale(TD, gsl_matrix_get(H02, 2, risk2_index));
-                        gsl_matrix_add(TDD,TD);
-                        gsl_matrix_scale(TD, 1/gsl_matrix_get(H02, 2, risk2_index));
-                        gsl_vector_scale(TN, gsl_matrix_get(H02, 2, risk2_index));
-                        gsl_vector_add(TNN,TN);
-                        gsl_vector_scale(TN, 1/gsl_matrix_get(H02, 2, risk2_index));
-                        risk2_index--;
-                        break;
-                     }
-                     else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                     {
-                        gsl_matrix_scale(TD, gsl_matrix_get(H02, 2, risk2_index));
-                        gsl_matrix_add(TDD,TD);
-                        gsl_matrix_scale(TD, 1/gsl_matrix_get(H02, 2, risk2_index));
-                        gsl_vector_scale(TN, gsl_matrix_get(H02, 2, risk2_index));
-                        gsl_vector_add(TNN,TN);
-                        gsl_vector_scale(TN, 1/gsl_matrix_get(H02, 2, risk2_index));
-                        risk2_index--;
-                        break;
-                     }
-                     else continue;
-                  }
-               }
-             }
-             else continue;
-         }
-         gsl_vector_set_zero(TN);
-         for (j=0;j<k;j++)
-         {
-             if((int)gsl_matrix_get(C,j,1)==2)
-             {
-                 for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNB,t,j));
-                 gsl_vector_add(TN, N);
-             } else continue;
-         }
-         gsl_vector_sub(TN,TNN);
-
-         status=inv_matrix(TDD);
-         if(status==100)  return status;
-         MulM(TDD,TN,N);
-
-        for(j=0;j<p1a;j++)  gsl_vector_set(vee2,j,gsl_vector_get(vee2,j)+gsl_vector_get(N,j));
-
-        //auto finish_M = std::chrono::high_resolution_clock::now();
-        //std::chrono::duration<double> elapsed_M = finish_M - start_M;
-        //printf("Elapsed time for M step: %f\n", elapsed_M.count());
-
-
         gsl_vector_free(Z);
         gsl_vector_free(SZ);
         gsl_vector_free(X);
@@ -934,7 +632,6 @@ namespace jmcsspace {
         gsl_matrix_free(ZZ);
         gsl_matrix_free(SXX);
         gsl_matrix_free(XX);
-
 
         gsl_matrix_free(FUNB);
         gsl_matrix_free(FUNE);
@@ -962,9 +659,7 @@ namespace jmcsspace {
                const gsl_vector *beta,
                const gsl_matrix *gamma,
                const gsl_vector *vee1,
-               const gsl_vector *vee2,
                const gsl_matrix *H01,
-               const gsl_matrix *H02,
                const double sigma,
                const gsl_matrix *sig,
                const gsl_matrix *Y,
@@ -983,7 +678,6 @@ namespace jmcsspace {
         int p2=gamma->size2;
         int g =gamma->size1;
         int a =H01->size2;
-        int b =H02->size2;
         int d =Cov->size1;
         int k = M1->size;
 
@@ -1002,13 +696,9 @@ namespace jmcsspace {
                    *FUNBE=gsl_matrix_calloc(g*p1a,k);
 
         int status;
-        status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,vee2,H01,H02,sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
-
+        status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,H01,sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
 
         if (status==100) return status;
-
-
-
 
         gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
         gsl_matrix *VI = gsl_matrix_calloc(p1a,p1a);
@@ -1032,11 +722,8 @@ namespace jmcsspace {
 
         if(vdet<0.0005) return 100;
 
-
         status=inv_matrix(VC);
         if(status==100) return status;
-
-
 
         gsl_vector * Z = gsl_vector_calloc(p1);                         /* covariates for Y */
         gsl_vector * SZ= gsl_vector_calloc(p1);
@@ -1054,10 +741,7 @@ namespace jmcsspace {
         gsl_vector *SRXX= gsl_vector_calloc(p2);
         gsl_matrix *SXX1 = gsl_matrix_calloc(p2,a);
         gsl_matrix *SXX11 = gsl_matrix_calloc(p2,a);
-        gsl_matrix *SXX2 = gsl_matrix_calloc(p2,b);
-        gsl_matrix *SXX22 = gsl_matrix_calloc(p2,b);
         gsl_matrix *SRXX1 = gsl_matrix_calloc(p2,k);
-        gsl_matrix *SRXX2 = gsl_matrix_calloc(p2,k);
         gsl_vector * gammai = gsl_vector_calloc(p2);
 
         gsl_vector *N=gsl_vector_calloc(p1a);
@@ -1066,11 +750,8 @@ namespace jmcsspace {
         gsl_vector *TRN=gsl_vector_calloc(p1a);
         gsl_vector *TRNN=gsl_vector_calloc(p1a);
         gsl_matrix *TRNN1=gsl_matrix_calloc(p1a,k);
-        gsl_matrix *TRNN2=gsl_matrix_calloc(p1a,k);
         gsl_matrix *TNN1=gsl_matrix_calloc(p1a,a);
         gsl_matrix *TNN11=gsl_matrix_calloc(p1a,a);
-        gsl_matrix *TNN2=gsl_matrix_calloc(p1a,b);
-        gsl_matrix *TNN22=gsl_matrix_calloc(p1a,b);
 
 
 
@@ -1078,33 +759,19 @@ namespace jmcsspace {
         gsl_matrix_set_zero(Cov);
 
         int risk1_index;
-        int risk2_index;
         int risk1_index_temp=a-1;
         int risk1_index_ttemp=a-1;
         int risk1_index_tttemp=a-1;
-        int risk2_index_temp=b-1;
-        int risk2_index_ttemp=b-1;
-        int risk2_index_tttemp=b-1;
         int risk1_index_vtemp=a-1;
         int risk1_index_vttemp=a-1;
         int risk1_index_vtttemp=a-1;
-        int risk2_index_vtemp=b-1;
-        int risk2_index_vttemp=b-1;
-        int risk2_index_vtttemp=b-1;
 
         temp1=0;
         gsl_vector *CumuH01 = gsl_vector_calloc(a);
-        gsl_vector *CumuH02 = gsl_vector_calloc(b);
         for (j=0;j<a;j++)
         {
             temp1+=gsl_matrix_get(H01, 2, j);
             gsl_vector_set(CumuH01,j,temp1);
-        }
-        temp1=0;
-        for (j=0;j<b;j++)
-        {
-            temp1+=gsl_matrix_get(H02, 2, j);
-            gsl_vector_set(CumuH02,j,temp1);
         }
 
         for(j=0;j<k;j++)
@@ -1112,7 +779,6 @@ namespace jmcsspace {
 
             gsl_vector_set_zero(S);
             u=(int)gsl_vector_get(M1,j);
-
 
             /* calculate score for beta */
 
@@ -1130,7 +796,6 @@ namespace jmcsspace {
 
             gsl_vector_scale (SZ,1/sigma);
             for(q=0;q<p1;q++)  gsl_vector_set(S,q,gsl_vector_get(SZ,q));
-
 
             /* calculate score for sigma */
 
@@ -1164,8 +829,6 @@ namespace jmcsspace {
             gsl_vector_set(S,p1,temp);
 
             p=p+u;
-
-
 
             /* calculate score for gamma */
             /*  gamma11, gamma12 */
@@ -1362,197 +1025,6 @@ namespace jmcsspace {
                 }
             }
 
-
-
-            for(u=0;u<p2;u++)   gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-            if (j == 0)
-            {
-                temp=0;
-                gsl_vector_set_zero(SX);
-                gsl_vector_set_zero(SRXX);
-                risk2_index=risk2_index_temp;
-                for (q=j;q<k;q++)
-                {
-                    for(u=0;u<p2;u++) gsl_vector_set(RX,u,gsl_matrix_get(C,q,2+u));
-                    temp+=exp(MulVV(RX,gammai))*gsl_matrix_get(FUNE,1,q);
-                    gsl_vector_scale(RX,exp(MulVV(RX,gammai))*gsl_matrix_get(FUNE,1,q));
-                    gsl_vector_add(SX,RX);
-                    if (gsl_matrix_get(C,q,1) == 2)
-                    {
-                        if (q == k-1)
-                        {
-                            gsl_vector_scale(SX, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                            gsl_matrix_set_col(SXX2,b-1-risk2_index,SX);
-                            gsl_vector_add(SRXX,SX);
-                            gsl_vector_scale(SX, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                            gsl_vector_scale(SX, 1/temp);
-                            gsl_matrix_set_col(SXX22, b-1-risk2_index, SX);
-                            gsl_vector_scale(SX, temp);
-                            //gsl_matrix_set_col(SRXX1, j, SRX);
-                            risk2_index--;
-                        }
-                        else if (gsl_matrix_get(C,q+1,0) != gsl_matrix_get(C,q,0))
-                        {
-                            gsl_vector_scale(SX, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                            gsl_matrix_set_col(SXX2,b-1-risk2_index,SX);
-                            gsl_vector_add(SRXX,SX);
-                            gsl_vector_scale(SX, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                            gsl_vector_scale(SX, 1/temp);
-                            gsl_matrix_set_col(SXX22, b-1-risk2_index, SX);
-                            gsl_vector_scale(SX, temp);
-                            //gsl_matrix_set_col(SRXX1, j, SRX);
-                            risk2_index--;
-
-                        }
-                        else
-                        {
-                            for (q=q+1;q<k;q++)
-                            {
-                                for(u=0;u<p2;u++) gsl_vector_set(RX,u,gsl_matrix_get(C,q,2+u));
-                                temp+=exp(MulVV(RX,gammai))*gsl_matrix_get(FUNE,1,q);
-                                gsl_vector_scale(RX,exp(MulVV(RX,gammai))*gsl_matrix_get(FUNE,1,q));
-                                gsl_vector_add(SX,RX);
-                                if (q == k-1)
-                                {
-                                    gsl_vector_scale(SX, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                                    gsl_matrix_set_col(SXX2,b-1-risk2_index,SX);
-                                    gsl_vector_add(SRXX,SX);
-                                    gsl_vector_scale(SX, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                                    gsl_vector_scale(SX, 1/temp);
-                                    gsl_matrix_set_col(SXX22, b-1-risk2_index, SX);
-                                    gsl_vector_scale(SX, temp);
-                                    //gsl_matrix_set_col(SRXX1, j, SRX);
-                                    risk2_index--;
-                                    break;
-                                }
-                                else if (gsl_matrix_get(C,q+1,0) != gsl_matrix_get(C,q,0))
-                                {
-                                    gsl_vector_scale(SX, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                                    gsl_matrix_set_col(SXX2,b-1-risk2_index,SX);
-                                    gsl_vector_add(SRXX,SX);
-                                    gsl_vector_scale(SX, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                                    gsl_vector_scale(SX, 1/temp);
-                                    gsl_matrix_set_col(SXX22, b-1-risk2_index, SX);
-                                    gsl_vector_scale(SX, temp);
-                                    //gsl_matrix_set_col(SRXX1, j, SRX);
-                                    risk2_index--;
-                                    break;
-                                }
-                                else continue;
-                            }
-                        }
-
-                    }
-                    else continue;
-                }
-                gsl_matrix_set_col(SRXX2,j,SRXX);
-            }
-            else
-            {
-                if (risk2_index_temp>=0)
-                {
-                    if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index_temp))
-                    {
-                        gsl_matrix_get_col(SRXX,SRXX2,j-1);
-                        gsl_matrix_set_col(SRXX2,j,SRXX);
-                    }
-                    else
-                    {
-                        risk2_index_temp--;
-                        if (risk2_index_temp>=0)
-                        {
-                            gsl_matrix_get_col(SX1, SXX2, b-1-risk2_index_temp-1);
-                            gsl_matrix_get_col(SRXX,SRXX2,j-1);
-                            gsl_vector_sub(SRXX, SX1);
-                            gsl_matrix_set_col(SRXX2,j,SRXX);
-                        }
-                    }
-                }
-                else
-                {
-                    gsl_matrix_get_col(SRX, SRXX2, j);
-                    risk2_index_temp=0;
-                }
-            }
-            gsl_matrix_get_col(SRX, SRXX2, j);
-
-            if (j==0)
-            {
-                for(u=0;u<p2;u++)  gsl_vector_set(SX,u,gsl_matrix_get(C,j,2+u));
-                gsl_vector_scale(SX, gsl_vector_get(CumuH02, risk2_index_ttemp));
-                //gsl_matrix_get_col(SRX, SRXX2, j);
-                gsl_vector_sub(SRX,SX);
-            }
-            else if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index_ttemp))
-            {
-                //gsl_matrix_get_col(SRX,SRXX2,j);
-                for(u=0;u<p2;u++)  gsl_vector_set(SX,u,gsl_matrix_get(C,j,2+u));
-                gsl_vector_scale(SX, gsl_vector_get(CumuH02, risk2_index_ttemp));
-                gsl_vector_sub(SRX,SX);
-            }
-            else
-            {
-                risk2_index_ttemp--;
-                if (risk2_index_ttemp>=0)
-                {
-                    //gsl_matrix_get_col(SRX,SRXX2,j);
-                    for(u=0;u<p2;u++)  gsl_vector_set(SX,u,gsl_matrix_get(C,j,2+u));
-                    gsl_vector_scale(SX, gsl_vector_get(CumuH02, risk2_index_ttemp));
-                    gsl_vector_sub(SRX,SX);
-                }
-                else
-                {
-                    risk2_index_ttemp=0;
-                    gsl_matrix_get_col(SRX,SRXX2,j);
-                }
-            }
-
-
-            for(u=0;u<p2;u++) gsl_vector_set(SX,u,gsl_matrix_get(C,j,2+u));
-            gsl_vector_scale(SRX, exp(MulVV(SX,gammai))*gsl_matrix_get(FUNE,1,j));
-
-
-
-            if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index_tttemp))
-            {
-                if ((int)gsl_matrix_get(C,j,1) == 2)
-                {
-                    for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                    gsl_matrix_get_col(SX,SXX22,b-1-risk2_index_tttemp);
-                    gsl_vector_sub(X,SX);
-                    gsl_vector_add(X,SRX);
-                    for(q=0;q<p2;q++)   gsl_vector_set(S,q+p1+p2+1,gsl_vector_get(X,q));
-                }
-                else
-                {
-                    for(q=0;q<p2;q++)   gsl_vector_set(S,q+p1+p2+1,gsl_vector_get(SRX,q));
-                }
-            }
-            else
-            {
-                risk2_index_tttemp--;
-                if (risk2_index_tttemp>=0)
-                {
-                    if ((int)gsl_matrix_get(C,j,1) == 2)
-                    {
-                        for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                        gsl_matrix_get_col(SX,SXX22,b-1-risk2_index_tttemp);
-                        gsl_vector_sub(X,SX);
-                        gsl_vector_add(X,SRX);
-                        for(q=0;q<p2;q++)   gsl_vector_set(S,q+p1+p2+1,gsl_vector_get(X,q));
-                    }
-                    else
-                    {
-                        for(q=0;q<p2;q++)   gsl_vector_set(S,q+p1+p2+1,gsl_vector_get(SRX,q));
-                    }
-                }
-                else
-                {
-                    risk2_index_tttemp=0;
-                    for(q=0;q<p2;q++)   gsl_vector_set(S,q+p1+p2+1,gsl_vector_get(SRX,q));
-                }
-            }
-
             /* calculate score for vee */
             /*  vee1 */
             for(u=0;u<p2;u++) gsl_vector_set(gammai,u,gsl_matrix_get(gamma,0,u));
@@ -1705,11 +1177,11 @@ namespace jmcsspace {
                     gsl_matrix_get_col(TN,TNN11,a-1-risk1_index_vtttemp);
                     for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
                     gsl_vector_add(TN,TRN);
-                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+1+u,gsl_vector_get(TN,u));
+                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+p2+1+u,gsl_vector_get(TN,u));
                 }
                 else
                 {
-                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+1+u,gsl_vector_get(TRN,u));
+                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+p2+1+u,gsl_vector_get(TRN,u));
                 }
             }
             else
@@ -1724,206 +1196,19 @@ namespace jmcsspace {
                         gsl_matrix_get_col(TN,TNN11,a-1-risk1_index_vtttemp);
                         for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
                         gsl_vector_add(TN,TRN);
-                        for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+1+u,gsl_vector_get(TN,u));
+                        for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+p2+1+u,gsl_vector_get(TN,u));
                     }
                     else
                     {
-                        for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+1+u,gsl_vector_get(TRN,u));
+                        for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+p2+1+u,gsl_vector_get(TRN,u));
                     }
                 }
                 else
                 {
                     risk1_index_vtttemp=0;
-                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+1+u,gsl_vector_get(TRN,u));
+                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+p2+1+u,gsl_vector_get(TRN,u));
                 }
             }
-
-
-
-
-            for(u=0;u<p2;u++) gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-            if (j == 0)
-            {
-                temp=0;
-                gsl_vector_set_zero(TN);
-                gsl_vector_set_zero(TRNN);
-                risk2_index=risk2_index_vtemp;
-                for (q=j;q<k;q++)
-                {
-                    for(t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,q));
-                    for(u=0;u<p2;u++) gsl_vector_set(RX,u,gsl_matrix_get(C,q,2+u));
-                    temp+=exp(MulVV(RX,gammai))*gsl_matrix_get(FUNE,1,q);
-                    gsl_vector_scale(N,exp(MulVV(RX,gammai)));
-                    gsl_vector_add(TN,N);
-
-                    if (gsl_matrix_get(C,q,1) == 2)
-                    {
-                        if (q == k-1)
-                        {
-                            gsl_vector_scale(TN, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                            gsl_matrix_set_col(TNN2,b-1-risk2_index,TN);
-                            gsl_vector_add(TRNN,TN);
-                            gsl_vector_scale(TN, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                            gsl_vector_scale(TN, 1/temp);
-                            gsl_matrix_set_col(TNN22, b-1-risk2_index, TN);
-                            gsl_vector_scale(TN, temp);
-                            risk2_index--;
-                        }
-                        else if (gsl_matrix_get(C,q+1,0) != gsl_matrix_get(C,q,0))
-                        {
-                            gsl_vector_scale(TN, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                            gsl_matrix_set_col(TNN2,b-1-risk2_index,TN);
-                            gsl_vector_add(TRNN,TN);
-                            gsl_vector_scale(TN, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                            gsl_vector_scale(TN, 1/temp);
-                            gsl_matrix_set_col(TNN22, b-1-risk2_index, TN);
-                            gsl_vector_scale(TN, temp);
-                            risk2_index--;
-                        }
-                        else
-                        {
-                            for (q=q+1;q<k;q++)
-                            {
-                                for(t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,q));
-                                for(u=0;u<p2;u++) gsl_vector_set(RX,u,gsl_matrix_get(C,q,2+u));
-                                temp+=exp(MulVV(RX,gammai))*gsl_matrix_get(FUNE,1,q);
-                                gsl_vector_scale(N,exp(MulVV(RX,gammai)));
-                                gsl_vector_add(TN,N);
-                                if (q == k-1)
-                                {
-                                    gsl_vector_scale(TN, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                                    gsl_matrix_set_col(TNN2,b-1-risk2_index,TN);
-                                    gsl_vector_add(TRNN,TN);
-                                    gsl_vector_scale(TN, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                                    gsl_vector_scale(TN, 1/temp);
-                                    gsl_matrix_set_col(TNN22, b-1-risk2_index, TN);
-                                    gsl_vector_scale(TN, temp);
-                                    risk2_index--;
-                                    break;
-                                }
-                                else if (gsl_matrix_get(C,q+1,0) != gsl_matrix_get(C,q,0))
-                                {
-                                    gsl_vector_scale(TN, gsl_matrix_get(H02,1,risk2_index)/(temp*temp));
-                                    gsl_matrix_set_col(TNN2,b-1-risk2_index,TN);
-                                    gsl_vector_add(TRNN,TN);
-                                    gsl_vector_scale(TN, 1/gsl_matrix_get(H02,1,risk2_index)*(temp*temp));
-                                    gsl_vector_scale(TN, 1/temp);
-                                    gsl_matrix_set_col(TNN22, b-1-risk2_index, TN);
-                                    gsl_vector_scale(TN, temp);
-                                    risk2_index--;
-                                    break;
-                                }
-                                else continue;
-                            }
-                        }
-
-                    }
-                    else continue;
-                }
-                gsl_matrix_set_col(TRNN2,j,TRNN);
-            }
-            else
-            {
-                if (risk2_index_vtemp>=0)
-                {
-                    if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index_vtemp))
-                    {
-                        gsl_matrix_get_col(TRNN,TRNN2,j-1);
-                        gsl_matrix_set_col(TRNN2,j,TRNN);
-                    }
-                    else
-                    {
-                        risk2_index_vtemp--;
-                        if (risk2_index_vtemp>=0)
-                        {
-                            gsl_matrix_get_col(TN1, TNN2, b-1-risk2_index_vtemp-1);
-                            gsl_matrix_get_col(TRNN,TRNN2,j-1);
-                            gsl_vector_sub(TRNN, TN1);
-                            gsl_matrix_set_col(TRNN2,j,TRNN);
-                        }
-                    }
-                }
-                else
-                {
-                    gsl_matrix_get_col(TRN, TRNN2, j);
-                    risk2_index_vtemp=0;
-                }
-            }
-
-            gsl_matrix_get_col(TRN, TRNN2, j);
-
-            for(u=0;u<p2;u++)  gsl_vector_set(SX,u,gsl_matrix_get(C,j,2+u));
-            gsl_vector_scale(TRN,gsl_matrix_get(FUNE,1,j)*exp(MulVV(SX,gammai)));
-
-            if (j==0)
-            {
-                for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,j));
-                gsl_vector_scale(N, gsl_vector_get(CumuH02, risk2_index_vttemp)*exp(MulVV(SX,gammai)));
-                gsl_vector_sub(TRN,N);
-            }
-            else if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index_vttemp))
-            {
-                for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,j));
-                gsl_vector_scale(N, gsl_vector_get(CumuH02, risk2_index_vttemp)*exp(MulVV(SX,gammai)));
-                gsl_vector_sub(TRN,N);
-            }
-            else
-            {
-                risk2_index_vttemp--;
-                if (risk2_index_vttemp>=0)
-                {
-                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,j));
-                    gsl_vector_scale(N, gsl_vector_get(CumuH02, risk2_index_vttemp)*exp(MulVV(SX,gammai)));
-                    gsl_vector_sub(TRN,N);
-                }
-                else
-                {
-                    risk2_index_vttemp=0;
-                }
-            }
-
-            if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index_vtttemp))
-            {
-                if ((int)gsl_matrix_get(C,j,1) == 2)
-                {
-                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,q));
-                    for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                    gsl_matrix_get_col(TN,TNN22,b-1-risk2_index_vtttemp);
-                    for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
-                    gsl_vector_add(TN,TRN);
-                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+p1a+1+u,gsl_vector_get(TN,u));
-                }
-                else
-                {
-                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+p1a+1+u,gsl_vector_get(TRN,u));
-                }
-            }
-            else
-            {
-                risk2_index_vtttemp--;
-                if (risk2_index_vtttemp>=0)
-                {
-                    if ((int)gsl_matrix_get(C,j,1) == 2)
-                    {
-                        for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,q));
-                        for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                        gsl_matrix_get_col(TN,TNN22,b-1-risk2_index_vtttemp);
-                        for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
-                        gsl_vector_add(TN,TRN);
-                        for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+p1a+1+u,gsl_vector_get(TN,u));
-                    }
-                    else
-                    {
-                        for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+p1a+1+u,gsl_vector_get(TRN,u));
-                    }
-                }
-                else
-                {
-                    risk2_index_vtttemp=0;
-                    for(u=0;u<p1a;u++)  gsl_vector_set(S,p1+2*p2+p1a+1+u,gsl_vector_get(TRN,u));
-                }
-            }
-
 
             /*  Sigma matrix  */
 
@@ -1950,16 +1235,16 @@ namespace jmcsspace {
 
             if (p1a==1)
             {
-                gsl_vector_set(S,p1+1+2*p2+2*p1a,(gsl_matrix_get(VI,0,0)-gsl_matrix_get(VC,0,0))/2);
+                gsl_vector_set(S,p1+1+p2+p1a,(gsl_matrix_get(VI,0,0)-gsl_matrix_get(VC,0,0))/2);
             } else
             {
                 for (t=0;t<p1a;t++)
                 {
-                    gsl_vector_set(S,p1+1+2*p2+2*p1a+t,(gsl_matrix_get(VI,t,t)-gsl_matrix_get(VC,t,t))/2);
+                    gsl_vector_set(S,p1+1+p2+p1a+t,(gsl_matrix_get(VI,t,t)-gsl_matrix_get(VC,t,t))/2);
                 }
                 for(q=1;q<p1a;q++)
                 {
-                    for(t=0;t<p1a-q;t++) gsl_vector_set(S,p1+1+2*p2+2*p1a+p1a+t+(q-1)*(p1a-1),(gsl_matrix_get(VI,t,q+t)-gsl_matrix_get(VC,t,q+t)));
+                    for(t=0;t<p1a-q;t++) gsl_vector_set(S,p1+1+p2+p1a+p1a+t+(q-1)*(p1a-1),(gsl_matrix_get(VI,t,q+t)-gsl_matrix_get(VC,t,q+t)));
                 }
             }
             MulV(S,SS);
@@ -1986,10 +1271,7 @@ namespace jmcsspace {
         gsl_vector_free(SRXX);
         gsl_matrix_free(SXX1);
         gsl_matrix_free(SXX11);
-        gsl_matrix_free(SXX2);
-        gsl_matrix_free(SXX22);
         gsl_matrix_free(SRXX1);
-        gsl_matrix_free(SRXX2);
         gsl_matrix_free(FUNB);
         gsl_matrix_free(FUNBS);
         gsl_matrix_free(FUNE);
@@ -2004,11 +1286,8 @@ namespace jmcsspace {
         gsl_vector_free(TRNN);
 
         gsl_matrix_free(TRNN1);
-        gsl_matrix_free(TRNN2);
         gsl_matrix_free(TNN1);
         gsl_matrix_free(TNN11);
-        gsl_matrix_free(TNN2);
-        gsl_matrix_free(TNN22);
 
         gsl_matrix_free(VC);
         gsl_matrix_free(VI);
@@ -2028,9 +1307,7 @@ namespace jmcsspace {
              const gsl_vector *beta,
              const gsl_matrix *gamma,
              const gsl_vector *vee1,
-             const gsl_vector *vee2,
              const gsl_matrix *H01,
-             const gsl_matrix *H02,
              const double sigma,
              const gsl_matrix *sig,
              const gsl_matrix *Y,
@@ -2055,16 +1332,14 @@ namespace jmcsspace {
 
         int p1=beta->size;
         int p2=gamma->size2;
-        int g =gamma->size1;
         int a =H01->size2;
-        int b =H02->size2;
 
         int k = M1->size;
 
 
         int i,j,q,t,m;
         double mu,dem,temp;
-        double cuh01,cuh02,haz01,haz02,xgamma1,xgamma2;
+        double cuh01,haz01,xgamma1;
 
 
         gsl_vector *Z = gsl_vector_calloc(p1),
@@ -2094,25 +1369,15 @@ namespace jmcsspace {
         m=0;
 
         gsl_vector *CUH01 = gsl_vector_calloc(k);
-        gsl_vector *CUH02 = gsl_vector_calloc(k);
         gsl_vector *HAZ01 = gsl_vector_calloc(k);
-        gsl_vector *HAZ02 = gsl_vector_calloc(k);
         int risk1_index = a-1;
-        int risk2_index = b-1;
 
         double temp1=0;
         gsl_vector *CumuH01 = gsl_vector_calloc(a);
-        gsl_vector *CumuH02 = gsl_vector_calloc(b);
         for (j=0;j<a;j++)
         {
             temp1+=gsl_matrix_get(H01, 2, j);
             gsl_vector_set(CumuH01,j,temp1);
-        }
-        temp1=0;
-        for (j=0;j<b;j++)
-        {
-            temp1+=gsl_matrix_get(H02, 2, j);
-            gsl_vector_set(CumuH02,j,temp1);
         }
 
         for (j=0;j<k;j++)
@@ -2137,31 +1402,8 @@ namespace jmcsspace {
                 risk1_index=0;
             }
         }
-        for (j=0;j<k;j++)
-        {
-            if (risk2_index>=0)
-            {
-                if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index))
-                {
-                    gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
-                }
-                else
-                {
-                    risk2_index--;
-                    if (risk2_index>=0)
-                    {
-                        gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
-                    }
-                }
-            }
-            else
-            {
-                risk2_index=0;
-            }
-        }
 
         risk1_index = a-1;
-        risk2_index = b-1;
 
         for (j=0;j<k;j++)
         {
@@ -2210,69 +1452,18 @@ namespace jmcsspace {
             else continue;
         }
 
-        for (j=0;j<k;j++)
-        {
-            if (risk2_index>=0)
-            {
-                   if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
-                   {
-                       gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                   }
-                   if ((int)gsl_matrix_get(C,j,1) == 2)
-                   {
-                       if (j == k-1)
-                       {
-                           risk2_index--;
-                       }
-                       else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                       {
-                           risk2_index--;
-                       }
-                       else
-                       {
-                          for (j=j+1;j<k;j++)
-                          {
-                              if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
-                              {
-                                  gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                              }
-
-                              if (j == k-1)
-                              {
-                                  risk2_index--;
-                                  break;
-                              }
-                              else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                              {
-                                  risk2_index--;
-                                  break;
-                              }
-                              else continue;
-                          }
-                       }
-                   }
-                   else continue;
-            }
-            else continue;
-        }
-
         for(j=0;j<k;j++)
         {
             dem=0;
             q=(int)gsl_vector_get(M1,j);
             cuh01=gsl_vector_get(CUH01,j);
-            cuh02=gsl_vector_get(CUH02,j);
             haz01=gsl_vector_get(HAZ01,j);
-            haz02=gsl_vector_get(HAZ02,j);
             for(i=0;i<p2;i++)
             {
                 gsl_vector_set(X,i,gsl_matrix_get(C,j,2+i));
                 gsl_vector_set(gammai,i,gsl_matrix_get(gamma,0,i));
             }
             xgamma1=MulVV(X,gammai);
-
-            for(i=0;i<p2;i++) gsl_vector_set(gammai,i,gsl_matrix_get(gamma,1,i));
-            xgamma2=MulVV(X,gammai);
 
             /*Extract Bayes estimate*/
             for (i=0;i<p1a;i++) gsl_vector_set(bi, i, gsl_matrix_get(Posbi, j, i));
@@ -2305,9 +1496,8 @@ namespace jmcsspace {
                         }
 
                         if(gsl_matrix_get(C,j,1)==1)  temp*=haz01*exp(xgamma1+MulVV(vee1,ti));
-                        if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
-                        temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
+                        temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                         temp*=gsl_vector_get(wi,db0);
 
                         dem+=temp;
@@ -2317,20 +1507,16 @@ namespace jmcsspace {
                            gsl_matrix_set(FUNBS,i,j,gsl_matrix_get(FUNBS,i,j)+temp*gsl_pow_2(gsl_vector_get(ti,i)));
                         }
 
-
                         gsl_matrix_set(FUNE,0,j,gsl_matrix_get(FUNE,0,j)+temp*exp(MulVV(vee1,ti)));
-                        gsl_matrix_set(FUNE,1,j,gsl_matrix_get(FUNE,1,j)+temp*exp(MulVV(vee2,ti)));
 
                         for (i=0;i<p1a;i++)
                         {
                             gsl_matrix_set(FUNBSE,i,j,gsl_matrix_get(FUNBSE,i,j)+temp*gsl_pow_2(gsl_vector_get(ti,i))*exp(MulVV(vee1,ti)));
-                            gsl_matrix_set(FUNBSE,(g-1)*p1a*(p1a+1)/2+i,j,gsl_matrix_get(FUNBSE,(g-1)*p1a*(p1a+1)/2+i,j)+temp*gsl_pow_2(gsl_vector_get(ti,i))*exp(MulVV(vee2,ti)));
                         }
 
                         for (i=0;i<p1a;i++)
                         {
                             gsl_matrix_set(FUNBE, i, j, gsl_matrix_get(FUNBE,i,j)+temp*gsl_vector_get(ti,i)*exp(MulVV(vee1,ti)));
-                            gsl_matrix_set(FUNBE, (g-1)*p1a+i, j, gsl_matrix_get(FUNBE,(g-1)*p1a+i,j)+temp*gsl_vector_get(ti,i)*exp(MulVV(vee2,ti)));
                         }
 
                 }
@@ -2358,12 +1544,9 @@ namespace jmcsspace {
                                 temp*=exp(-1/(2*sigma)*gsl_pow_2(gsl_matrix_get(Y,m+i,0)-mu-MulVV(ti,xtilde)));
                             }
 
-
-
                             if(gsl_matrix_get(C,j,1)==1)  temp*=haz01*exp(xgamma1+MulVV(vee1,ti));
-                            if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
-                            temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
+                            temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                             temp*=gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
                             dem+=temp;
                             for (i=0;i<p1a;i++)
@@ -2380,12 +1563,10 @@ namespace jmcsspace {
                             }
 
                             gsl_matrix_set(FUNE,0,j,gsl_matrix_get(FUNE,0,j)+temp*exp(MulVV(vee1,ti)));
-                            gsl_matrix_set(FUNE,1,j,gsl_matrix_get(FUNE,1,j)+temp*exp(MulVV(vee2,ti)));
 
                             for (i=0;i<p1a;i++)
                             {
                                 gsl_matrix_set(FUNBSE,i,j,gsl_matrix_get(FUNBSE,i,j)+temp*gsl_pow_2(gsl_vector_get(ti,i))*exp(MulVV(vee1,ti)));
-                                gsl_matrix_set(FUNBSE,(g-1)*p1a*(p1a+1)/2+i,j,gsl_matrix_get(FUNBSE,(g-1)*p1a*(p1a+1)/2+i,j)+temp*gsl_pow_2(gsl_vector_get(ti,i))*exp(MulVV(vee2,ti)));
                             }
 
                             for(i=1;i<p1a;i++)
@@ -2394,15 +1575,12 @@ namespace jmcsspace {
                                 {
                                     gsl_matrix_set(FUNBSE,p1a+t+(i-1)*(p1a-1),j,gsl_matrix_get(FUNBSE,p1a+t+(i-1)*(p1a-1),j)
                                                           +temp*gsl_vector_get(ti,t)*gsl_vector_get(ti,t+i)*exp(MulVV(vee1,ti)));
-                                    gsl_matrix_set(FUNBSE,(g-1)*p1a*(p1a+1)/2+p1a+t+(i-1)*(p1a-1),j,gsl_matrix_get(FUNBSE,(g-1)*p1a*(p1a+1)/2+p1a+t+(i-1)*(p1a-1),j)
-                                    +temp*gsl_vector_get(ti,t)*gsl_vector_get(ti,t+i)*exp(MulVV(vee2,ti)));
                                 }
                             }
 
                             for (i=0;i<p1a;i++)
                             {
                                 gsl_matrix_set(FUNBE, i, j, gsl_matrix_get(FUNBE,i,j)+temp*gsl_vector_get(ti,i)*exp(MulVV(vee1,ti)));
-                                gsl_matrix_set(FUNBE, (g-1)*p1a+i, j, gsl_matrix_get(FUNBE,(g-1)*p1a+i,j)+temp*gsl_vector_get(ti,i)*exp(MulVV(vee2,ti)));
                             }
 
                     }
@@ -2440,9 +1618,8 @@ namespace jmcsspace {
                                 }
 
                                 if(gsl_matrix_get(C,j,1)==1)  temp*=haz01*exp(xgamma1+MulVV(vee1,ti));
-                                if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
-                                temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
+                                temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                                 temp*=gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
 
                                 dem+=temp;
@@ -2459,12 +1636,10 @@ namespace jmcsspace {
                                 }
 
                                 gsl_matrix_set(FUNE,0,j,gsl_matrix_get(FUNE,0,j)+temp*exp(MulVV(vee1,ti)));
-                                gsl_matrix_set(FUNE,1,j,gsl_matrix_get(FUNE,1,j)+temp*exp(MulVV(vee2,ti)));
 
                                 for (i=0;i<p1a;i++)
                                 {
                                     gsl_matrix_set(FUNBSE,i,j,gsl_matrix_get(FUNBSE,i,j)+temp*gsl_pow_2(gsl_vector_get(ti,i))*exp(MulVV(vee1,ti)));
-                                    gsl_matrix_set(FUNBSE,(g-1)*p1a*(p1a+1)/2+i,j,gsl_matrix_get(FUNBSE,(g-1)*p1a*(p1a+1)/2+i,j)+temp*gsl_pow_2(gsl_vector_get(ti,i))*exp(MulVV(vee2,ti)));
                                 }
 
                                 for(i=1;i<p1a;i++)
@@ -2473,15 +1648,12 @@ namespace jmcsspace {
                                     {
                                         gsl_matrix_set(FUNBSE,p1a+t+(i-1)*(p1a-1),j,gsl_matrix_get(FUNBSE,p1a+t+(i-1)*(p1a-1),j)
                                                               +temp*gsl_vector_get(ti,t)*gsl_vector_get(ti,t+i)*exp(MulVV(vee1,ti)));
-                                        gsl_matrix_set(FUNBSE,(g-1)*p1a*(p1a+1)/2+p1a+t+(i-1)*(p1a-1),j,gsl_matrix_get(FUNBSE,(g-1)*p1a*(p1a+1)/2+p1a+t+(i-1)*(p1a-1),j)
-                                        +temp*gsl_vector_get(ti,t)*gsl_vector_get(ti,t+i)*exp(MulVV(vee2,ti)));
                                     }
                                 }
 
                                 for (i=0;i<p1a;i++)
                                 {
                                     gsl_matrix_set(FUNBE, i, j, gsl_matrix_get(FUNBE,i,j)+temp*gsl_vector_get(ti,i)*exp(MulVV(vee1,ti)));
-                                    gsl_matrix_set(FUNBE, (g-1)*p1a+i, j, gsl_matrix_get(FUNBE,(g-1)*p1a+i,j)+temp*gsl_vector_get(ti,i)*exp(MulVV(vee2,ti)));
                                 }
 
                         }
@@ -2495,16 +1667,13 @@ namespace jmcsspace {
 
             for(i=0;i<p1a;i++) gsl_matrix_set(FUNB,i,j,gsl_matrix_get(FUNB,i,j)/dem);
 
-
             for(i=0;i<p1a*(p1a+1)/2;i++) gsl_matrix_set(FUNBS,i,j,gsl_matrix_get(FUNBS,i,j)/dem);
 
-
             gsl_matrix_set(FUNE,0,j,gsl_matrix_get(FUNE,0,j)/dem);
-            gsl_matrix_set(FUNE,1,j,gsl_matrix_get(FUNE,1,j)/dem);
 
-            for (i=0;i<g*p1a*(p1a+1)/2;i++) gsl_matrix_set(FUNBSE,i,j,gsl_matrix_get(FUNBSE,i,j)/dem);
+            for (i=0;i<p1a*(p1a+1)/2;i++) gsl_matrix_set(FUNBSE,i,j,gsl_matrix_get(FUNBSE,i,j)/dem);
 
-            for(i=0;i<g*p1a;i++) gsl_matrix_set(FUNBE,i,j,gsl_matrix_get(FUNBE,i,j)/dem);
+            for(i=0;i<p1a;i++) gsl_matrix_set(FUNBE,i,j,gsl_matrix_get(FUNBE,i,j)/dem);
 
             m+=q;
 
@@ -2527,11 +1696,8 @@ namespace jmcsspace {
         gsl_vector_free(rii);
         gsl_vector_free(tii);
         gsl_vector_free(CUH01);
-        gsl_vector_free(CUH02);
         gsl_vector_free(HAZ01);
-        gsl_vector_free(HAZ02);
         gsl_vector_free(CumuH01);
-        gsl_vector_free(CumuH02);
 
 
 
@@ -2542,9 +1708,7 @@ namespace jmcsspace {
                      const gsl_vector *beta,
                      const gsl_matrix *gamma,
                      const gsl_vector *vee1,
-                     const gsl_vector *vee2,
                      const gsl_matrix *H01,
-                     const gsl_matrix *H02,
                      const double sigma,
                      const gsl_matrix *sig,
                      const gsl_matrix *Y,
@@ -2562,12 +1726,11 @@ namespace jmcsspace {
         int p1=beta->size;
         int p2=gamma->size2;
         int a =H01->size2;
-        int b =H02->size2;
         int k = M1->size;
 
         int i,j,q,t,m;
         double mu,temp1,temp;
-        double cuh01,cuh02,haz01,haz02,xgamma1,xgamma2;
+        double cuh01,haz01,xgamma1;
 
 
         gsl_vector *Z = gsl_vector_calloc(p1),
@@ -2602,24 +1765,14 @@ namespace jmcsspace {
         double loglik=0;
 
         int risk1_index = a-1;
-        int risk2_index = b-1;
         gsl_vector *CumuH01 = gsl_vector_calloc(a);
-        gsl_vector *CumuH02 = gsl_vector_calloc(b);
         gsl_vector *CUH01 = gsl_vector_calloc(k);
-        gsl_vector *CUH02 = gsl_vector_calloc(k);
         gsl_vector *HAZ01 = gsl_vector_calloc(k);
-        gsl_vector *HAZ02 = gsl_vector_calloc(k);
         temp1=0;
         for (j=0;j<a;j++)
         {
             temp1+=gsl_matrix_get(H01, 2, j);
             gsl_vector_set(CumuH01,j,temp1);
-        }
-        temp1=0;
-        for (j=0;j<b;j++)
-        {
-            temp1+=gsl_matrix_get(H02, 2, j);
-            gsl_vector_set(CumuH02,j,temp1);
         }
 
         for (j=0;j<k;j++)
@@ -2668,52 +1821,6 @@ namespace jmcsspace {
             else continue;
         }
 
-        for (j=0;j<k;j++)
-        {
-            if (risk2_index>=0)
-            {
-                   gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
-                   if (gsl_matrix_get(C,j,1) == 2)
-                   {
-
-                       if (j == k-1)
-                       {
-                           gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                           risk2_index--;
-                       }
-                       else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                       {
-                           gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                           risk2_index--;
-                       }
-
-                       else
-                       {
-                           for (j=j+1;j<k;j++)
-                           {
-                               gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
-                               if (j == k-1)
-                               {
-                                   gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                                   risk2_index--;
-                                   break;
-                               }
-                               else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                               {
-                                   gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                                   risk2_index--;
-                                   break;
-                               }
-                               else continue;
-                           }
-                       }
-
-                   }
-                else continue;
-            }
-            else continue;
-        }
-
         gsl_matrix *VV = gsl_matrix_calloc(p1a, p1a);
         gsl_matrix_memcpy(VV, sig);
 
@@ -2733,10 +1840,7 @@ namespace jmcsspace {
             q=(int)gsl_vector_get(M1,j);
 
             cuh01=gsl_vector_get(CUH01,j);
-            cuh02=gsl_vector_get(CUH02,j);
             haz01=gsl_vector_get(HAZ01,j);
-            haz02=gsl_vector_get(HAZ02,j);
-
 
             for(i=0;i<p2;i++)
             {
@@ -2744,9 +1848,6 @@ namespace jmcsspace {
                 gsl_vector_set(gammai,i,gsl_matrix_get(gamma,0,i));
             }
             xgamma1=MulVV(X,gammai);
-
-            for(i=0;i<p2;i++) gsl_vector_set(gammai,i,gsl_matrix_get(gamma,1,i));
-            xgamma2=MulVV(X,gammai);
 
             /*Extract Bayes estimate*/
             for (i=0;i<p1a;i++) gsl_vector_set(bi, i, gsl_matrix_get(Posbi, j, i));
@@ -2780,11 +1881,9 @@ namespace jmcsspace {
                             temp*=1/sqrt(sigma*2*M_PI)*exp(-1/(2*sigma)*gsl_pow_2(gsl_matrix_get(Y,m+i,0)-mu-MulVV(ti,xtilde)));
                         }
 
-
                         if(gsl_matrix_get(C,j,1)==1)  temp*=haz01*exp(xgamma1+MulVV(vee1,ti));
-                        if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
-                        temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
+                        temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                         temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0);
                         for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                         temp/=u;
@@ -2823,9 +1922,8 @@ namespace jmcsspace {
                         }
 
                         if(gsl_matrix_get(C,j,1)==1)  temp*=haz01*exp(xgamma1+MulVV(vee1,ti));
-                        if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
-                        temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
+                        temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                         temp*=1/sqrt(gsl_pow_2(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
                         for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                         temp/=u;
@@ -2866,9 +1964,8 @@ namespace jmcsspace {
                             }
 
                             if(gsl_matrix_get(C,j,1)==1)  temp*=haz01*exp(xgamma1+MulVV(vee1,ti));
-                            if(gsl_matrix_get(C,j,1)==2)  temp*=haz02*exp(xgamma2+MulVV(vee2,ti));
 
-                            temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
+                            temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                             temp*=1/sqrt(gsl_pow_3(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
                             for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                             temp/=u;
@@ -2903,11 +2000,8 @@ namespace jmcsspace {
         gsl_vector_free(rii);
         gsl_vector_free(tii);
         gsl_vector_free(CUH01);
-        gsl_vector_free(CUH02);
         gsl_vector_free(HAZ01);
-        gsl_vector_free(HAZ02);
         gsl_vector_free(CumuH01);
-        gsl_vector_free(CumuH02);
         gsl_permutation_free(vp);
 
 
@@ -2921,12 +2015,8 @@ namespace jmcsspace {
              const gsl_matrix *gamma,
              const gsl_vector *prevee1,
              const gsl_vector *vee1,
-             const gsl_vector *prevee2,
-             const gsl_vector *vee2,
              const gsl_matrix *preH01,
              const gsl_matrix *H01,
-             const gsl_matrix *preH02,
-             const gsl_matrix *H02,
              const double presigma,
              const double sigma,
              const gsl_matrix *presig,
@@ -2936,8 +2026,8 @@ namespace jmcsspace {
 
          double epsilon=0.0001;
 
-         if(DiffV(prebeta,beta)>epsilon || DiffM(pregamma,gamma)>epsilon || DiffV(prevee1,vee1)>epsilon || DiffV(prevee2,vee2)>epsilon
-            || DiffM1(preH01,H01)==1 || DiffM1(preH02,H02)==1 || Abs(presigma,sigma)>epsilon || DiffM(presig,sig)>epsilon)
+         if(DiffV(prebeta,beta)>epsilon || DiffM(pregamma,gamma)>epsilon || DiffV(prevee1,vee1)>epsilon
+            || DiffM1(preH01,H01)==1 || Abs(presigma,sigma)>epsilon || DiffM(presig,sig)>epsilon)
 
          return 1;
 
@@ -3069,13 +2159,6 @@ namespace jmcsspace {
             }
 
         return diff;
-    }
-
-    int DiffM2(const gsl_matrix *preH1,const gsl_matrix *H1,const gsl_matrix *preH2,const gsl_matrix *H2)
-    {
-
-         if(DiffM1(preH1,H1)==1 || DiffM1(preH2,H2)==1 ) return 1;
-         else return 0;
     }
 
     void TransM(const gsl_matrix *A, gsl_matrix *B)
@@ -3322,9 +2405,9 @@ namespace jmcsspace {
 
     }
 
-    Rcpp::List jmcs_cmain(int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile, int trace)
+    Rcpp::List jmcsf_cmain(int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile, int trace)
     {
-        int g=2;
+        int g=1;
         /* allocate space for data */
         gsl_matrix *C = gsl_matrix_calloc(k,p2+2);
         gsl_matrix *Y= gsl_matrix_calloc(n1, p1+p1a+1);
@@ -3334,7 +2417,8 @@ namespace jmcsspace {
         gsl_matrix *Sigcov=gsl_matrix_calloc(p1a, p1a);
         gsl_vector *Betasigma=gsl_vector_calloc(p1+1);
         gsl_matrix * Cov=gsl_matrix_calloc(p1+g*p2+g*p1a+p1a*(p1a+1)/2+1,p1+g*p2+g*p1a+p1a*(p1a+1)/2+1);
-        Rprintf("The survival dataset has competing risk!\n");
+        Rprintf("The survival dataset has single failure!\n");
+
         /* read Y matrix  */
          {
            FILE * f = fopen(yfile.c_str(), "r");
@@ -3493,7 +2577,6 @@ namespace jmcsspace {
         /* allocate space for estimated parameters */
         gsl_matrix * gamma=gsl_matrix_calloc(g, p2);
         gsl_vector * vee1=gsl_vector_calloc(p1a);
-        gsl_vector * vee2=gsl_vector_calloc(p1a);
         gsl_vector * beta=gsl_vector_calloc(p1);
         gsl_matrix * sig=gsl_matrix_calloc(p1a, p1a);
 
@@ -3512,7 +2595,6 @@ namespace jmcsspace {
         gsl_vector * prebeta=gsl_vector_calloc(p1);
         gsl_matrix * pregamma=gsl_matrix_calloc(g,p2);
         gsl_vector * prevee1=gsl_vector_calloc(p1a);
-        gsl_vector * prevee2=gsl_vector_calloc(p1a);
         gsl_matrix * presig=gsl_matrix_calloc(p1a, p1a);
 
         double presigma;
@@ -3521,7 +2603,6 @@ namespace jmcsspace {
         gsl_vector * vbeta=gsl_vector_calloc(p1);
         gsl_matrix * vgamma=gsl_matrix_calloc(g,p2);
         gsl_vector * vvee1=gsl_vector_calloc(p1a);
-        gsl_vector * vvee2=gsl_vector_calloc(p1a);
         gsl_vector * vsig=gsl_vector_calloc(p1a*(p1a+1)/2);
         double v_sigma;
 
@@ -3547,13 +2628,11 @@ namespace jmcsspace {
 
 
         gsl_matrix * FH01 = gsl_matrix_calloc(2,k);                 /*** n = 800 here can be more flexible *****/
-        gsl_matrix * FH02 = gsl_matrix_calloc(2,k);                 /*** n = 800 here can be more flexible *****/
 
         gsl_matrix_set_zero(FH01);
-        gsl_matrix_set_zero(FH02);
 
         /* find # events for risk 1 */
-        int u,a=0,b=0;
+        int u,a=0;
         u=0;
         for (j=0;j<k;j++)
         {
@@ -3644,106 +2723,12 @@ namespace jmcsspace {
             }
         }
 
-
-        /* find # events for risk 2 */
-        u=0;
-        for (j=0;j<k;j++)
-        {
-            if (gsl_matrix_get(C_new,j,1) == 2)
-            {
-                u++;
-                if (j == k-1)
-                {
-                    b++;
-                    gsl_matrix_set(FH02,0,k-b, gsl_matrix_get(C_new,j,0));
-                    gsl_matrix_set(FH02,1,k-b,u);
-                    u=0;
-                }
-                else if (gsl_matrix_get(C_new,j+1,0) != gsl_matrix_get(C_new,j,0))
-                {
-                    b++;
-                    gsl_matrix_set(FH02,0,k-b, gsl_matrix_get(C_new,j,0));
-                    gsl_matrix_set(FH02,1,k-b,u);
-                    u=0;
-                }
-                else
-                {
-                    for (j=j+1;j<k;j++)
-                    {
-                        if (gsl_matrix_get(C_new,j,1) == 2)
-                        {
-                            u++;
-                            if (j == k-1)
-                            {
-                                b++;
-                                gsl_matrix_set(FH02,0,k-b, gsl_matrix_get(C_new,j,0));
-                                gsl_matrix_set(FH02,1,k-b,u);
-                                u=0;
-                                break;
-                            }
-                            else if (gsl_matrix_get(C_new,j+1,0) != gsl_matrix_get(C_new,j,0))
-                            {
-                                b++;
-                                gsl_matrix_set(FH02,0,k-b, gsl_matrix_get(C_new,j,0));
-                                gsl_matrix_set(FH02,1,k-b,u);
-                                u=0;
-                                break;
-                            }
-                            else continue;
-                        }
-                        else
-                        {
-                            if (j == k-1)
-                            {
-                                b++;
-                                gsl_matrix_set(FH02,0,k-b, gsl_matrix_get(C_new,j,0));
-                                gsl_matrix_set(FH02,1,k-b,u);
-                                u=0;
-                                break;
-                            }
-                            else if (gsl_matrix_get(C_new,j+1,0) != gsl_matrix_get(C_new,j,0))
-                            {
-                                b++;
-                                gsl_matrix_set(FH02,0,k-b, gsl_matrix_get(C_new,j,0));
-                                gsl_matrix_set(FH02,1,k-b,u);
-                                u=0;
-                                break;
-                            }
-                            else continue;
-                        }
-                    }
-                }
-
-            }
-            else continue;
-        }
-
-        if(b==0)
-        {
-            printf("No failure time information for risk 2; Program exits\n");
-            return R_NilValue;
-        }
-        gsl_matrix * H02 = gsl_matrix_calloc(3,b);
-        for(i=0;i<3;i++)
-        {
-            if(i<=1)
-            {
-                for(j=b;j>0;j--)    gsl_matrix_set(H02,i,b-j, gsl_matrix_get(FH02,i,k-j));
-            }
-            if(i==2)
-            {
-                for(j=0;j<b;j++)    gsl_matrix_set(H02,i,j,0.0001);
-            }
-        }
-
         gsl_matrix * preH01 = gsl_matrix_calloc(3,a);
-        gsl_matrix * preH02 = gsl_matrix_calloc(3,b);
 
         /* initialize the parameters */
 
         gsl_matrix_set_zero(gamma);
         gsl_vector_set_zero(vee1);
-        gsl_vector_set_zero(vee2);
         gsl_matrix_memcpy(sig, Sigcov);
 
         int index1;
@@ -3818,17 +2803,15 @@ namespace jmcsspace {
 
             gsl_vector_memcpy(prebeta, beta);
             gsl_vector_memcpy(prevee1, vee1);
-            gsl_vector_memcpy(prevee2, vee2);
             gsl_matrix_memcpy(pregamma, gamma);
             gsl_matrix_memcpy(preH01, H01);
-            gsl_matrix_memcpy(preH02, H02);
             gsl_matrix_memcpy(presig, sig);
             presigma=sigma;
 
             /* get new parameter estimates */
             //auto start_EMstep = std::chrono::high_resolution_clock::now();
 
-            status = EM(beta,gamma,vee1,vee2,H01,H02,&sigma,sig,p1a,Y_new,C_new,M1_new,Posbi_new,Poscov_new,point,xs,ws);
+            status = EM(beta,gamma,vee1,H01,&sigma,sig,p1a,Y_new,C_new,M1_new,Posbi_new,Poscov_new,point,xs,ws);
 
             if (trace == 1)
             {
@@ -3856,12 +2839,6 @@ namespace jmcsspace {
                     Rprintf("%f     ", gsl_vector_get(vee1,i));
                 }
                 Rprintf("\n");
-                Rprintf("Vee2 = \n");
-                for (i=0;i<p1a;i++)
-                {
-                    Rprintf("%f     ", gsl_vector_get(vee2,i));
-                }
-                Rprintf("\n");
 
                 Rprintf("sigma = %f\n",sigma);
 
@@ -3876,7 +2853,7 @@ namespace jmcsspace {
                 }
             }
 
-        }while(Diff(prebeta,beta,pregamma,gamma,prevee1,vee1,prevee2,vee2,preH01,H01,preH02,H02,presigma,sigma,
+        }while(Diff(prebeta,beta,pregamma,gamma,prevee1,vee1,preH01,H01,presigma,sigma,
                presig,sig)==1
                && status != 100 && iter<maxiter);
 
@@ -3898,8 +2875,6 @@ namespace jmcsspace {
         NumericMatrix sd_gamma_matrix(g,p2);
         NumericVector vee1_estimate(p1a);
         NumericVector sd_vee1_estimate(p1a);
-        NumericVector vee2_estimate(p1a);
-        NumericVector sd_vee2_estimate(p1a);
         double sigma2_val;
         double se_sigma2_val;
         NumericMatrix sigma_matrix(p1a,p1a);
@@ -3909,7 +2884,7 @@ namespace jmcsspace {
         if(status != 100 && iter<maxiter)
         {
             /* if algorithm coverges, compute the variance-covariance matrix of parameters ***/
-            status = GetCov(Cov,beta,gamma,vee1,vee2,H01,H02,sigma,sig,Y_new,C_new,M1_new,Posbi_new,Poscov_new,p1a,point,xs,ws);
+            status = GetCov(Cov,beta,gamma,vee1,H01,sigma,sig,Y_new,C_new,M1_new,Posbi_new,Poscov_new,p1a,point,xs,ws);
 
             if(status==100)
             {
@@ -3942,10 +2917,8 @@ namespace jmcsspace {
                 v_sigma=gsl_matrix_get(Cov,p1,p1);
 
                 for (i=p1+1;i<p1+p2+1;i++)  gsl_matrix_set(vgamma,0,i-p1-1,gsl_matrix_get(Cov,i,i));
-                for (i=p1+p2+1;i<p1+2*p2+1;i++)  gsl_matrix_set(vgamma,1,i-p1-p2-1,gsl_matrix_get(Cov,i,i));
-                for (i=p1+2*p2+1;i<p1+2*p2+p1a+1;i++) gsl_vector_set(vvee1, i-p1-2*p2-1, gsl_matrix_get(Cov,i,i));
-                for (i=p1+2*p2+p1a+1;i<p1+2*p2+2*p1a+1;i++) gsl_vector_set(vvee2, i-p1-2*p2-p1a-1, gsl_matrix_get(Cov,i,i));
-                for (i=p1+2*p2+2*p1a+1;i<p1+2*p2+2*p1a+1+p1a*(p1a+1)/2;i++) gsl_vector_set(vsig, i-p1-2*p2-2*p1a-1, gsl_matrix_get(Cov, i,i));
+                for (i=p1+p2+1;i<p1+p2+p1a+1;i++) gsl_vector_set(vvee1, i-p1-p2-1, gsl_matrix_get(Cov,i,i));
+                for (i=p1+p2+p1a+1;i<p1+p2+p1a+1+p1a*(p1a+1)/2;i++) gsl_vector_set(vsig, i-p1-p2-p1a-1, gsl_matrix_get(Cov, i,i));
 
                 for (i=0;i<p1;i++)
                 {
@@ -3956,7 +2929,7 @@ namespace jmcsspace {
                     se_betas(i)=sqrt(gsl_vector_get(vbeta,i));
                 }
 
-                loglike = Getloglik(beta,gamma,vee1,vee2,H01,H02,sigma,sig,Y_new,C_new,M1_new,Posbi_new,Poscov_new,p1a,point,xs,ws);
+                loglike = Getloglik(beta,gamma,vee1,H01,sigma,sig,Y_new,C_new,M1_new,Posbi_new,Poscov_new,p1a,point,xs,ws);
 
                 for (i=0;i<g;i++)
                 {
@@ -3983,15 +2956,6 @@ namespace jmcsspace {
                     sd_vee1_estimate(i)=sqrt(gsl_vector_get(vvee1,i));
                 }
 
-                for (i=0;i<p1a;i++)
-                {
-                    vee2_estimate(i)=gsl_vector_get(vee2,i);
-                }
-                for (i=0;i<p1a;i++)
-                {
-                    sd_vee2_estimate(i)=sqrt(gsl_vector_get(vvee2,i));
-                }
-
                 sigma2_val=sigma;
                 se_sigma2_val=sqrt(v_sigma);
 
@@ -4013,11 +2977,8 @@ namespace jmcsspace {
         }
 
         gsl_matrix_free(FH01);
-        gsl_matrix_free(FH02);
         gsl_matrix_free(H01);
-        gsl_matrix_free(H02);
         gsl_matrix_free(preH01);
-        gsl_matrix_free(preH02);
 
         gsl_matrix_free(Y_new);
         gsl_vector_free(M1_new);
@@ -4025,17 +2986,14 @@ namespace jmcsspace {
         gsl_matrix_free(gamma);
         gsl_vector_free(beta);
         gsl_vector_free(vee1);
-        gsl_vector_free(vee2);
 
         gsl_matrix_free(pregamma);
         gsl_vector_free(prebeta);
         gsl_vector_free(prevee1);
-        gsl_vector_free(prevee2);
 
         gsl_matrix_free(vgamma);
         gsl_vector_free(vbeta);
         gsl_vector_free(vvee1);
-        gsl_vector_free(vvee2);
         gsl_matrix_free(sig);
         gsl_matrix_free(presig);
         gsl_vector_free(vsig);
@@ -4055,8 +3013,6 @@ namespace jmcsspace {
         ret["se_gamma_matrix"] = sd_gamma_matrix;
         ret["vee1_estimate"] = vee1_estimate;
         ret["sd_vee1_estimate"] = sd_vee1_estimate;
-        ret["vee2_estimate"] = vee2_estimate;
-        ret["sd_vee2_estimate"] = sd_vee2_estimate;
         ret["sigma2_val"] = sigma2_val;
         ret["se_sigma2_val"] = se_sigma2_val;
         ret["sigma_matrix"] = sigma_matrix;

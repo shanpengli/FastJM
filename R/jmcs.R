@@ -125,8 +125,18 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
     Betasigmafile = tempfile(pattern = "", fileext = ".txt")
     writenh(beta, Betasigmafile)
 
-    myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
-                      mfilenew, Betasigmafile, Sigcovfile, trace)
+    if (prod(c(0, 1, 2) %in% unique(cdata$failure_type)) == 1) {
+      writeLines("helloNo")
+      myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
+                         mfilenew, Betasigmafile, Sigcovfile, trace)
+    } else if (prod(c(0, 1) %in% unique(cdata$failure_type)) == 1) {
+      myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
+                         mfilenew, Betasigmafile, Sigcovfile, trace)
+    } else {
+      stop(paste0(unique(cdata$failure_type), " is not an appropriate code of single / competing risks failure type.
+                  Please correctly specify the event variable."))
+    }
+
 
   }else{
 
@@ -182,8 +192,17 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
     beta <- matrix(beta, ncol = 1, nrow = length(beta))
     Betasigmafile = tempfile(pattern = "", fileext = ".txt")
     writenh(beta, Betasigmafile)
-    myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
-                      mfilenew, Betasigmafile, Sigcovfile, trace)
+    if (prod(c(0, 1, 2) %in% unique(cfile$failure_type)) == 1) {
+      myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
+                         mfilenew, Betasigmafile, Sigcovfile, trace)
+    } else if (prod(c(0, 1) %in% unique(cfile$failure_type)) == 1) {
+      myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
+                         mfilenew, Betasigmafile, Sigcovfile, trace)
+    } else {
+      stop(paste0(unique(cdata$failure_type), " is not an appropriate code of single / competing risks failure type.
+                  Please correctly specify the event variable."))
+    }
+
   }
 
   myresult$type="jmcs";
