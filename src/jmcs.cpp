@@ -2256,6 +2256,21 @@ namespace jmcsspace {
             else continue;
         }
 
+        gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
+        gsl_matrix_memcpy(VC,sig);
+        if(p1a>1)
+        {
+            for(i=0;i<p1a;i++)
+            {
+                for(j=i+1;j<p1a;j++)    gsl_matrix_set(VC,j,i,gsl_matrix_get(VC,i,j));
+            }
+        }
+
+        int status;
+        status=inv_matrix(VC);
+        gsl_vector *tiii = gsl_vector_calloc(p1a);
+        double u;
+
         for(j=0;j<k;j++)
         {
             dem=0;
@@ -2309,6 +2324,9 @@ namespace jmcsspace {
 
                         temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
                         temp*=gsl_vector_get(wi,db0);
+                        gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                        gsl_blas_ddot(tii, tiii, &u);
+                        temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - u/2);
 
                         dem+=temp;
                         for (i=0;i<p1a;i++)
@@ -2365,6 +2383,9 @@ namespace jmcsspace {
 
                             temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
                             temp*=gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
+                            gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                            gsl_blas_ddot(tii, tiii, &u);
+                            temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - u/2);
                             dem+=temp;
                             for (i=0;i<p1a;i++)
                             {
@@ -2444,6 +2465,9 @@ namespace jmcsspace {
 
                                 temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti))-cuh02*exp(xgamma2+MulVV(vee2,ti)));
                                 temp*=gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
+                                gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                                gsl_blas_ddot(tii, tiii, &u);
+                                temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - u/2);
 
                                 dem+=temp;
                                 for (i=0;i<p1a;i++)
@@ -2522,10 +2546,11 @@ namespace jmcsspace {
         gsl_vector_free(wi);
         gsl_vector_free(bi);
         gsl_matrix_free(covi);
-
+        gsl_matrix_free(VC);
         gsl_vector_free(ci);
         gsl_vector_free(rii);
         gsl_vector_free(tii);
+        gsl_vector_free(tiii);
         gsl_vector_free(CUH01);
         gsl_vector_free(CUH02);
         gsl_vector_free(HAZ01);
@@ -2598,6 +2623,20 @@ namespace jmcsspace {
         gsl_vector *rii=gsl_vector_calloc(p1a);
         gsl_vector *tii=gsl_vector_calloc(p1a);
 
+        gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
+        gsl_matrix_memcpy(VC,sig);
+        if(p1a>1)
+        {
+            for(i=0;i<p1a;i++)
+            {
+                for(j=i+1;j<p1a;j++)    gsl_matrix_set(VC,j,i,gsl_matrix_get(VC,i,j));
+            }
+        }
+
+        int status;
+        status=inv_matrix(VC);
+        gsl_vector *tiii = gsl_vector_calloc(p1a);
+        double uu;
 
         double loglik=0;
 
@@ -2788,6 +2827,9 @@ namespace jmcsspace {
                         temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0);
                         for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                         temp/=u;
+                        gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                        gsl_blas_ddot(tii, tiii, &uu);
+                        temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - uu/2);
 
                         temp1+=temp;
 
@@ -2829,6 +2871,9 @@ namespace jmcsspace {
                         temp*=1/sqrt(gsl_pow_2(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
                         for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                         temp/=u;
+                        gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                        gsl_blas_ddot(tii, tiii, &uu);
+                        temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - uu/2);
 
                         temp1+=temp;
 
@@ -2872,6 +2917,9 @@ namespace jmcsspace {
                             temp*=1/sqrt(gsl_pow_3(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
                             for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                             temp/=u;
+                            gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                            gsl_blas_ddot(tii, tiii, &uu);
+                            temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - uu/2);
 
                             temp1+=temp;
 
@@ -2900,8 +2948,11 @@ namespace jmcsspace {
         gsl_vector_free(bi);
         gsl_vector_free(ci);
         gsl_matrix_free(covi);
+        gsl_matrix_free(VC);
+        gsl_matrix_free(VV);
         gsl_vector_free(rii);
         gsl_vector_free(tii);
+        gsl_vector_free(tiii);
         gsl_vector_free(CUH01);
         gsl_vector_free(CUH02);
         gsl_vector_free(HAZ01);

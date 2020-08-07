@@ -1452,6 +1452,21 @@ namespace jmcsfspace {
             else continue;
         }
 
+        gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
+        gsl_matrix_memcpy(VC,sig);
+        if(p1a>1)
+        {
+            for(i=0;i<p1a;i++)
+            {
+                for(j=i+1;j<p1a;j++)    gsl_matrix_set(VC,j,i,gsl_matrix_get(VC,i,j));
+            }
+        }
+
+        int status;
+        status=inv_matrix(VC);
+        gsl_vector *tiii = gsl_vector_calloc(p1a);
+        double u;
+
         for(j=0;j<k;j++)
         {
             dem=0;
@@ -1499,6 +1514,9 @@ namespace jmcsfspace {
 
                         temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                         temp*=gsl_vector_get(wi,db0);
+                        gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                        gsl_blas_ddot(tii, tiii, &u);
+                        temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - u/2);
 
                         dem+=temp;
                         for (i=0;i<p1a;i++)
@@ -1548,6 +1566,9 @@ namespace jmcsfspace {
 
                             temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                             temp*=gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
+                            gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                            gsl_blas_ddot(tii, tiii, &u);
+                            temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - u/2);
                             dem+=temp;
                             for (i=0;i<p1a;i++)
                             {
@@ -1621,6 +1642,9 @@ namespace jmcsfspace {
 
                                 temp*=exp(0-cuh01*exp(xgamma1+MulVV(vee1,ti)));
                                 temp*=gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
+                                gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                                gsl_blas_ddot(tii, tiii, &u);
+                                temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - u/2);
 
                                 dem+=temp;
                                 for (i=0;i<p1a;i++)
@@ -1691,10 +1715,11 @@ namespace jmcsfspace {
         gsl_vector_free(wi);
         gsl_vector_free(bi);
         gsl_matrix_free(covi);
-
+        gsl_matrix_free(VC);
         gsl_vector_free(ci);
         gsl_vector_free(rii);
         gsl_vector_free(tii);
+        gsl_vector_free(tiii);
         gsl_vector_free(CUH01);
         gsl_vector_free(HAZ01);
         gsl_vector_free(CumuH01);
@@ -1761,6 +1786,20 @@ namespace jmcsfspace {
         gsl_vector *rii=gsl_vector_calloc(p1a);
         gsl_vector *tii=gsl_vector_calloc(p1a);
 
+        gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
+        gsl_matrix_memcpy(VC,sig);
+        if(p1a>1)
+        {
+            for(i=0;i<p1a;i++)
+            {
+                for(j=i+1;j<p1a;j++)    gsl_matrix_set(VC,j,i,gsl_matrix_get(VC,i,j));
+            }
+        }
+
+        int status;
+        status=inv_matrix(VC);
+        gsl_vector *tiii = gsl_vector_calloc(p1a);
+        double uu;
 
         double loglik=0;
 
@@ -1887,6 +1926,9 @@ namespace jmcsfspace {
                         temp*=1/sqrt(M_PI)*gsl_vector_get(wi,db0);
                         for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                         temp/=u;
+                        gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                        gsl_blas_ddot(tii, tiii, &uu);
+                        temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - uu/2);
 
                         temp1+=temp;
 
@@ -1927,6 +1969,9 @@ namespace jmcsfspace {
                         temp*=1/sqrt(gsl_pow_2(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1);
                         for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                         temp/=u;
+                        gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                        gsl_blas_ddot(tii, tiii, &uu);
+                        temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - uu/2);
 
                         temp1+=temp;
 
@@ -1969,6 +2014,9 @@ namespace jmcsfspace {
                             temp*=1/sqrt(gsl_pow_3(M_PI))*gsl_vector_get(wi,db0)*gsl_vector_get(wi,db1)*gsl_vector_get(wi,db2);
                             for (i=0;i<p1a;i++) temp*=gsl_matrix_get(covi, i, i);
                             temp/=u;
+                            gsl_blas_dgemv(CblasNoTrans, 1.0, VC, tii, 0.0, tiii);
+                            gsl_blas_ddot(tii, tiii, &uu);
+                            temp*=exp(gsl_pow_2(gsl_blas_dnrm2(rii)) - uu/2);
 
                             temp1+=temp;
 
@@ -1997,8 +2045,11 @@ namespace jmcsfspace {
         gsl_vector_free(bi);
         gsl_vector_free(ci);
         gsl_matrix_free(covi);
+        gsl_matrix_free(VC);
+        gsl_matrix_free(VV);
         gsl_vector_free(rii);
         gsl_vector_free(tii);
+        gsl_vector_free(tiii);
         gsl_vector_free(CUH01);
         gsl_vector_free(HAZ01);
         gsl_vector_free(CumuH01);
@@ -2450,6 +2501,99 @@ namespace jmcsfspace {
 
 
          }
+
+         /* read M1 vector  */
+         {
+             FILE * f = fopen(mfile.c_str(), "r");
+
+             if (f == NULL)
+             {
+                 Rprintf("File %s does not exist.\n", mfile.c_str());
+                 return R_NilValue;
+             }
+
+
+             int nrows=0;
+             // Extract characters from file and store in character c
+             for (char c = fgetc(f); c != EOF; c = fgetc(f))
+                 if (c == '\n')  nrows = nrows + 1;
+                 nrows=nrows+1;
+                 if (k==nrows)
+                 {   rewind(f);
+                     gsl_vector_fscanf(f, M1);
+                     fclose(f);
+                 }
+                 else
+                 {
+                     Rprintf("Input subjects is %d, but the number of rows in %s is %d",k,mfile.c_str(),nrows);
+                     fclose(f);
+                     return R_NilValue;
+                 }
+
+
+         }
+
+         /* read Betasigma vector  */
+         {
+             FILE * f = fopen(Betasigmafile.c_str(), "r");
+
+             if (f == NULL)
+             {
+                 Rprintf("File %s does not exist.\n", Betasigmafile.c_str());
+                 return R_NilValue;
+             }
+
+
+             int nrows=0;
+             // Extract characters from file and store in character c
+             for (char c = fgetc(f); c != EOF; c = fgetc(f))
+                 if (c == '\n')  nrows = nrows + 1;
+                 nrows=nrows+1;
+                 if (p1+1==nrows)
+                 {   rewind(f);
+                     gsl_vector_fscanf(f, Betasigma);
+                     fclose(f);
+                 }
+                 else
+                 {
+                     Rprintf("Input subjects is %d, but the number of rows in %s is %d",p1+1,Betasigmafile.c_str(),nrows);
+                     fclose(f);
+                     return R_NilValue;
+                 }
+
+
+         }
+
+         /* read Sigcov matrix  */
+         {
+             FILE * f = fopen(Sigcovfile.c_str(), "r");
+
+             if (f == NULL)
+             {
+                 Rprintf("File %s does not exist.\n", Sigcovfile.c_str());
+                 return R_NilValue;
+             }
+
+
+             int nrows=0;
+             // Extract characters from file and store in character c
+             for (char c = fgetc(f); c != EOF; c = fgetc(f))
+                 if (c == '\n')  nrows = nrows + 1;
+                 nrows=nrows+1;
+                 if (p1a==nrows)
+                 {   rewind(f);
+                     gsl_matrix_fscanf(f, Sigcov);
+                     fclose(f);
+                 }
+                 else
+                 {
+                     Rprintf("Input subjects is %d, but the number of rows in %s is %d",p1a,Sigcovfile.c_str(),nrows);
+                     fclose(f);
+                     return R_NilValue;
+                 }
+
+
+         }
          /* read C matrix  */
          {
            FILE * f = fopen(cfile.c_str(), "r");
@@ -2460,118 +2604,25 @@ namespace jmcsfspace {
              return R_NilValue;
            }
 
-
            int nrows=0;
              // Extract characters from file and store in character c
            for (char c = fgetc(f); c != EOF; c = fgetc(f))
                    if (c == '\n')  nrows = nrows + 1;
-           nrows=nrows+1;
-           if (k==nrows)
-           {   rewind(f);
-               gsl_matrix_fscanf(f, C);
-               fclose(f);
-           }
-           else
-           {
-               Rprintf("Input subjects is %d, but the number of rows in %s is %d",k,cfile.c_str(),nrows);
-               fclose(f);
-               return R_NilValue;
-           }
+                   nrows=nrows+1;
+                   if (k==nrows)
+                    {   rewind(f);
+                        gsl_matrix_fscanf(f, C);
+                        fclose(f);
+                    }
+                    else
+                    {
+                        Rprintf("Input subjects is %d, but the number of rows in %s is %d",k,cfile.c_str(),nrows);
+                        fclose(f);
+                        return R_NilValue;
+                    }
 
 
          }
-         /* read M1 vector  */
-         {
-           FILE * f = fopen(mfile.c_str(), "r");
-
-           if (f == NULL)
-           {
-               Rprintf("File %s does not exist.\n", mfile.c_str());
-             return R_NilValue;
-           }
-
-
-           int nrows=0;
-             // Extract characters from file and store in character c
-           for (char c = fgetc(f); c != EOF; c = fgetc(f))
-                   if (c == '\n')  nrows = nrows + 1;
-           nrows=nrows+1;
-           if (k==nrows)
-           {   rewind(f);
-               gsl_vector_fscanf(f, M1);
-               fclose(f);
-           }
-           else
-           {
-               Rprintf("Input subjects is %d, but the number of rows in %s is %d",k,mfile.c_str(),nrows);
-               fclose(f);
-               return R_NilValue;
-           }
-
-
-         }
-
-        /* read Betasigma vector  */
-        {
-          FILE * f = fopen(Betasigmafile.c_str(), "r");
-
-          if (f == NULL)
-          {
-              Rprintf("File %s does not exist.\n", Betasigmafile.c_str());
-            return R_NilValue;
-          }
-
-
-          int nrows=0;
-            // Extract characters from file and store in character c
-          for (char c = fgetc(f); c != EOF; c = fgetc(f))
-                  if (c == '\n')  nrows = nrows + 1;
-          nrows=nrows+1;
-          if (p1+1==nrows)
-          {   rewind(f);
-              gsl_vector_fscanf(f, Betasigma);
-              fclose(f);
-          }
-          else
-          {
-              Rprintf("Input subjects is %d, but the number of rows in %s is %d",p1+1,Betasigmafile.c_str(),nrows);
-              fclose(f);
-              return R_NilValue;
-          }
-
-
-        }
-
-        /* read Sigcov matrix  */
-        {
-          FILE * f = fopen(Sigcovfile.c_str(), "r");
-
-          if (f == NULL)
-          {
-              Rprintf("File %s does not exist.\n", Sigcovfile.c_str());
-            return R_NilValue;
-          }
-
-
-          int nrows=0;
-            // Extract characters from file and store in character c
-          for (char c = fgetc(f); c != EOF; c = fgetc(f))
-                  if (c == '\n')  nrows = nrows + 1;
-          nrows=nrows+1;
-          if (p1a==nrows)
-          {   rewind(f);
-              gsl_matrix_fscanf(f, Sigcov);
-              fclose(f);
-          }
-          else
-          {
-              Rprintf("Input subjects is %d, but the number of rows in %s is %d",p1a,Sigcovfile.c_str(),nrows);
-              fclose(f);
-              return R_NilValue;
-          }
-
-
-        }
 
         int i,j,iter,status;
         /* allocate space for estimated parameters */

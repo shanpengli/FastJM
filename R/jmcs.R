@@ -125,15 +125,14 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
     Betasigmafile = tempfile(pattern = "", fileext = ".txt")
     writenh(beta, Betasigmafile)
 
-    if (prod(c(0, 1, 2) %in% unique(cdata$failure_type)) == 1) {
-      writeLines("helloNo")
+    if (prod(c(0, 1, 2) %in% unique(cdata[, 2])) == 1) {
       myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
                          mfilenew, Betasigmafile, Sigcovfile, trace)
-    } else if (prod(c(0, 1) %in% unique(cdata$failure_type)) == 1) {
+    } else if (prod(c(0, 1) %in% unique(cdata[, 2])) == 1) {
       myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
                          mfilenew, Betasigmafile, Sigcovfile, trace)
     } else {
-      stop(paste0(unique(cdata$failure_type), " is not an appropriate code of single / competing risks failure type.
+      stop(paste0(unique(cdata[, 2]), " is not an appropriate code of single / competing risks failure type.
                   Please correctly specify the event variable."))
     }
 
@@ -192,14 +191,14 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
     beta <- matrix(beta, ncol = 1, nrow = length(beta))
     Betasigmafile = tempfile(pattern = "", fileext = ".txt")
     writenh(beta, Betasigmafile)
-    if (prod(c(0, 1, 2) %in% unique(cfile$failure_type)) == 1) {
+    if (prod(c(0, 1, 2) %in% unique(cfile[, 2])) == 1) {
       myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
                          mfilenew, Betasigmafile, Sigcovfile, trace)
-    } else if (prod(c(0, 1) %in% unique(cfile$failure_type)) == 1) {
+    } else if (prod(c(0, 1) %in% unique(cfile[, 2])) == 1) {
       myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
                          mfilenew, Betasigmafile, Sigcovfile, trace)
     } else {
-      stop(paste0(unique(cdata$failure_type), " is not an appropriate code of single / competing risks failure type.
+      stop(paste0(unique(cfile[, 2]), " is not an appropriate code of single / competing risks failure type.
                   Please correctly specify the event variable."))
     }
 
@@ -208,7 +207,8 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
   myresult$type="jmcs";
   #names
   ynames=colnames(yfile)
-  names(myresult$betas)=ynames[(ydim[2]-p1a):ydim[2]-1]
+  ydim=dim(yfile)
+  names(myresult$betas)=ynames[(1+p1a+1):ydim[2]]
 
   colnames(myresult$gamma_matrix)=cnames[3:(p2+3-1)]
 
