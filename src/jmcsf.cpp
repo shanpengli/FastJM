@@ -720,7 +720,7 @@ namespace jmcsfspace {
 
         printf("det=%f\n",vdet);
 
-        if(vdet<0.0005) return 100;
+        //if(vdet<0.0005) return 100;
 
         status=inv_matrix(VC);
         if(status==100) return status;

@@ -40,7 +40,7 @@
 ##' }
 ##' @export
 
-jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_file=TRUE)
+jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_file=TRUE, VarT=c("Intercept", "slope"))
 {
   if (do.trace) {
     trace=1;
@@ -165,14 +165,24 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
     colnames(yfile)[1] <- "ID"
 
     ## fit a linear mixed effect model
-    name <- colnames(yfile)[(4+p1a):ncol(yfile)]
-    xnam <- paste(name[1:length(name)], sep = "")
-    random.name <- colnames(yfile)[4:(2+p1a)]
-    random.xnam <- paste(random.name[1:length(random.name)], sep = "")
+    if (p1a>1 && VarT == c("Intercept", "slope")) {
+      name <- colnames(yfile)[(4+p1a):ncol(yfile)]
+      xnam <- paste(name[1:length(name)], sep = "")
+      random.name <- colnames(yfile)[4:(2+p1a)]
+      random.xnam <- paste(random.name[1:length(random.name)], sep = "")
 
-    fmla.fixed <- paste(colnames(yfile)[2], " ~ ", paste(xnam, collapse= "+"))
-    fmla.random <- paste("(", paste(random.xnam, collapse= "+"), "|", colnames(yfile)[1], ")", sep = "")
-    fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
+      fmla.fixed <- paste(colnames(yfile)[2], " ~ ", paste(xnam, collapse= "+"))
+      fmla.random <- paste("(", paste(random.xnam, collapse= "+"), "|", colnames(yfile)[1], ")", sep = "")
+      fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
+    } else if (VarT == "Intercept only") {
+      name <- colnames(yfile)[5:ncol(yfile)]
+      xnam <- paste(name[1:length(name)], sep = "")
+      fmla.fixed <- paste(colnames(yfile)[2], " ~ ", paste(xnam, collapse= "+"))
+      fmla.random <- paste("(", 1, "|", colnames(yfile)[1], ")", sep = "")
+      fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
+    } else {
+      stop("Random effect covariates and / or VarT variable may not be correctly specified. Please check again!")
+    }
     writeLines("Model fit is starting!")
     lmem <- lmer(formula = fmla, data = yfile, REML = FALSE)
 
