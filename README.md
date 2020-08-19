@@ -6,7 +6,7 @@ library(devtools)
 
 install_github("shanpengli/FastJM")
 
-#Run the package using a toy example
+# Run the package using a toy example
 set.seed(123)
 
 yfile=system.file("extdata", "simy0.txt", package = "FastJM")
