@@ -20,7 +20,7 @@ Joint analysis of longitudinal outcomes and survival times has gained a lot of a
 
 We first load the package and the data.
 
-```{r, message=FALSE, warning=FALSE, results='asis'}
+```{r}
 require(FastJM)
 set.seed(123)
 yfile=system.file("extdata", "simy0.txt", package = "FastJM")
@@ -30,7 +30,7 @@ mfile=system.file("extdata", "simm0.txt", package = "FastJM")
 The number of rows in yfile is the total number of measurements for all subjects in the study. The columns in yfile should start with the subject ID (column 1), longitudinal outcome, the covariates for the random effects, and then the covariates for the fixed effects. For cfile, the survival / censoring time is included in the first column, and the failure type coded as 0 (censored events), 1 (risk 1), or 2 (risk 2) is given in the second column. Either competing risks or single failure assumed. The covariates are included in the third column and on. mfile is to indicate the number of longitudinal measurements per subject. The number of rows equals to the number of subjects.
 
 Hence, the model can be specified by the function jmcs():
-```{r, eval=FALSE, message=FALSE, warning=FALSE}
+```{r}
 res2=jmcs(p1=3,yfile,cfile,mfile,point=6,type_file=TRUE, do.trace = F)
 res2
 ```
