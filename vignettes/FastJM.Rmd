@@ -1,0 +1,43 @@
+---
+title: "Joint Models for Longitudinal Measurements and Competing Risks Failure Time Data"
+author: "Shanpeng Li"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FastJM Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Joint analysis of longitudinal outcomes and survival times has gained a lot of attention in recent years. There have been extended to handle competing risks for continuous outcomes. This vignette offers a brief introduction to the R package FastJM, which implements the methods proposed to deal with such joint models, and two competing risks are assumed. The data sets for generating the initial values are provided.
+
+## Examples
+
+We first load the package and the data.
+
+```{r, message=FALSE, warning=FALSE, results='asis'}
+require(FastJM)
+set.seed(123)
+yfile=system.file("extdata", "simy0.txt", package = "FastJM")
+cfile=system.file("extdata", "simc0.txt", package = "FastJM")
+mfile=system.file("extdata", "simm0.txt", package = "FastJM")
+```
+The number of rows in yfile is the total number of measurements for all subjects in the study. The columns in yfile should start with the subject ID (column 1), longitudinal outcome, the covariates for the random effects, and then the covariates for the fixed effects. For cfile, the survival / censoring time is included in the first column, and the failure type coded as 0 (censored events), 1 (risk 1), or 2 (risk 2) is given in the second column. Either competing risks or single failure assumed. The covariates are included in the third column and on. mfile is to indicate the number of longitudinal measurements per subject. The number of rows equals to the number of subjects.
+
+Hence, the model can be specified by the function jmcs():
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+res2=jmcs(p1=3,yfile,cfile,mfile,point=6,type_file=TRUE, do.trace = F)
+res2
+```
+
+with $p_1$ the dimension of fixed effects (including intercept) in yfile, the option "point" is the number of quadrature points used to approximate the integral in the E-step, default is 6, and "do.trace" is used to control whether the programm prints the iteration details. 
+
+The resulting table contains three parts, the fixed effects in longitudinal model, survival model and random effects. It gives the estimated parameters in the first column, standard error in the second column, 95\% confidence interval and $p$-value for these parameters in the third and forth columns. The estimated covariance matrix of random effects is given as sigma_b11, sigma_b12, and sigma_b22.
+
+
+

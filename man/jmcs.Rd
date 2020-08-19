@@ -33,6 +33,8 @@ jmcs(
 
 \item{type_file}{Types of inputs. Default is true, i.e.  data files with headers. If set to "F", inputs are changed to data matrixes or data.frames (with headers)}
 
+\item{VarT}{Types of random effect parameterization. Default is c("Intercept", "slope"), i.e., both random intercept and slope are specified. If set to "Intercept only", only random intercept is considered.}
+
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
@@ -57,15 +59,12 @@ Joint modeling of longitudinal continuous data and competing risks
 }
 \examples{
 # A toy example on simulated data
+# Three data files are required to run the joint models. yfile denotes the longitufinal data, cfile denotes the survival data, and mfile denotes the number of repeated measurements for subjects.
 require(FastJM)
 set.seed(123)
 yfile=system.file("extdata", "simy0.txt", package = "FastJM")
 cfile=system.file("extdata", "simc0.txt", package = "FastJM")
 mfile=system.file("extdata", "simm0.txt", package = "FastJM")
 res2=jmcs(p1=3,yfile,cfile,mfile,point=6,type_file=TRUE)
-}
-\references{
-\itemize{
-\item Elashoff, Robert M., Gang Li, and Ning Li. "A joint model for longitudinal measurements and survival data in the presence of multiple failure types." Biometrics 64.3 (2008): 762-771.
-}
+res2
 }
