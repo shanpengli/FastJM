@@ -12,7 +12,8 @@ jmcs(
   point = 6,
   maxiter = 10000,
   do.trace = FALSE,
-  type_file = TRUE
+  type_file = TRUE,
+  VarT = c("Intercept", "slope")
 )
 }
 \arguments{

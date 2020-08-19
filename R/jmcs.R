@@ -8,6 +8,7 @@
 ##' @param maxiter Maximum values of iterations. Default is 100000.
 ##' @param do.trace Print detailed information of each iteration. Default is false, i.e., not to print the iteration details.
 ##' @param type_file Types of inputs. Default is true, i.e.  data files with headers. If set to "F", inputs are changed to data matrixes or data.frames (with headers)
+##' @param VarT Types of random effect parameterization. Default is c("Intercept", "slope"), i.e., both random intercept and slope are specified. If set to "Intercept only", only random intercept is considered.
 ##' @param ... further arguments passed to or from other methods.
 ##' @return Object of class \code{FastJM} with elements
 ##'   \tabular{ll}{
@@ -27,17 +28,15 @@
 ##'
 ##' @examples
 ##' # A toy example on simulated data
+##' # Three data files are required to run the joint models. yfile denotes the longitufinal data, cfile denotes the survival data, and mfile denotes the number of repeated measurements for subjects.
 ##' require(FastJM)
 ##' set.seed(123)
 ##' yfile=system.file("extdata", "simy0.txt", package = "FastJM")
 ##' cfile=system.file("extdata", "simc0.txt", package = "FastJM")
 ##' mfile=system.file("extdata", "simm0.txt", package = "FastJM")
 ##' res2=jmcs(p1=3,yfile,cfile,mfile,point=6,type_file=TRUE)
+##' res2
 
-##' @references
-##' \itemize{
-##' \item Elashoff, Robert M., Gang Li, and Ning Li. "A joint model for longitudinal measurements and survival data in the presence of multiple failure types." Biometrics 64.3 (2008): 762-771.
-##' }
 ##' @export
 
 jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_file=TRUE, VarT=c("Intercept", "slope"))
@@ -47,7 +46,6 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
   }else{
     trace=0;
   }
-
 
   #Gaussian-Hermite quadrature nodes and weights
   #The dimension of xs/ws is half of the point value since they are symmetric
@@ -77,11 +75,25 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
     mfilenew=tempfile(pattern = "", fileext = ".txt")
     writenh(mdata,mfilenew)
 
+    cdim=dim(cdata)
     ydim=dim(ydata)
     # number of observations in study is equals to the #of rows in Y matrix
     n1=ydim[1]
     # number of random effects
     p1a=ydim[2]-1-p1-1
+
+    ##Check the completeness of data
+    if (sum(complete.cases(ydata)) != ydim[1]) {
+      stop("Missing values detected! Please make sure your longitudinal data is complete!")
+    }
+
+    if (sum(complete.cases(cdata)) != cdim[1]) {
+      stop("Missing values detected! Please make sure your survival data is complete!")
+    }
+
+    if (p1a > 3) {
+      stop("Maximum of 3 random effects are allowed. Please reconsider the random effect covariates you need!")
+    }
 
     if((p1<1)|(p1a<1)){
       stop("Possibe wrong dimension of fixed effects in Y!")
@@ -137,6 +149,8 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
       stop(paste0(unique(cdata[, 2]), " is not an appropriate code of single / competing risks failure type.
                   Please correctly specify the event variable."))
     }
+    ynames=colnames(ydata)
+    ydim=dim(ydata)
 
 
   }else{
@@ -148,16 +162,29 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
     mfilenew=tempfile(pattern = "", fileext = ".txt")
     writenh(mfile,mfilenew)
 
+    cdim=dim(cfile)
     ydim=dim(yfile)
     # number of observations in study is equals to the #of rows in Y matrix
     n1=ydim[1]
     # number of random effects
     p1a=ydim[2]-1-p1-1
+
+    ##Check the completeness of data
+    if (sum(complete.cases(yfile)) != ydim[1]) {
+      stop("Missing values detected! Please make sure your longitudinal data is complete!")
+    }
+
+    if (sum(complete.cases(cfile)) != cdim[1]) {
+      stop("Missing values detected! Please make sure your survival data is complete!")
+    }
+
+    if (p1a > 3) {
+      stop("Maximum of 3 random effects are allowed. Please reconsider the random effect covariates you need!")
+    }
+
     if((p1<1)|(p1a<1)){
       stop("Possibe wrong dimension of fixed effects in Y!")
     }
-
-    cdim=dim(cfile)
 
     # number of subjects in study is equals to the #of rows in C matrix
     k=cdim[1]
@@ -215,13 +242,13 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
       stop(paste0(unique(cfile[, 2]), " is not an appropriate code of single / competing risks failure type.
                   Please correctly specify the event variable."))
     }
+    ynames=colnames(yfile)
+    ydim=dim(yfile)
 
   }
 
 
   #names
-  ynames=colnames(yfile)
-  ydim=dim(yfile)
   names(myresult$betas)=ynames[(1+p1a+1):ydim[2]]
 
   colnames(myresult$gamma_matrix)=cnames[3:(p2+3-1)]
