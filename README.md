@@ -6,6 +6,8 @@ library(devtools)
 
 install_github("shanpengli/FastJM")
 
+Reminder: GSL library must be preinstalled before the installation of FastJM. See INSTALL file.
+
 # Run the package using a toy example
 set.seed(123)
 
