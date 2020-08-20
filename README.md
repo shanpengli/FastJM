@@ -4,7 +4,7 @@ Fast fitting of joint models with longitudinal and competing risks data applying
 # Install from github:
 library(devtools)
 
-install_github("shanpengli/FastJM")
+install_github("shanpengli/FastJM", build_vignettes = TRUE)
 
 Reminder: GSL library must be preinstalled before the installation of FastJM. See INSTALL file.
 
