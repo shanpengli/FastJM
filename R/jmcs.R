@@ -17,8 +17,10 @@
 ##'       \code{se_betas} \tab The standard error estimate of \eqn{\beta}. \cr
 ##'       \code{gamma_matrix} \tab  The point  estimate of \eqn{\gamma}. \cr
 ##'       \code{se_gamma_matrix}   \tab  The standard error estimate of \eqn{\gamma}. \cr
-##'       \code{v_estimate} \tab The point  estimate of \eqn{\nu}. \cr
-##'       \code{se_v_estimate}    \tab The standard error estimate of \eqn{\nu}. \cr
+##'       \code{vee1_estimate} \tab The point  estimate of \eqn{\nu_1}. \cr
+##'       \code{se_vee1_estimate}    \tab The standard error estimate of \eqn{\nu_1}. \cr
+##'       \code{vee2_estimate} \tab The point  estimate of \eqn{\nu_2}. \cr
+##'       \code{se_vee2_estimate}    \tab The standard error estimate of \eqn{\nu_2}. \cr
 ##'       \code{sigma2_val}     \tab  The point estimate of \eqn{\sigma^2}.\cr
 ##'       \code{se_sigma2_val}     \tab  The standard error estimate of \eqn{\sigma^2}.\cr
 ##'       \code{sigma_matrix}     \tab The point estimate of \eqn{\Sigma} (only the upper triangle portion of the matrix is output).\cr
