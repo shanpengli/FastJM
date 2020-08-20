@@ -27,7 +27,7 @@ jmcs(
 
 \item{point}{Quadrature points used in the EM procedure.Default is 20.}
 
-\item{maxiter}{Maximum values of iterations. Default is 100000.}
+\item{maxiter}{Maximum values of iterations. Default is 10000.}
 
 \item{do.trace}{Print detailed information of each iteration. Default is false, i.e., not to print the iteration details.}
 
