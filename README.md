@@ -9,6 +9,8 @@ install_github("shanpengli/FastJM", build_vignettes = TRUE)
 Reminder: GSL library must be preinstalled before the installation of FastJM. See INSTALL file.
 
 # Run the package using a toy example
+library(FastJM)
+
 set.seed(123)
 
 yfile=system.file("extdata", "simy0.txt", package = "FastJM")
