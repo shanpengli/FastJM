@@ -83,3 +83,16 @@ The following paths should be added,
 C:\Rtools\bin;C:\Rtools\MinGW\bin;
 C:\Program files\R\R-3.3.3\bin\i386;
 C:\GSL\bin
+
+For OS X users, the installation steps are even simpler.
+1. Install Homebrew:
+Open terminal and type
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+
+2. Install GSL:
+Open terminal and type
+
+brew install gsl
+
+For detailed information about the installation, see https://gist.github.com/TysonRayJones/af7bedcdb8dc59868c7966232b4da903
