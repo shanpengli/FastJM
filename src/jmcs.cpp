@@ -136,7 +136,7 @@ namespace jmcsspace {
              gsl_matrix_scale(cov, -1);
              gsl_matrix_add(cov, Sigcov);
              inv_matrix(cov);
-             gsl_linalg_cholesky_decomp1(cov);
+             gsl_linalg_cholesky_decomp(cov);
              if (p1a>1)
              {
                 for(u=1;u<p1a;u++)
