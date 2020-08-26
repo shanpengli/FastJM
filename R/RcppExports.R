@@ -9,11 +9,105 @@ jmcsf_main <- function(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
     .Call(`_FastJM_jmcsf_main`, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, trace)
 }
 
+#' Simulation of continuous longitudinal outcome and competing risks data
+#' @title Data simulation of continuous outcomes and competing risks
+#' @param k_val The number of subjects in study.
+#' @param p1_val  The dimension of fixed effects in longitudinal measurements.
+#' @param p1a_val  The dimension of random effects in longitudinal measurements.
+#' @param p2_val  The dimension of fixed effects in competing risks failure time data.
+#' @param g_val  The number of type of failure in competing risks data.
+#' @param truebeta True values for beta, the longitudinal coefficients.
+#' @param truegamma True values for gamma, the survival coefficients.
+#' @param truevee1 True values for \eqn{\nu_1}.
+#' @param truevee2 True values for \eqn{\nu_2}.
+#' @param randeffect True values for random effects in longitudinal and survival sub-models.
+#' @param yfn  Filename of genereated Y matrix for longitudinal measurements in long format.
+#' @param cfn  Filename of genereated C matrix for competing risks failure time data.
+#' @param mfn  Filename of genereated M vector to indicate the number of longitudinal measurements per subject.
+#' @return Files with names yfn, cfn and mfn.
+#' \tabular{ll}{
+#' \code{censoring_rate} \tab Censoring rate of the survival data. \cr
+#' \code{rate1} \tab Rate of competing risk 1. \cr
+#' \code{rate2} \tab Rate of competing risk 2. \cr
+#' \code{yfn} \tab Filename of genereated Y matrix for longitudinal measurements. \cr
+#' \code{cfn} \tab Filename of genereated C matrix for competing risks failure time data. \cr
+#' \code{mfn} \tab  Filename of genereated M vector to indicate the number of longitudinal measurements per subject.
+#'   }
+#' @examples
+#' # A toy example testint data generations
+#' require(FastJM)
+#' set.seed(100)
+#' yfn=tempfile(pattern = "", fileext = ".txt")
+#' cfn=tempfile(pattern = "", fileext = ".txt")
+#' mfn=tempfile(pattern = "", fileext = ".txt")
+#' k_val=100;
+#' p1_val=3;
+#' p1a_val=2;
+#' p2_val=2;
+#' g_val=2;
+#' truebeta=c(2,1,-1.5);
+#' truegamma=c(0.8,-1,0.5,-1.5);
+#' randeffect=c(0.5,0.5,0.25);
+#' truevee1=c(1,0.5);
+#' truevee2=c(0.7,0.25);
+#' #writing files
+#' SimData(k_val, p1_val, p1a_val, p2_val, g_val,truebeta,
+#'         truegamma, truevee1, truevee2, randeffect, yfn,  cfn,  mfn)
+#' \donttest{
+#' fit <- jmcs(p1 = 3, yfile = yfn, cfile = cfn, mfile = mfn,
+#' type_file = T, point = 6, do.trace = F)
+#'}
 #' @export
 SimData <- function(k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee1, truevee2, randeffect, yfn, cfn, mfn) {
     .Call(`_FastJM_SimData`, k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee1, truevee2, randeffect, yfn, cfn, mfn)
 }
 
+#' @title Data simulation of continuous outcomes and survival data with single failure
+#' @title Data simulation of continuous outcomes and competing risks
+#' @param k_val The number of subjects in study.
+#' @param p1_val  The dimension of fixed effects in longitudinal measurements.
+#' @param p1a_val  The dimension of random effects in longitudinal measurements.
+#' @param p2_val  The dimension of fixed effects in competing risks failure time data.
+#' @param g_val  The number of type of failure in survival data. It must be 1.
+#' @param truebeta True values for beta, the longitudinal coefficients.
+#' @param truegamma True values for gamma, the survival coefficients.
+#' @param truevee True values for \eqn{\nu_1}.
+#' @param randeffect True values for random effects in longitudinal and survival sub-models.
+#' @param yfn  Filename of genereated Y matrix for longitudinal measurements in long format.
+#' @param cfn  Filename of genereated C matrix for competing risks failure time data.
+#' @param mfn  Filename of genereated M vector to indicate the number of longitudinal measurements per subject.
+#' @return Files with names yfn, cfn and mfn.
+#' \tabular{ll}{
+#' \code{censoring_rate} \tab Censoring rate of the survival data. \cr
+#' \code{rate} \tab Rate of the event. \cr
+#' \code{yfn} \tab Filename of genereated Y matrix for longitudinal measurements. \cr
+#' \code{cfn} \tab Filename of genereated C matrix for competing risks failure time data. \cr
+#' \code{mfn} \tab  Filename of genereated M vector to indicate the number of longitudinal measurements per subject.
+#'   }
+#' @examples
+#' # A toy example testint data generations
+#' require(FastJM)
+#' set.seed(100)
+#' yfn=tempfile(pattern = "", fileext = ".txt")
+#' cfn=tempfile(pattern = "", fileext = ".txt")
+#' mfn=tempfile(pattern = "", fileext = ".txt")
+#' k_val=100;
+#' p1_val=3;
+#' p1a_val=2;
+#' p2_val=2;
+#' g_val=1
+#' truegamma=c(0.8,-1)
+#' truebeta=c(2,1,-1.5);
+#' randeffect=c(0.5,0.5,0.25);
+#' truevee1=c(1,0.5);
+#' truevee2=c(0.7,0.25);
+#' #writing files
+#' SimDataSF(k_val, p1_val, p1a_val, p2_val, g_val,truebeta,
+#'         truegamma, truevee1, randeffect, yfn,  cfn,  mfn)
+#' \donttest{
+#' fit <- jmcs(p1 = 3, yfile = yfn, cfile = cfn, mfile = mfn,
+#' type_file = T, point = 6, do.trace = F)
+#'}
 #' @export
 SimDataSF <- function(k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee, randeffect, yfn, cfn, mfn) {
     .Call(`_FastJM_SimDataSF`, k_val, p1_val, p1a_val, p2_val, g_val, truebeta, truegamma, truevee, randeffect, yfn, cfn, mfn)

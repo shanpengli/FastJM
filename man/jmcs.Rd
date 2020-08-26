@@ -61,7 +61,9 @@ Joint modeling of longitudinal continuous data and competing risks
 }
 \examples{
 # A toy example on simulated data
-# Three data files are required to run the joint models. yfile denotes the longitufinal data, cfile denotes the survival data, and mfile denotes the number of repeated measurements for subjects.
+# Three data files are required to run the joint models.
+# yfile denotes the longitufinal data, cfile denotes the survival data,
+# and mfile denotes the number of repeated measurements for subjects.
 require(FastJM)
 set.seed(123)
 yfile=system.file("extdata", "simy0.txt", package = "FastJM")
