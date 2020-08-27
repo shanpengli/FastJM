@@ -57,30 +57,6 @@ double Min(const double t1, const double t2)
   else return t2;
 }
 
-int gsl_linalg_cholesky_svx (const gsl_matrix * LLT,
-                             gsl_vector * x)
-{
-  if (LLT->size1 != LLT->size2)
-  {
-    return 100;
-  }
-  else if (LLT->size2 != x->size)
-  {
-    return 100;
-  }
-  else
-  {
-    /* Solve for c using forward-substitution, L c = b */
-
-    gsl_blas_dtrsv (CblasLower, CblasNoTrans, CblasNonUnit, LLT, x);
-
-    /* Perform back-substitution, U x = c */
-
-    gsl_blas_dtrsv (CblasUpper, CblasNoTrans, CblasNonUnit, LLT, x);
-
-    return 0;
-  }
-}
 
 int gsl_linalg_cholesky_solven (const gsl_matrix * LLT,
                                 const gsl_vector * b,

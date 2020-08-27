@@ -21,9 +21,6 @@ int GetN(double t);
 
 double Min(const double t1, const double t2);
 
-int gsl_linalg_cholesky_svx (const gsl_matrix * LLT,
-                             gsl_vector * x);
-
 int gsl_linalg_cholesky_solven (const gsl_matrix * LLT,
                                 const gsl_vector * b,
                                 gsl_vector * x);
