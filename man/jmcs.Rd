@@ -29,9 +29,9 @@ jmcs(
 
 \item{maxiter}{Maximum values of iterations. Default is 10000.}
 
-\item{do.trace}{Print detailed information of each iteration. Default is false, i.e., not to print the iteration details.}
+\item{do.trace}{Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.}
 
-\item{type_file}{Types of inputs. Default is true, i.e.  data files with headers. If set to "F", inputs are changed to data matrixes or data.frames (with headers)}
+\item{type_file}{Types of inputs. Default is TRUE, i.e.  data files with headers. If set to "FALSE", inputs are changed to data matrixes or data.frames (with headers)}
 
 \item{VarT}{Types of random effect parameterization. Default is c("Intercept", "slope"), i.e., both random intercept and slope are specified. If set to "Intercept only", only random intercept is considered.}
 

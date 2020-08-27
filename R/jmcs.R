@@ -6,8 +6,8 @@
 ##' @param mfile M vector to indicate the number of longitudinal measurements per subject. The number of rows equals to the number of subjects.
 ##' @param point Quadrature points used in the EM procedure.Default is 6.
 ##' @param maxiter Maximum values of iterations. Default is 10000.
-##' @param do.trace Print detailed information of each iteration. Default is false, i.e., not to print the iteration details.
-##' @param type_file Types of inputs. Default is true, i.e.  data files with headers. If set to "F", inputs are changed to data matrixes or data.frames (with headers)
+##' @param do.trace Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.
+##' @param type_file Types of inputs. Default is TRUE, i.e.  data files with headers. If set to "FALSE", inputs are changed to data matrixes or data.frames (with headers)
 ##' @param VarT Types of random effect parameterization. Default is c("Intercept", "slope"), i.e., both random intercept and slope are specified. If set to "Intercept only", only random intercept is considered.
 ##' @param ... further arguments passed to or from other methods.
 ##' @return Object of class \code{FastJM} with elements
