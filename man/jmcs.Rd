@@ -19,13 +19,13 @@ jmcs(
 \arguments{
 \item{p1}{The dimension of fixed effects (including intercept) in yfile.}
 
-\item{yfile}{Y matrix for longitudinal measurements in long format. For example, for a subject with n measurements, there should be n rows for this subject. The # of rows in y matrix is the total number of measurements for all subjects in the study. The columns in Y should start with the longitudinal outcome (column 1), the covariates for the random effects, and then the covariates for the fixed effects.}
+\item{yfile}{Y matrix for longitudinal measurements in long format. For example, for a subject with n measurements, there should be n rows for this subject. The # of rows in y matrix is the total number of measurements for all subjects in the study. The columns in Y should start with the subject ID (column 1), longitudinal outcome (column 2), the covariates for the random effects, and then the covariates for the fixed effects.}
 
-\item{cfile}{C matrix for competing risks failure time data. Each subject has one data entry, so the number of rows equals to the number of subjects. The survival / censoring time is included in the first column, and the failure type coded as 0 (censored events), 1 (risk 1), or 2 (risk 2) is given in the second column. Two competing risks are assumed. The covariates are included in the third column and on.}
+\item{cfile}{C matrix for competing risks failure time data. Each subject has one data entry, so the number of rows equals to the number of subjects. The survival / censoring time is included in the first column, and the failure type coded as 0 (censored events), 1 (risk 1), or 2 (risk 2) is given in the second column. Two competing risks are assumed. The covariates are included in the third column and on. Covariates must be included.}
 
 \item{mfile}{M vector to indicate the number of longitudinal measurements per subject. The number of rows equals to the number of subjects.}
 
-\item{point}{Quadrature points used in the EM procedure.Default is 20.}
+\item{point}{Quadrature points used in the EM procedure.Default is 6.}
 
 \item{maxiter}{Maximum values of iterations. Default is 10000.}
 
