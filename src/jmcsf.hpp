@@ -35,7 +35,6 @@ namespace jmcsfspace {
 
     void MulV(const gsl_vector *Z,gsl_matrix *ZZ);
 
-    void MulM(const gsl_matrix *XX, const gsl_vector *X, gsl_vector *beta);
 
     void MulMM(const gsl_matrix *A,const gsl_matrix *B,gsl_matrix *AB);
 
