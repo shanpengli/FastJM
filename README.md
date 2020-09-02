@@ -27,6 +27,8 @@ res2
 
 library(FastJM)
 
+set.seed(123)
+
 data(mydata)
 
 ydata <- mydata$ydata
