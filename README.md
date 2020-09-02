@@ -25,6 +25,8 @@ res2
 
 # Run the package using a toy example using data frames
 
+## This package depends on R (>=3.5.0)
+
 library(FastJM)
 
 set.seed(123)
