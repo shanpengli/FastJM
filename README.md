@@ -8,7 +8,7 @@ install_github("shanpengli/FastJM", build_vignettes = TRUE)
 
 Reminder: GSL library must be preinstalled before the installation of FastJM. See INSTALL file.
 
-# Run the package using a toy example using filepath
+# Run the package using a toy example with filepath
 library(FastJM)
 
 set.seed(123)
@@ -23,7 +23,7 @@ res2=jmcs(p1=3,yfile,cfile,mfile,point=6,type_file=TRUE, do.trace = F)
 
 res2
 
-# Run the package using a toy example using data frames
+# Run the package using a toy example with data frames
 
 ## This package depends on R (>=3.5.0)
 
