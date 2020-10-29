@@ -23,21 +23,26 @@ We first load the package and the data.
 ```{r}
 require(FastJM)
 set.seed(123)
-data(mydata)
-ydata <- mydata$ydata
-cdata <- mydata$cdata
-mdata <- mydata$mdata
+data(ydata)
+data(cdata)
 ```
-The number of rows in ydata is the total number of measurements for all subjects in the study. The columns in ydata should start with the subject ID (column 1), longitudinal outcome, the covariates for the random effects, and then the covariates for the fixed effects. For cdata, the survival / censoring time is included in the first column, and the failure type coded as 0 (censored events), 1 (risk 1), or 2 (risk 2) is given in the second column. Either competing risks or single failure assumed. The covariates are included in the third column and on. mdata is to indicate the number of longitudinal measurements per subject. The number of rows equals to the number of subjects.
+We have ydata as a longitudinal dataset with 3067 rows, 1000 subjects, and 4 variables, and cdata as a survival dataset with 1000 rows and 5 variables. 
 
-Hence, the model can be specified by the function jmcs():
+Next let us fit a joint model using the following arguments.
 ```{r}
-fit <- jmcs(p1 = 3, yfile = ydata, cfile = cdata, mfile = mdata, type_file = F, point = 6, do.trace = F)
+
+fit <- jmcs(ydata = ydata, cdata = cdata,
+                    long.formula = response ~ time + x1,
+                    surv.formula = Surv(surv, failure_type) ~ x1 + x2,
+                    ID = "ID",
+                    RE = "time",
+                    model = "interslope")
+```
+
+Look at the model fit
+```{r}
 fit
 ```
-
-with $p_1$ the dimension of fixed effects (including intercept) in yfile, the option "point" is the number of quadrature points used to approximate the integral in the E-step, default is 6, and "do.trace" is used to control whether the programm prints the iteration details. 
-
 The resulting table contains three parts, the fixed effects in longitudinal model, survival model and random effects. It gives the estimated parameters in the first column, standard error in the second column, 95\% confidence interval and p-value for these parameters in the third and forth columns. The estimated covariance matrix of random effects is given as sigma_b11, sigma_b12, and sigma_b22.
 
 
