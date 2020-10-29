@@ -1173,7 +1173,7 @@ namespace jmcsfspace {
             {
                 if ((int)gsl_matrix_get(C,j,1) == 1)
                 {
-                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,q));
+                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,j));
                     for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
                     gsl_matrix_get_col(TN,TNN11,a-1-risk1_index_vtttemp);
                     for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
@@ -1192,7 +1192,7 @@ namespace jmcsfspace {
                 {
                     if ((int)gsl_matrix_get(C,j,1) == 1)
                     {
-                        for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,q));
+                        for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,j));
                         for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
                         gsl_matrix_get_col(TN,TNN11,a-1-risk1_index_vtttemp);
                         for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));

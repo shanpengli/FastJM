@@ -131,6 +131,7 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
   ydata_FE <- data.frame(1, ydata[, long[2:length(long)]])
   p1 <- ncol(ydata_FE)
   colnames(ydata_FE)[1] <- "intercept"
+  colnames(ydata_FE)[2:ncol(ydata_FE)] <- long[2:length(long)]
   xnam <- paste(long[2:length(long)], sep = "")
   fmla.fixed <- paste(long[1], " ~ ", paste(xnam, collapse= "+"))
   fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
@@ -183,11 +184,11 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
   beta <- matrix(beta, ncol = 1, nrow = length(beta))
   Betasigmafile = tempfile(pattern = "", fileext = ".txt")
   writenh(beta, Betasigmafile)
-  if (prod(c(0, 1, 2) %in% unique(cfile[, 2])) == 1) {
+  if (prod(c(0, 1, 2) %in% unlist(unique(cfile[, 2]))) == 1) {
     myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
                        mfilenew, Betasigmafile, Sigcovfile, trace)
     myresult$type="jmcs";
-  } else if (prod(c(0, 1) %in% unique(cfile[, 2])) == 1) {
+  } else if (prod(c(0, 1) %in% unlist(unique(cfile[, 2]))) == 1) {
     myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
                         mfilenew, Betasigmafile, Sigcovfile, trace)
     myresult$type="jmcsf";
@@ -195,6 +196,7 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
     stop(paste0(unique(cfile[, 2]), " is not an appropriate code of single / competing risks failure type.
                   Please correctly specify the event variable."))
   }
+  PropComp <- round(table(cfile[, 2])/k * 100, 2)
   ynames=colnames(yfile)
   ydim=dim(yfile)
   cnames=colnames(cfile)
@@ -204,6 +206,26 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
   colnames(myresult$gamma_matrix)=cnames[3:(p2+3-1)]
 
   myresult$k=k
+
+  LongOut <- ynames[1]
+  LongX <- paste0(ynames[(3+p1a):length(ynames)], collapse = "+")
+  FunCall_long <- as.formula(paste(LongOut, LongX, sep = "~"))
+
+  ##create survival submodel formula
+  #cnames <- colnames(cdata)
+  SurvOut <- paste0("Surv(", cnames[1], ",", cnames[2], ")")
+  SurvX <- paste0(cnames[-(1:2)], collapse = "+")
+  FunCall_survival <- as.formula(paste(SurvOut, SurvX, sep = "~"))
+
+
+  DataPath <- NULL
+  SummaryInfo <- list(k, n1, PropComp, FunCall_long, FunCall_survival, DataPath)
+  names(SummaryInfo) <- c("NumSub", "Numobs", "PropComp",
+                          "LongitudinalSubmodel", "SurvivalSubmodel", "DataPath")
+
+  myresult$SummaryInfo <- SummaryInfo
+  myresult$point <- point
+
   class(myresult) <- "FastJM"
 
   return (myresult)

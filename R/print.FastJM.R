@@ -12,10 +12,30 @@ print.FastJM <- function(x, ...) {
     stop("Not a legitimate \"FastJM\" object")
 
   if (x$type == "jmcs") {
-    cat("Model Type:              ", "Joint modeling with competing risks data", "\n\n")
-    cat("                  Estimate   Std. Error       95% CI                Pr(>|Z|)    \n")
+    cat("Call:\n")
+    ##need to add function call (Hong)
+    cat("Function\n")
+    cat("Data Summary:\n")
+    cat("Number of observations:", x$SummaryInfo$Numobs, "\n")
+    cat("Number of groups:", x$k, "\n\n")
+    cat("Proportion of competing risks: \n")
+    for (i in 1:2) {
+      cat("Risk", i, ":", x$SummaryInfo$PropComp[i+1], "%\n")
+    }
+    cat("\nNumerical intergration:\n")
+    cat("Method: standard Guass-Hermite quadrature\n")
+    cat("Number of quadrature points: ", x$point, "\n")
+    cat("\nModel Type: joint modeling of longitudinal continuous and competing risks data", "\n\n")
+    cat("Model summary:\n")
+    cat("Longitudinal process: linear mixed effects model\n")
+    cat("Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard\n\n")
+    cat("Loglikelihood: ", x$loglike, "\n\n")
+    cat("Longitudinal sub-model fixed effects: ",
+        sprintf(format(paste(deparse(x$SummaryInfo$LongitudinalSubmodel, width.cutoff = 500), collapse=""))), "\n")
+    cat("\n                  Estimate   Std. Error       95% CI                Pr(>|Z|)    \n")
     cat("Longitudinal:                \n")
     cat(" Fixed effects:                 \n")
+
 
     for (i in 1:length(x$betas)) {
       #beta = paste0("beta", i)
@@ -30,7 +50,7 @@ print.FastJM <- function(x, ...) {
       cat("     ", pval)
       cat("\n")
     }
-
+    cat(" Random effects:                 \n")
     cat(" ",formatC("sigma^2",width=14,flag="-"), sprintf("% 1.4f", x$sigma2_val))
     cat("     ", sprintf("% 1.4f", x$se_sigma2_val))
 
@@ -43,7 +63,9 @@ print.FastJM <- function(x, ...) {
     cat("\n")
 
 
-    # cat(' Estimate Std. Error 95%CI Pr(>|Z|) \n')
+    cat("\nSurvival sub-model fixed effects: ",
+        sprintf(format(paste(deparse(x$SummaryInfo$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
+    cat("\n                  Estimate   Std. Error       95% CI                Pr(>|Z|)    \n")
     cat("Survival:                \n")
     cat(" Fixed effects:                 \n")
     for (i in 1:dim(x$gamma_matrix)[1]) for (j in 1:dim(x$gamma_matrix)[2]) {
@@ -62,7 +84,7 @@ print.FastJM <- function(x, ...) {
       cat("     ", pval)
       cat("\n")
     }
-
+    cat("\n Association parameters:                 \n")
     for (i in 1:length(x$vee1_estimate)) {
       vee1=paste0("vee_", 1, i)
       uppsd = x$vee1_estimate[i] + 1.96 * x$sd_vee1_estimate[i]
@@ -97,6 +119,7 @@ print.FastJM <- function(x, ...) {
     sd_sigmamatrix <- t(sd_sigmamatrix)
 
     # print sigmabii
+    cat("\nRandom effects:                 \n")
     for (i in 1:(dim(x$sigma_matrix)[1]))
       for (j in 1:(dim(x$sigma_matrix)[2])) {
         if (j < i) {
@@ -122,8 +145,24 @@ print.FastJM <- function(x, ...) {
   }
 
   if (x$type == "jmcsf") {
-    cat("Model Type:           ", "Joint modeling with single failure survival data", "\n\n")
-    cat("                  Estimate   Std. Error       95% CI                Pr(>|Z|)    \n")
+    cat("Call:\n")
+    ##need to add function call (Hong)
+    cat("Function\n")
+    cat("Data Summary:\n")
+    cat("Number of observations:", x$SummaryInfo$Numobs, "\n")
+    cat("Number of groups:", x$k, "\n\n")
+    cat("Proportion of events:", x$SummaryInfo$PropComp[1+1], "%\n")
+    cat("\nNumerical intergration:\n")
+    cat("Method: standard Guass-Hermite quadrature\n")
+    cat("Number of quadrature points: ", x$point, "\n")
+    cat("\nModel Type: joint modeling of longitudinal continuous and survival data with single failure type", "\n\n")
+    cat("Model summary:\n")
+    cat("Longitudinal process: linear mixed effects model\n")
+    cat("Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard\n\n")
+    cat("Loglikelihood: ", x$loglike, "\n\n")
+    cat("Longitudinal sub-model fixed effects: ",
+        sprintf(format(paste(deparse(x$SummaryInfo$LongitudinalSubmodel, width.cutoff = 500), collapse=""))), "\n")
+    cat("\n                  Estimate   Std. Error       95% CI                Pr(>|Z|)    \n")
     cat("Longitudinal:                \n")
     cat(" Fixed effects:                 \n")
 
@@ -140,7 +179,7 @@ print.FastJM <- function(x, ...) {
       cat("     ", pval)
       cat("\n")
     }
-
+    cat(" Random effects:                 \n")
     cat(" ",formatC("sigma^2",width=14,flag="-"), sprintf("% 1.4f", x$sigma2_val))
     cat("     ", sprintf("% 1.4f", x$se_sigma2_val))
 
@@ -153,7 +192,9 @@ print.FastJM <- function(x, ...) {
     cat("\n")
 
 
-    # cat(' Estimate Std. Error 95%CI Pr(>|Z|) \n')
+    cat("\nSurvival sub-model fixed effects: ",
+        sprintf(format(paste(deparse(x$SummaryInfo$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
+    cat("\n                  Estimate   Std. Error       95% CI                Pr(>|Z|)    \n")
     cat("Survival:                \n")
     cat(" Fixed effects:                 \n")
     for (i in 1:dim(x$gamma_matrix)[1]) for (j in 1:dim(x$gamma_matrix)[2]) {
@@ -172,7 +213,7 @@ print.FastJM <- function(x, ...) {
       cat("     ", pval)
       cat("\n")
     }
-
+    cat("\n Association parameters:                 \n")
     for (i in 1:length(x$vee1_estimate)) {
       vee1=paste0("vee_", 1, i)
       uppsd = x$vee1_estimate[i] + 1.96 * x$sd_vee1_estimate[i]
@@ -194,6 +235,7 @@ print.FastJM <- function(x, ...) {
     sd_sigmamatrix <- t(sd_sigmamatrix)
 
     # print sigmabii
+    cat("\nRandom effects:                 \n")
     for (i in 1:(dim(x$sigma_matrix)[1]))
       for (j in 1:(dim(x$sigma_matrix)[2])) {
         if (j < i) {
