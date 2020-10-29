@@ -5,37 +5,45 @@
 \title{Joint Modelling for Continuous outcomes}
 \usage{
 jmcs(
-  p1,
-  yfile,
-  cfile,
-  mfile,
+  ydata,
+  cdata,
+  long.formula,
+  surv.formula,
+  ID,
+  RE,
+  model = "interslope",
   point = 6,
   maxiter = 10000,
-  do.trace = FALSE,
-  type_file = TRUE,
-  VarT = c("Intercept", "slope")
+  do.trace = FALSE
 )
 }
 \arguments{
-\item{p1}{The dimension of fixed effects (including intercept) in yfile.}
+\item{ydata}{a longitudinal data frame in long format.}
 
-\item{yfile}{Y matrix for longitudinal measurements in long format. For example, for a subject with n measurements, there should be n rows for this subject. The # of rows in y matrix is the total number of measurements for all subjects in the study. The columns in Y should start with the subject ID (column 1), longitudinal outcome (column 2), the covariates for the random effects, and then the covariates for the fixed effects.}
+\item{cdata}{a survival data frame with competing risks or single failure.
+Each subject has one data entry.}
 
-\item{cfile}{C matrix for competing risks failure time data. Each subject has one data entry, so the number of rows equals to the number of subjects. The survival / censoring time is included in the first column, and the failure type coded as 0 (censored events), 1 (risk 1), or 2 (risk 2) is given in the second column. Two competing risks are assumed. The covariates are included in the third column and on. Covariates must be included.}
+\item{long.formula}{a formula object with the response variable and fixed effects covariates
+to be included in the longitudinal sub-model.}
 
-\item{mfile}{M vector to indicate the number of longitudinal measurements per subject. The number of rows equals to the number of subjects.}
+\item{surv.formula}{a formula object with the survival time, event indicator, and the covariates
+to be included in the survival sub-model.}
 
-\item{point}{Quadrature points used in the EM procedure.Default is 6.}
+\item{ID}{an element with the name identification of subject to
+identify subject identification in the dataframes.}
 
-\item{maxiter}{Maximum values of iterations. Default is 10000.}
+\item{RE}{a vector of the names of random effect covariates to be included
+in the longitudinal sub-model.}
+
+\item{model}{an element that specifies the model type of random effects.
+Deafult is "interslope", i.e., both random intercept and slope are included.}
+
+\item{point}{the number of pseudo-adaptive Gauss-Hermite quadrature points
+to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.}
+
+\item{maxiter}{the maximum number of iterations of the EM algorithm that the function will perform. Default is 10000.}
 
 \item{do.trace}{Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.}
-
-\item{type_file}{Types of inputs. Default is TRUE, i.e.  data files with headers. If set to "FALSE", inputs are changed to data matrixes or data.frames (with headers)}
-
-\item{VarT}{Types of random effect parameterization. Default is c("Intercept", "slope"), i.e., both random intercept and slope are specified. If set to "Intercept only", only random intercept is considered.}
-
-\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 Object of class \code{FastJM} with elements
@@ -58,17 +66,4 @@ Object of class \code{FastJM} with elements
 }
 \description{
 Joint modeling of longitudinal continuous data and competing risks
-}
-\examples{
-# A toy example on simulated data
-# Three data files are required to run the joint models.
-# yfile denotes the longitufinal data, cfile denotes the survival data,
-# and mfile denotes the number of repeated measurements for subjects.
-require(FastJM)
-set.seed(123)
-yfile=system.file("extdata", "simy0.txt", package = "FastJM")
-cfile=system.file("extdata", "simc0.txt", package = "FastJM")
-mfile=system.file("extdata", "simm0.txt", package = "FastJM")
-res2=jmcs(p1=3,yfile,cfile,mfile,point=6,type_file=TRUE)
-res2
 }

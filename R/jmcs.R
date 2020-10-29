@@ -1,15 +1,22 @@
 ##' Joint modeling of longitudinal continuous data and competing risks
 ##' @title Joint Modelling for Continuous outcomes
-##' @param p1  The dimension of fixed effects (including intercept) in yfile.
-##' @param yfile Y matrix for longitudinal measurements in long format. For example, for a subject with n measurements, there should be n rows for this subject. The # of rows in y matrix is the total number of measurements for all subjects in the study. The columns in Y should start with the subject ID (column 1), longitudinal outcome (column 2), the covariates for the random effects, and then the covariates for the fixed effects.
-##' @param cfile C matrix for competing risks failure time data. Each subject has one data entry, so the number of rows equals to the number of subjects. The survival / censoring time is included in the first column, and the failure type coded as 0 (censored events), 1 (risk 1), or 2 (risk 2) is given in the second column. Two competing risks are assumed. The covariates are included in the third column and on. Covariates must be included.
-##' @param mfile M vector to indicate the number of longitudinal measurements per subject. The number of rows equals to the number of subjects.
-##' @param point Quadrature points used in the EM procedure.Default is 6.
-##' @param maxiter Maximum values of iterations. Default is 10000.
+##' @param ydata a longitudinal data frame in long format.
+##' @param cdata a survival data frame with competing risks or single failure.
+##' Each subject has one data entry.
+##' @param long.formula a formula object with the response variable and fixed effects covariates
+##' to be included in the longitudinal sub-model.
+##' @param surv.formula a formula object with the survival time, event indicator, and the covariates
+##' to be included in the survival sub-model.
+##' @param ID an element with the name identification of subject to
+##' identify subject identification in the dataframes.
+##' @param RE a vector of the names of random effect covariates to be included
+##' in the longitudinal sub-model.
+##' @param model an element that specifies the model type of random effects.
+##' Deafult is "interslope", i.e., both random intercept and slope are included.
+##' @param point the number of pseudo-adaptive Gauss-Hermite quadrature points
+##' to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.
+##' @param maxiter the maximum number of iterations of the EM algorithm that the function will perform. Default is 10000.
 ##' @param do.trace Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.
-##' @param type_file Types of inputs. Default is TRUE, i.e.  data files with headers. If set to "FALSE", inputs are changed to data matrixes or data.frames (with headers)
-##' @param VarT Types of random effect parameterization. Default is c("Intercept", "slope"), i.e., both random intercept and slope are specified. If set to "Intercept only", only random intercept is considered.
-##' @param ... further arguments passed to or from other methods.
 ##' @return Object of class \code{FastJM} with elements
 ##'   \tabular{ll}{
 ##'       \code{vcmatrix}    \tab  The variance-covariance matrix for all the parameters. The parameters are in the order: \eqn{\beta}, \eqn{\sigma^2}, \eqn{\gamma}, \eqn{\nu}, and \eqn{\Sigma}. The elements in \eqn{\Sigma} are output in the order along the main diagonal line, then the second main diagonal line, and so on. \cr
@@ -27,23 +34,11 @@
 ##'       \code{se_sigma}     \tab The standard error estimate of \eqn{\Sigma}.The standard errors are given in this order: main diagonal, the second main diagonal, and so on. \cr
 ##'       \code{loglike}     \tab Log Likelihood.\cr
 ##'   }
-##'
-##' @examples
-##' # A toy example on simulated data
-##' # Three data files are required to run the joint models.
-##' # yfile denotes the longitufinal data, cfile denotes the survival data,
-##' # and mfile denotes the number of repeated measurements for subjects.
-##' require(FastJM)
-##' set.seed(123)
-##' yfile=system.file("extdata", "simy0.txt", package = "FastJM")
-##' cfile=system.file("extdata", "simc0.txt", package = "FastJM")
-##' mfile=system.file("extdata", "simm0.txt", package = "FastJM")
-##' res2=jmcs(p1=3,yfile,cfile,mfile,point=6,type_file=TRUE)
-##' res2
-
 ##' @export
+##'
 
-jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_file=TRUE, VarT=c("Intercept", "slope"))
+jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "interslope",
+                 point = 6, maxiter = 10000, do.trace = FALSE)
 {
   if (do.trace) {
     trace=1;
@@ -65,193 +60,144 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
 
   ws <- gq_vals$weights[(point / 2 + 1) : point]
 
-  if (type_file){
-    # store header names for future useage
+  long <- all.vars(long.formula)
+  survival <- all.vars(surv.formula)
+  cnames=colnames(cdata)
+  ynames=colnames(ydata)
 
-    ydata=read.table(yfile)
-    ynames=colnames(ydata)
-
-    cdata=read.table(cfile)
-    cnames=colnames(cdata)
-    cfile=tempfile(pattern = "", fileext = ".txt")
-    writenh(cdata,cfile)
-    mdata=read.table(mfile)
-    mfilenew=tempfile(pattern = "", fileext = ".txt")
-    writenh(mdata,mfilenew)
-
-    cdim=dim(cdata)
-    ydim=dim(ydata)
-    # number of observations in study is equals to the #of rows in Y matrix
-    n1=ydim[1]
-    # number of random effects
-    p1a=ydim[2]-1-p1-1
-
-    ##Check the completeness of data
-    if (sum(complete.cases(ydata)) != ydim[1]) {
-      stop("Missing values detected! Please make sure your longitudinal data is complete!")
-    }
-
-    if (sum(complete.cases(cdata)) != cdim[1]) {
-      stop("Missing values detected! Please make sure your survival data is complete!")
-    }
-
-    if (p1a > 3) {
-      stop("Maximum of 3 random effects are allowed. Please reconsider the random effect covariates you need!")
-    }
-
-    if((p1<1)|(p1a<1)){
-      stop("Possibe wrong dimension of fixed effects in Y!")
-    }
-
-    cdim=dim(cdata);
-
-    # number of subjects in study is equals to the #of rows in C matrix
-    k=cdim[1]
-    p2=cdim[2]-2
-    colnames(ydata)[1] <- "ID"
-
-    ## fit a linear mixed effect model
-    name <- colnames(ydata)[(4+p1a):ncol(ydata)]
-    xnam <- paste(name[1:length(name)], sep = "")
-    random.name <- colnames(ydata)[4:(2+p1a)]
-    random.xnam <- paste(random.name[1:length(random.name)], sep = "")
-
-    fmla.fixed <- paste(colnames(ydata)[2], " ~ ", paste(xnam, collapse= "+"))
-    fmla.random <- paste("(", paste(random.xnam, collapse= "+"), "|", colnames(ydata)[1], ")", sep = "")
-    fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
-    writeLines("Model fit is starting!")
-    lmem <- lme4::lmer(formula = fmla, data = ydata, REML = FALSE)
-
-    ydata <- ydata[, -1]
-    yfile=tempfile(pattern = "", fileext = ".txt")
-    writenh(ydata,yfile)
-
-    D <- lme4::VarCorr(lmem)
-    name <- names(D)
-    D <- as.data.frame(D[name])
-    D <- as.matrix(D)
-    Sigcovfile = tempfile(pattern = "", fileext = ".txt")
-    writenh(D, Sigcovfile)
-    ##Residuals
-    sigma <- sigma(lmem)^2
-    ##marginal covariance matrix V
-    beta <- lme4::fixef(lmem)
-    beta <- c(beta, sigma)
-    beta <- matrix(beta, ncol = 1, nrow = length(beta))
-    Betasigmafile = tempfile(pattern = "", fileext = ".txt")
-    writenh(beta, Betasigmafile)
-
-    if (prod(c(0, 1, 2) %in% unique(cdata[, 2])) == 1) {
-      myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
-                         mfilenew, Betasigmafile, Sigcovfile, trace)
-      myresult$type="jmcs";
-    } else if (prod(c(0, 1) %in% unique(cdata[, 2])) == 1) {
-      myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile,
-                         mfilenew, Betasigmafile, Sigcovfile, trace)
-      myresult$type="jmcsf";
-    } else {
-      stop(paste0(unique(cdata[, 2]), " is not an appropriate code of single / competing risks failure type.
-                  Please correctly specify the event variable."))
-    }
-    ynames=colnames(ydata)
-    ydim=dim(ydata)
-
-
-  }else{
-
-    cnames=colnames(cfile)
-    cfilenew=tempfile(pattern = "", fileext = ".txt")
-    writenh(cfile,cfilenew)
-
-    mfilenew=tempfile(pattern = "", fileext = ".txt")
-    writenh(mfile,mfilenew)
-
-    cdim=dim(cfile)
-    ydim=dim(yfile)
-    # number of observations in study is equals to the #of rows in Y matrix
-    n1=ydim[1]
-    # number of random effects
-    p1a=ydim[2]-1-p1-1
-
-    ##Check the completeness of data
-    if (sum(complete.cases(yfile)) != ydim[1]) {
-      stop("Missing values detected! Please make sure your longitudinal data is complete!")
-    }
-
-    if (sum(complete.cases(cfile)) != cdim[1]) {
-      stop("Missing values detected! Please make sure your survival data is complete!")
-    }
-
-    if (p1a > 3) {
-      stop("Maximum of 3 random effects are allowed. Please reconsider the random effect covariates you need!")
-    }
-
-    if((p1<1)|(p1a<1)){
-      stop("Possibe wrong dimension of fixed effects in Y!")
-    }
-
-    # number of subjects in study is equals to the #of rows in C matrix
-    k=cdim[1]
-    p2=cdim[2]-2
-    colnames(yfile)[1] <- "ID"
-
-    ## fit a linear mixed effect model
-    if (p1a>1 && VarT == c("Intercept", "slope")) {
-      name <- colnames(yfile)[(4+p1a):ncol(yfile)]
-      xnam <- paste(name[1:length(name)], sep = "")
-      random.name <- colnames(yfile)[4:(2+p1a)]
-      random.xnam <- paste(random.name[1:length(random.name)], sep = "")
-
-      fmla.fixed <- paste(colnames(yfile)[2], " ~ ", paste(xnam, collapse= "+"))
-      fmla.random <- paste("(", paste(random.xnam, collapse= "+"), "|", colnames(yfile)[1], ")", sep = "")
-      fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
-    } else if (VarT == "Intercept only") {
-      name <- colnames(yfile)[5:ncol(yfile)]
-      xnam <- paste(name[1:length(name)], sep = "")
-      fmla.fixed <- paste(colnames(yfile)[2], " ~ ", paste(xnam, collapse= "+"))
-      fmla.random <- paste("(", 1, "|", colnames(yfile)[1], ")", sep = "")
-      fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
-    } else {
-      stop("Random effect covariates and / or VarT variable may not be correctly specified. Please check again!")
-    }
-    writeLines("Model fit is starting!")
-    lmem <- lmer(formula = fmla, data = yfile, REML = FALSE)
-
-    yfile <- yfile[, -1]
-    yfilenew=tempfile(pattern = "", fileext = ".txt")
-    writenh(yfile,yfilenew)
-    D <- VarCorr(lmem)
-    name <- names(D)
-    D <- as.data.frame(D[name])
-    D <- as.matrix(D)
-    Sigcovfile = tempfile(pattern = "", fileext = ".txt")
-    writenh(D, Sigcovfile)
-    ##Residuals
-    sigma <- sigma(lmem)^2
-    ##marginal covariance matrix V
-    beta <- fixef(lmem)
-    beta <- c(beta, sigma)
-    beta <- matrix(beta, ncol = 1, nrow = length(beta))
-    Betasigmafile = tempfile(pattern = "", fileext = ".txt")
-    writenh(beta, Betasigmafile)
-    if (prod(c(0, 1, 2) %in% unique(cfile[, 2])) == 1) {
-      myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
-                         mfilenew, Betasigmafile, Sigcovfile, trace)
-      myresult$type="jmcs";
-    } else if (prod(c(0, 1) %in% unique(cfile[, 2])) == 1) {
-      myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
-                         mfilenew, Betasigmafile, Sigcovfile, trace)
-      myresult$type="jmcsf";
-    } else {
-      stop(paste0(unique(cfile[, 2]), " is not an appropriate code of single / competing risks failure type.
-                  Please correctly specify the event variable."))
-    }
-    ynames=colnames(yfile)
-    ydim=dim(yfile)
-
+  ##variable check
+  if (prod(long %in% ynames) == 0) {
+    Fakename <- which(long %in% ynames == FALSE)
+    stop(paste0("The variable ", long[Fakename], " not found"))
+  }
+  if (prod(survival %in% cnames) == 0) {
+    Fakename <- which(survival %in% cnames == FALSE)
+    stop(paste0("The variable ", survival[Fakename], " not found"))
+  }
+  if (!(ID %in% ynames)) {
+    stop(paste0("ID column ", ID, " not found in long_data"))
+  }
+  if (!(ID %in% cnames)) {
+    stop(paste0("ID column ", ID, " not found in surv_data"))
+  }
+  if (is.null(model)) {
+    stop("model type must be specified. It should be one of the following options: intercept or interslope.")
+  }
+  yID <- unique(ydata[, ID])
+  cID <- cdata[, ID]
+  if (prod(yID == cID) == 0) {
+    stop("The order of subjects in ydata doesn't match with cdata.")
   }
 
 
+  ydim = dim(ydata)
+  cdim = dim(cdata)
+  mdata <- as.data.frame(table(ydata[, ID]))
+  mdata <- as.data.frame(mdata[, 2])
+  n1 = ydim[1]
+
+  if (nrow(mdata) != cdim[1]) {
+    stop(paste("The number of subjects in cdata are not consistent with ydata.
+         Please make sure the cdata has", nrow(mdata), "subjects!", sep = " "))
+  }
+
+  ##random effect covariates
+  if (model == "interslope") {
+    if (prod(RE %in% ynames) == 0) {
+      Fakename <- which(RE %in% ynames == FALSE)
+      stop(paste0("The variable ", RE[Fakename], " not found"))
+    } else {
+      p1a <- 1 + length(RE)
+      random.xnam <- paste(RE[1:length(RE)], sep = "")
+      fmla.random <- paste("(", paste(random.xnam, collapse= "+"), "|", ID, ")", sep = "")
+      ydata_RE <- data.frame(1, ydata[, RE])
+      colnames(ydata_RE)[2:length(ydata_RE)] <- paste0(RE, "_RE")
+      colnames(ydata_RE)[1] <- "intercept_RE"
+    }
+  } else if (model == "intercept") {
+    if (!is.null(RE)) {
+      stop("You are fitting a mixed effects model with random intercept only
+           but random effects covariates are specified at the same time. Please respecify your model!")
+    }
+    fmla.random <- paste("(", 1, "|", ID, ")", sep = "")
+    p1a <- 1
+    ydata_RE <- as.data.frame(rep(1, n1))
+    colnames(ydata_RE) <- "intercept_RE"
+  } else {
+    stop("model should be one of the following options: interslope or intercept.")
+  }
+
+  ##fixed effects covariates
+  ydata_FE <- data.frame(1, ydata[, long[2:length(long)]])
+  p1 <- ncol(ydata_FE)
+  colnames(ydata_FE)[1] <- "intercept"
+  xnam <- paste(long[2:length(long)], sep = "")
+  fmla.fixed <- paste(long[1], " ~ ", paste(xnam, collapse= "+"))
+  fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
+
+  writeLines("Model fit is starting!")
+  lmem <- lme4::lmer(formula = fmla, data = ydata, REML = FALSE)
+  yfile <- cbind(ydata[, long[1]], ydata_RE, ydata_FE)
+  colnames(yfile)[1] <- long[1]
+
+  cfile <- cdata[, survival]
+
+  if (sum(complete.cases(yfile)) != n1) {
+    stop("Missing values detected! Please make sure your longitudinal data is complete!")
+  }
+
+  if (sum(complete.cases(cfile)) != cdim[1]) {
+    stop("Missing values detected! Please make sure your survival data is complete!")
+  }
+
+  if (p1a > 3) {
+    stop("Maximum of 3 random effects are allowed. Please reconsider the random effect covariates you need!")
+  }
+
+  if((p1<1)|(p1a<1)){
+    stop("Possibe wrong dimension of fixed effects in Y!")
+  }
+
+  # number of subjects in study is equals to the #of rows in C matrix
+  k=cdim[1]
+  p2=length(survival)-2
+
+  yfilenew=tempfile(pattern = "", fileext = ".txt")
+  writenh(yfile,yfilenew)
+  mfilenew=tempfile(pattern = "", fileext = ".txt")
+  writenh(mdata,mfilenew)
+  cfilenew=tempfile(pattern = "", fileext = ".txt")
+  writenh(cfile,cfilenew)
+
+  D <- lme4::VarCorr(lmem)
+  name <- names(D)
+  D <- as.data.frame(D[name])
+  D <- as.matrix(D)
+  Sigcovfile = tempfile(pattern = "", fileext = ".txt")
+  writenh(D, Sigcovfile)
+  ##Residuals
+  sigma <- sigma(lmem)^2
+  ##marginal covariance matrix V
+  beta <- lme4::fixef(lmem)
+  beta <- c(beta, sigma)
+  beta <- matrix(beta, ncol = 1, nrow = length(beta))
+  Betasigmafile = tempfile(pattern = "", fileext = ".txt")
+  writenh(beta, Betasigmafile)
+  if (prod(c(0, 1, 2) %in% unique(cfile[, 2])) == 1) {
+    myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
+                       mfilenew, Betasigmafile, Sigcovfile, trace)
+    myresult$type="jmcs";
+  } else if (prod(c(0, 1) %in% unique(cfile[, 2])) == 1) {
+    myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
+                        mfilenew, Betasigmafile, Sigcovfile, trace)
+    myresult$type="jmcsf";
+  } else {
+    stop(paste0(unique(cfile[, 2]), " is not an appropriate code of single / competing risks failure type.
+                  Please correctly specify the event variable."))
+  }
+  ynames=colnames(yfile)
+  ydim=dim(yfile)
+  cnames=colnames(cfile)
   #names
   names(myresult$betas)=ynames[(1+p1a+1):ydim[2]]
 
@@ -261,4 +207,5 @@ jmcs<- function (p1,yfile,cfile,mfile,point=6,maxiter=10000,do.trace=FALSE,type_
   class(myresult) <- "FastJM"
 
   return (myresult)
+
 }
