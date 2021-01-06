@@ -6,11 +6,12 @@
 using namespace Rcpp;
 
 // jmcs_main
-Rcpp::List jmcs_main(SEXP k, SEXP n1, SEXP p1, SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs, SEXP ws, SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP trace);
-RcppExport SEXP _FastJM_jmcs_main(SEXP kSEXP, SEXP n1SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP p1aSEXP, SEXP maxiterSEXP, SEXP pointSEXP, SEXP xsSEXP, SEXP wsSEXP, SEXP yfileSEXP, SEXP cfileSEXP, SEXP mfileSEXP, SEXP BetasigmafileSEXP, SEXP SigcovfileSEXP, SEXP traceSEXP) {
+Rcpp::List jmcs_main(SEXP tol, SEXP k, SEXP n1, SEXP p1, SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs, SEXP ws, SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP gamma1, SEXP gamma2, SEXP trace);
+RcppExport SEXP _FastJM_jmcs_main(SEXP tolSEXP, SEXP kSEXP, SEXP n1SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP p1aSEXP, SEXP maxiterSEXP, SEXP pointSEXP, SEXP xsSEXP, SEXP wsSEXP, SEXP yfileSEXP, SEXP cfileSEXP, SEXP mfileSEXP, SEXP BetasigmafileSEXP, SEXP SigcovfileSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< SEXP >::type k(kSEXP);
     Rcpp::traits::input_parameter< SEXP >::type n1(n1SEXP);
     Rcpp::traits::input_parameter< SEXP >::type p1(p1SEXP);
@@ -25,17 +26,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type mfile(mfileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type Betasigmafile(BetasigmafileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type Sigcovfile(SigcovfileSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type gamma1(gamma1SEXP);
+    Rcpp::traits::input_parameter< SEXP >::type gamma2(gamma2SEXP);
     Rcpp::traits::input_parameter< SEXP >::type trace(traceSEXP);
-    rcpp_result_gen = Rcpp::wrap(jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, trace));
+    rcpp_result_gen = Rcpp::wrap(jmcs_main(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, gamma1, gamma2, trace));
     return rcpp_result_gen;
 END_RCPP
 }
 // jmcsf_main
-Rcpp::List jmcsf_main(SEXP k, SEXP n1, SEXP p1, SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs, SEXP ws, SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP trace);
-RcppExport SEXP _FastJM_jmcsf_main(SEXP kSEXP, SEXP n1SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP p1aSEXP, SEXP maxiterSEXP, SEXP pointSEXP, SEXP xsSEXP, SEXP wsSEXP, SEXP yfileSEXP, SEXP cfileSEXP, SEXP mfileSEXP, SEXP BetasigmafileSEXP, SEXP SigcovfileSEXP, SEXP traceSEXP) {
+Rcpp::List jmcsf_main(SEXP tol, SEXP k, SEXP n1, SEXP p1, SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs, SEXP ws, SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP gammafile, SEXP trace);
+RcppExport SEXP _FastJM_jmcsf_main(SEXP tolSEXP, SEXP kSEXP, SEXP n1SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP p1aSEXP, SEXP maxiterSEXP, SEXP pointSEXP, SEXP xsSEXP, SEXP wsSEXP, SEXP yfileSEXP, SEXP cfileSEXP, SEXP mfileSEXP, SEXP BetasigmafileSEXP, SEXP SigcovfileSEXP, SEXP gammafileSEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< SEXP >::type k(kSEXP);
     Rcpp::traits::input_parameter< SEXP >::type n1(n1SEXP);
     Rcpp::traits::input_parameter< SEXP >::type p1(p1SEXP);
@@ -50,8 +54,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type mfile(mfileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type Betasigmafile(BetasigmafileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type Sigcovfile(SigcovfileSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type gammafile(gammafileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type trace(traceSEXP);
-    rcpp_result_gen = Rcpp::wrap(jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, trace));
+    rcpp_result_gen = Rcpp::wrap(jmcsf_main(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, cfile, mfile, Betasigmafile, Sigcovfile, gammafile, trace));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -102,8 +107,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_FastJM_jmcs_main", (DL_FUNC) &_FastJM_jmcs_main, 15},
-    {"_FastJM_jmcsf_main", (DL_FUNC) &_FastJM_jmcsf_main, 15},
+    {"_FastJM_jmcs_main", (DL_FUNC) &_FastJM_jmcs_main, 18},
+    {"_FastJM_jmcsf_main", (DL_FUNC) &_FastJM_jmcsf_main, 17},
     {"_FastJM_SimData", (DL_FUNC) &_FastJM_SimData, 13},
     {"_FastJM_SimDataSF", (DL_FUNC) &_FastJM_SimDataSF, 12},
     {NULL, NULL, 0}

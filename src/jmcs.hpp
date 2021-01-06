@@ -165,7 +165,8 @@ namespace jmcsspace {
              const double presigma,
              const double sigma,
              const gsl_matrix *presig,
-             const gsl_matrix *sig
+             const gsl_matrix *sig,
+             const double tol
              );
 
     double GetPosbi(
@@ -195,7 +196,8 @@ namespace jmcsspace {
     );
 
     //declare before use it
-    Rcpp::List jmcs_cmain(int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile, int trace);
+    Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile,
+                          std::vector<double> gamma1, std::vector<double> gamma2, int trace);
 
 
 }

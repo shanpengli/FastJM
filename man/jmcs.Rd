@@ -10,11 +10,13 @@ jmcs(
   long.formula,
   surv.formula,
   ID,
-  RE,
+  RE = NULL,
   model = "interslope",
+  REML = TRUE,
   point = 6,
   maxiter = 10000,
-  do.trace = FALSE
+  do.trace = FALSE,
+  survinital = TRUE
 )
 }
 \arguments{
@@ -37,6 +39,8 @@ in the longitudinal sub-model.}
 
 \item{model}{an element that specifies the model type of random effects.
 Deafult is "interslope", i.e., both random intercept and slope are included.}
+
+\item{REML}{a logic object that indicates the use of REML estimator. Default is TRUE.}
 
 \item{point}{the number of pseudo-adaptive Gauss-Hermite quadrature points
 to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.}

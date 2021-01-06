@@ -214,7 +214,9 @@ namespace jmcsspace {
 
         int status;
         status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,vee2,H01,H02,*sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
-        if (status==100) return status;
+        if (status==100 || status==1000) {
+            return status;
+        }
 
         gsl_vector * SX = gsl_vector_calloc(p2);
         gsl_matrix * SXX = gsl_matrix_calloc(p2,p2);
@@ -750,15 +752,31 @@ namespace jmcsspace {
               {
                  for (j=j+1;j<k;j++)
                  {
-                    for(u=0;u<p2;u++)
-                    {
-                       gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                       gsl_vector_set(gammai,u,gsl_matrix_get(gamma,0,u));
-                    }
-                    gsl_matrix_scale(D,exp(MulVV(X,gammai)));
-                    gsl_matrix_add(TD,D);
-                    gsl_vector_scale(N,exp(MulVV(X,gammai)));
-                    gsl_vector_add(TN,N);
+                     for(t=0;t<p1a;t++)   gsl_matrix_set(D,t,t,gsl_matrix_get(FUNBSE,t,j));
+
+                     if(p1a>1)
+                     {
+                         for(i=1;i<p1a;i++)
+                         {
+                             for(t=0;t<p1a-i;t++)   gsl_matrix_set(D,t,i+t,gsl_matrix_get(FUNBSE,p1a+t+(i-1)*(p1a-1),j));
+                         }
+                     }
+                     for(t=0;t<p1a;t++)
+                     {
+                         for(i=0;i<t;i++)   gsl_matrix_set(D,t,i,gsl_matrix_get(D,i,t));
+                     }
+
+                     for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,j));
+
+                     for(u=0;u<p2;u++)
+                     {
+                         gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
+                         gsl_vector_set(gammai,u,gsl_matrix_get(gamma,0,u));
+                     }
+                     gsl_matrix_scale(D,exp(MulVV(X,gammai)));
+                     gsl_matrix_add(TD,D);
+                     gsl_vector_scale(N,exp(MulVV(X,gammai)));
+                     gsl_vector_add(TN,N);
 
                     if (j == k-1)
                     {
@@ -867,15 +885,31 @@ namespace jmcsspace {
                {
                   for (j=j+1;j<k;j++)
                   {
-                     for(u=0;u<p2;u++)
-                     {
-                        gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                        gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
-                     }
-                     gsl_matrix_scale(D,exp(MulVV(X,gammai)));
-                     gsl_matrix_add(TD,D);
-                     gsl_vector_scale(N,exp(MulVV(X,gammai)));
-                     gsl_vector_add(TN,N);
+                      for(t=0;t<p1a;t++)   gsl_matrix_set(D,t,t,gsl_matrix_get(FUNBSE,p1a*(p1a+1)/2+t,j));
+
+                      if(p1a>1)
+                      {
+                          for(i=1;i<p1a;i++)
+                          {
+                              for(t=0;t<p1a-i;t++)   gsl_matrix_set(D,t,i+t,gsl_matrix_get(FUNBSE,p1a*(p1a+1)/2+p1a+t+(i-1)*(p1a-1),j));
+                          }
+                      }
+                      for(t=0;t<p1a;t++)
+                      {
+                          for(i=0;i<t;i++)   gsl_matrix_set(D,t,i,gsl_matrix_get(D,i,t));
+                      }
+
+                      for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,j));
+
+                      for(u=0;u<p2;u++)
+                      {
+                          gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
+                          gsl_vector_set(gammai,u,gsl_matrix_get(gamma,1,u));
+                      }
+                      gsl_matrix_scale(D,exp(MulVV(X,gammai)));
+                      gsl_matrix_add(TD,D);
+                      gsl_vector_scale(N,exp(MulVV(X,gammai)));
+                      gsl_vector_add(TN,N);
 
                      if (j == k-1)
                      {
@@ -1009,9 +1043,6 @@ namespace jmcsspace {
 
         if (status==100) return status;
 
-
-
-
         gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
         gsl_matrix *VI = gsl_matrix_calloc(p1a,p1a);
         gsl_matrix *HE = gsl_matrix_calloc(p1a,p1a);
@@ -1032,13 +1063,8 @@ namespace jmcsspace {
 
         printf("det=%f\n",vdet);
 
-        if(vdet<0.0005) return 100;
-
-
         status=inv_matrix(VC);
         if(status==100) return status;
-
-
 
         gsl_vector * Z = gsl_vector_calloc(p1);                         /* covariates for Y */
         gsl_vector * SZ= gsl_vector_calloc(p1);
@@ -1702,7 +1728,7 @@ namespace jmcsspace {
             {
                 if ((int)gsl_matrix_get(C,j,1) == 1)
                 {
-                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,q));
+                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,j));
                     for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
                     gsl_matrix_get_col(TN,TNN11,a-1-risk1_index_vtttemp);
                     for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
@@ -1721,7 +1747,7 @@ namespace jmcsspace {
                 {
                     if ((int)gsl_matrix_get(C,j,1) == 1)
                     {
-                        for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,q));
+                        for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,j));
                         for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
                         gsl_matrix_get_col(TN,TNN11,a-1-risk1_index_vtttemp);
                         for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
@@ -1888,7 +1914,7 @@ namespace jmcsspace {
             {
                 if ((int)gsl_matrix_get(C,j,1) == 2)
                 {
-                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,q));
+                    for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,j));
                     for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
                     gsl_matrix_get_col(TN,TNN22,b-1-risk2_index_vtttemp);
                     for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
@@ -1907,7 +1933,7 @@ namespace jmcsspace {
                 {
                     if ((int)gsl_matrix_get(C,j,1) == 2)
                     {
-                        for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,q));
+                        for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,p1a+t,j));
                         for(u=0;u<p2;u++)  gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
                         gsl_matrix_get_col(TN,TNN22,b-1-risk2_index_vtttemp);
                         for (t=0;t<p1a;t++) gsl_vector_set(TN,t,gsl_matrix_get(FUNB,t,j)-gsl_vector_get(TN,t));
@@ -2311,7 +2337,7 @@ namespace jmcsspace {
                         gsl_vector_add(tii, bi);
                         gsl_vector_memcpy(ti, tii);
 
-                        temp=exp(10);
+                        temp=1;
 
                         for(i=0;i<q;i++)
                         {
@@ -2368,7 +2394,7 @@ namespace jmcsspace {
                             gsl_vector_scale(tii, sqrt(2));
                             gsl_vector_add(tii, bi);
                             gsl_vector_memcpy(ti, tii);
-                            temp=exp(10);
+                            temp=exp(5);
 
                             for(i=0;i<q;i++)
                             {
@@ -2452,7 +2478,7 @@ namespace jmcsspace {
                                 gsl_vector_add(tii, bi);
                                 gsl_vector_memcpy(ti, tii);
 
-                                temp=exp(10);
+                                temp=1;
 
                                 for(i=0;i<q;i++)
                                 {
@@ -2517,7 +2543,11 @@ namespace jmcsspace {
 
             }
 
-            if(dem==0) return 100;
+
+            if(dem==0) {
+                Rprintf("%dth subject has issue\n", j);
+                return 1000;
+            }
 
             for(i=0;i<p1a;i++) gsl_matrix_set(FUNB,i,j,gsl_matrix_get(FUNB,i,j)/dem);
 
@@ -2983,11 +3013,12 @@ namespace jmcsspace {
              const double presigma,
              const double sigma,
              const gsl_matrix *presig,
-             const gsl_matrix *sig
+             const gsl_matrix *sig,
+             const double tol
              )
     {
 
-         double epsilon=0.0001;
+         double epsilon=tol;
 
          if(DiffV(prebeta,beta)>epsilon || DiffM(pregamma,gamma)>epsilon || DiffV(prevee1,vee1)>epsilon || DiffV(prevee2,vee2)>epsilon
             || DiffM1(preH01,H01)==1 || DiffM1(preH02,H02)==1 || Abs(presigma,sigma)>epsilon || DiffM(presig,sig)>epsilon)
@@ -3192,7 +3223,8 @@ namespace jmcsspace {
 
     }
 
-    Rcpp::List jmcs_cmain(int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile, int trace)
+    Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile,
+                          std::vector<double> gamma1, std::vector<double> gamma2, int trace)
     {
         int g=2;
         /* allocate space for data */
@@ -3612,6 +3644,9 @@ namespace jmcsspace {
         /* initialize the parameters */
 
         gsl_matrix_set_zero(gamma);
+        for(i=0;i<p2;i++)   gsl_matrix_set(gamma, 0, i, gamma1[i]);
+        for(i=0;i<p2;i++)   gsl_matrix_set(gamma, 1, i, gamma2[i]);
+
         gsl_vector_set_zero(vee1);
         gsl_vector_set_zero(vee2);
         gsl_matrix_memcpy(sig, Sigcov);
@@ -3679,7 +3714,59 @@ namespace jmcsspace {
         gsl_vector_free(Posbivec);
         gsl_vector_free(Y_row);
 
+        auto start = std::chrono::high_resolution_clock::now();
+
         iter=0;
+        status=0;
+
+        Rprintf("iter=%d   status=%d\n",iter,status);
+        Rprintf("Beta = \n");
+        for (i=0;i<p1;i++)
+        {
+            Rprintf("%f     ", gsl_vector_get(beta,i));
+
+        }
+        Rprintf("\n");
+
+
+        Rprintf("Gamma = \n");
+        for (i=0;i<g;i++)
+        {
+            for(j=0;j<p2;j++)
+            {
+                Rprintf("%f    ", gsl_matrix_get(gamma,i,j));
+            }
+            Rprintf("\n");
+        }
+
+        Rprintf("Vee1 = \n");
+        for (i=0;i<p1a;i++)
+        {
+            Rprintf("%f     ", gsl_vector_get(vee1,i));
+
+        }
+        Rprintf("\n");
+
+        Rprintf("Vee2 = \n");
+        for (i=0;i<p1a;i++)
+        {
+            Rprintf("%f     ", gsl_vector_get(vee2,i));
+
+        }
+        Rprintf("\n");
+
+        Rprintf("sigma = %f\n",sigma);
+
+        Rprintf("Sig = \n");
+        for (i=0;i<p1a;i++)
+        {
+            for(j=0;j<p1a;j++)
+            {
+                Rprintf("%f    ", gsl_matrix_get(sig,i,j));
+            }
+            Rprintf("\n");
+        }
+
         do
         {
             iter=iter+1;
@@ -3696,7 +3783,6 @@ namespace jmcsspace {
             presigma=sigma;
 
             /* get new parameter estimates */
-            //auto start_EMstep = std::chrono::high_resolution_clock::now();
 
             status = EM(beta,gamma,vee1,vee2,H01,H02,&sigma,sig,p1a,Y_new,C_new,M1_new,Posbi_new,Poscov_new,point,xs,ws);
 
@@ -3747,17 +3833,28 @@ namespace jmcsspace {
             }
 
         }while(Diff(prebeta,beta,pregamma,gamma,prevee1,vee1,prevee2,vee2,preH01,H01,preH02,H02,presigma,sigma,
-               presig,sig)==1
-               && status != 100 && iter<maxiter);
+               presig,sig,tol)==1
+               && status != 100 && status != 1000 && iter<maxiter);
+
+        auto finish = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = finish - start;
+        Rprintf("Elapsed time for EM: %f\n", elapsed.count());
+
+        auto start_Cov = std::chrono::high_resolution_clock::now();
 
         if(status==100)
         {
             Rprintf("program stops because of error\n");
             return R_NilValue;
         }
+        if(status==1000)
+        {
+            Rprintf("dem is zero\n");
+            return R_NilValue;
+        }
         if(iter==maxiter)
         {
-            printf("program stops because of nonconvergence\n");
+            Rprintf("program stops because of nonconvergence\n");
             return R_NilValue;
         }
 
@@ -3783,7 +3880,7 @@ namespace jmcsspace {
 
             if(status==100)
             {
-                printf("program stops because of error\n");
+                Rprintf("program stops because of error\n");
                 return R_NilValue;
             }
 
@@ -3792,9 +3889,13 @@ namespace jmcsspace {
 
                 status=inv_matrix(Cov);
 
+                auto finish_Cov = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> elapsed_Cov = finish_Cov - start_Cov;
+                Rprintf("Elapsed time for Covariance: %f\n", elapsed_Cov.count());
+
                 if(status==100)
                 {
-                    printf("program stops because of error\n");
+                    Rprintf("program stops because of error\n");
                     return R_NilValue;
                 }
 

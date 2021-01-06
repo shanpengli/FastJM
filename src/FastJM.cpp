@@ -16,14 +16,16 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-Rcpp::List  jmcs_main(SEXP k, SEXP n1,SEXP p1,SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs,SEXP ws,SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP trace)
+Rcpp::List  jmcs_main(SEXP tol, SEXP k, SEXP n1,SEXP p1,SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs,SEXP ws,SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile,
+                      SEXP gamma1, SEXP gamma2, SEXP trace)
   {
     Rcpp::List result;
   try {
 
-     result=jmcsspace::jmcs_cmain( as<int> (k), as<int> (n1), as<int> (p1), as<int> (p2),
+     result=jmcsspace::jmcs_cmain(as<double> (tol), as<int> (k), as<int> (n1), as<int> (p1), as<int> (p2),
             as<int> (p1a), as<int>(maxiter),as<int>(point), as<std::vector<double> >(xs),as<std::vector<double> >(ws), as<std::string> (yfile),
-           as<std::string> (cfile),as<std::string>(mfile),as<std::string>(Betasigmafile),as<std::string>(Sigcovfile),as<int> (trace));
+           as<std::string> (cfile),as<std::string>(mfile),as<std::string>(Betasigmafile),as<std::string>(Sigcovfile),
+           as<std::vector<double> >(gamma1), as<std::vector<double> >(gamma2), as<int> (trace));
    if(Rf_isNull(result)){
         throw std::range_error("Possible files reading or format errors");
         }
@@ -38,14 +40,16 @@ Rcpp::List  jmcs_main(SEXP k, SEXP n1,SEXP p1,SEXP p2, SEXP p1a, SEXP maxiter, S
 }
 
 // [[Rcpp::export]]
-Rcpp::List  jmcsf_main(SEXP k, SEXP n1,SEXP p1,SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs,SEXP ws,SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP trace)
+Rcpp::List  jmcsf_main(SEXP tol, SEXP k, SEXP n1,SEXP p1,SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs,SEXP ws,
+                       SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP gammafile, SEXP trace)
   {
     Rcpp::List result;
   try {
 
-     result=jmcsfspace::jmcsf_cmain( as<int> (k), as<int> (n1), as<int> (p1), as<int> (p2),
+     result=jmcsfspace::jmcsf_cmain(as<double> (tol), as<int> (k), as<int> (n1), as<int> (p1), as<int> (p2),
             as<int> (p1a), as<int>(maxiter),as<int>(point), as<std::vector<double> >(xs),as<std::vector<double> >(ws), as<std::string> (yfile),
-           as<std::string> (cfile),as<std::string>(mfile),as<std::string>(Betasigmafile),as<std::string>(Sigcovfile),as<int> (trace));
+           as<std::string> (cfile),as<std::string>(mfile),as<std::string>(Betasigmafile),as<std::string>(Sigcovfile),
+           as<std::vector<double> >(gammafile), as<int> (trace));
    if(Rf_isNull(result)){
         throw std::range_error("Possible files reading or format errors");
         }

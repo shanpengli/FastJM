@@ -563,15 +563,31 @@ namespace jmcsfspace {
               {
                  for (j=j+1;j<k;j++)
                  {
-                    for(u=0;u<p2;u++)
-                    {
-                       gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
-                       gsl_vector_set(gammai,u,gsl_matrix_get(gamma,0,u));
-                    }
-                    gsl_matrix_scale(D,exp(MulVV(X,gammai)));
-                    gsl_matrix_add(TD,D);
-                    gsl_vector_scale(N,exp(MulVV(X,gammai)));
-                    gsl_vector_add(TN,N);
+                     for(t=0;t<p1a;t++)   gsl_matrix_set(D,t,t,gsl_matrix_get(FUNBSE,t,j));
+
+                     if(p1a>1)
+                     {
+                         for(i=1;i<p1a;i++)
+                         {
+                             for(t=0;t<p1a-i;t++)   gsl_matrix_set(D,t,i+t,gsl_matrix_get(FUNBSE,p1a+t+(i-1)*(p1a-1),j));
+                         }
+                     }
+                     for(t=0;t<p1a;t++)
+                     {
+                         for(i=0;i<t;i++)   gsl_matrix_set(D,t,i,gsl_matrix_get(D,i,t));
+                     }
+
+                     for (t=0;t<p1a;t++) gsl_vector_set(N,t,gsl_matrix_get(FUNBE,t,j));
+
+                     for(u=0;u<p2;u++)
+                     {
+                         gsl_vector_set(X,u,gsl_matrix_get(C,j,2+u));
+                         gsl_vector_set(gammai,u,gsl_matrix_get(gamma,0,u));
+                     }
+                     gsl_matrix_scale(D,exp(MulVV(X,gammai)));
+                     gsl_matrix_add(TD,D);
+                     gsl_vector_scale(N,exp(MulVV(X,gammai)));
+                     gsl_vector_add(TN,N);
 
                     if (j == k-1)
                     {
@@ -1501,7 +1517,7 @@ namespace jmcsfspace {
                         gsl_vector_add(tii, bi);
                         gsl_vector_memcpy(ti, tii);
 
-                        temp=exp(10);
+                        temp=1;
 
                         for(i=0;i<q;i++)
                         {
@@ -1553,7 +1569,7 @@ namespace jmcsfspace {
                             gsl_vector_scale(tii, sqrt(2));
                             gsl_vector_add(tii, bi);
                             gsl_vector_memcpy(ti, tii);
-                            temp=exp(10);
+                            temp=1;
 
                             for(i=0;i<q;i++)
                             {
@@ -1629,7 +1645,7 @@ namespace jmcsfspace {
                                 gsl_vector_add(tii, bi);
                                 gsl_vector_memcpy(ti, tii);
 
-                                temp=exp(10);
+                                temp=1;
 
                                 for(i=0;i<q;i++)
                                 {
@@ -2072,11 +2088,12 @@ namespace jmcsfspace {
              const double presigma,
              const double sigma,
              const gsl_matrix *presig,
-             const gsl_matrix *sig
+             const gsl_matrix *sig,
+             const double tol
              )
     {
 
-         double epsilon=0.0001;
+         double epsilon=tol;
 
          if(DiffV(prebeta,beta)>epsilon || DiffM(pregamma,gamma)>epsilon || DiffV(prevee1,vee1)>epsilon
             || DiffM1(preH01,H01)==1 || Abs(presigma,sigma)>epsilon || DiffM(presig,sig)>epsilon)
@@ -2275,7 +2292,8 @@ namespace jmcsfspace {
 
     }
 
-    Rcpp::List jmcsf_cmain(int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile, int trace)
+    Rcpp::List jmcsf_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxiter, int point,std::vector<double> xs,  std::vector<double> ws, std::string yfile, std::string cfile, std::string mfile, std::string Betasigmafile, std::string Sigcovfile,
+                           std::vector<double> gammafile, int trace)
     {
         int g=1;
         /* allocate space for data */
@@ -2597,7 +2615,7 @@ namespace jmcsfspace {
 
         /* initialize the parameters */
 
-        gsl_matrix_set_zero(gamma);
+        for(i=0;i<p2;i++)   gsl_matrix_set(gamma, 0, i, gammafile[i]);
         gsl_vector_set_zero(vee1);
         gsl_matrix_memcpy(sig, Sigcov);
 
@@ -2678,6 +2696,46 @@ namespace jmcsfspace {
             gsl_matrix_memcpy(presig, sig);
             presigma=sigma;
 
+            if (trace == 1 && iter == 1)
+            {
+                Rprintf("iter=%d   status=%d\n",iter,status);
+                Rprintf("Beta = \n");
+                for (i=0;i<p1;i++)
+                {
+                    Rprintf("%f     ", gsl_vector_get(beta,i));
+                }
+                Rprintf("\n");
+
+                Rprintf("Gamma = \n");
+                for (i=0;i<g;i++)
+                {
+                    for(j=0;j<p2;j++)
+                    {
+                        Rprintf("%f    ", gsl_matrix_get(gamma,i,j));
+                    }
+                    Rprintf("\n");
+                }
+
+                Rprintf("Vee1 = \n");
+                for (i=0;i<p1a;i++)
+                {
+                    Rprintf("%f     ", gsl_vector_get(vee1,i));
+                }
+                Rprintf("\n");
+
+                Rprintf("sigma = %f\n",sigma);
+
+                Rprintf("Sig = \n");
+                for (i=0;i<p1a;i++)
+                {
+                    for(j=0;j<p1a;j++)
+                    {
+                        Rprintf("%f    ", gsl_matrix_get(sig,i,j));
+                    }
+                    Rprintf("\n");
+                }
+            }
+
             /* get new parameter estimates */
             //auto start_EMstep = std::chrono::high_resolution_clock::now();
 
@@ -2724,7 +2782,7 @@ namespace jmcsfspace {
             }
 
         }while(Diff(prebeta,beta,pregamma,gamma,prevee1,vee1,preH01,H01,presigma,sigma,
-               presig,sig)==1
+               presig,sig, tol)==1
                && status != 100 && iter<maxiter);
 
         if(status==100)
@@ -2747,6 +2805,7 @@ namespace jmcsfspace {
         NumericVector sd_vee1_estimate(p1a);
         double sigma2_val;
         double se_sigma2_val;
+        int iter_val;
         NumericMatrix sigma_matrix(p1a,p1a);
         NumericVector sd_sigma((p1a)*(p1a+1)/2);
 
@@ -2841,6 +2900,7 @@ namespace jmcsfspace {
                 {
                     sd_sigma(i)=sqrt(gsl_vector_get(vsig,i));
                 }
+                iter_val = iter;
 
                 }
             }
@@ -2888,6 +2948,7 @@ namespace jmcsfspace {
         ret["sigma_matrix"] = sigma_matrix;
         ret["se_sigma"] = sd_sigma;
         ret["loglike"] = loglike;
+        ret["iters"] = iter_val;
         return ret;
 
     }

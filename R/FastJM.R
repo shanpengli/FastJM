@@ -4,4 +4,5 @@
 #' @importFrom statmod  gauss.quad
 #' @importFrom utils  read.table
 #' @importFrom lme4 VarCorr fixef lmer
+#' @importFrom survival coxph
 NULL

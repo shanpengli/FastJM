@@ -23,7 +23,7 @@ print.FastJM <- function(x, ...) {
       cat("Risk", i, ":", x$SummaryInfo$PropComp[i+1], "%\n")
     }
     cat("\nNumerical intergration:\n")
-    cat("Method: standard Guass-Hermite quadrature\n")
+    cat("Method: pseudo-adaptive Guass-Hermite quadrature\n")
     cat("Number of quadrature points: ", x$point, "\n")
     cat("\nModel Type: joint modeling of longitudinal continuous and competing risks data", "\n\n")
     cat("Model summary:\n")
@@ -115,8 +115,20 @@ print.FastJM <- function(x, ...) {
 
     # restore a matrix from its uppertri
     sd_sigmamatrix = matrix(0, dim(x$sigma_matrix)[1], dim(x$sigma_matrix)[1])
-    sd_sigmamatrix[lower.tri(sd_sigmamatrix, diag = TRUE)] <- x$se_sigma
-    sd_sigmamatrix <- t(sd_sigmamatrix)
+
+    if (dim(x$sigma_matrix)[1] == 1) {
+      sd_sigmamatrix[1, 1] <- x$se_sigma
+    } else {
+      for (t in 1:dim(x$sigma_matrix)[1]) {
+        sd_sigmamatrix[t, t] <- x$se_sigma[t]
+      }
+
+      for (q in 2:dim(x$sigma_matrix)[1]) {
+        for (t in 1:(dim(x$sigma_matrix)[1] + 1 - q)) {
+          sd_sigmamatrix[t, q+t-1] <- x$se_sigma[1+t+(q-1)*(dim(x$sigma_matrix)[1]-1)]
+        }
+      }
+    }
 
     # print sigmabii
     cat("\nRandom effects:                 \n")
@@ -153,7 +165,7 @@ print.FastJM <- function(x, ...) {
     cat("Number of groups:", x$k, "\n\n")
     cat("Proportion of events:", x$SummaryInfo$PropComp[1+1], "%\n")
     cat("\nNumerical intergration:\n")
-    cat("Method: standard Guass-Hermite quadrature\n")
+    cat("Method: pseudo-adaptive Guass-Hermite quadrature\n")
     cat("Number of quadrature points: ", x$point, "\n")
     cat("\nModel Type: joint modeling of longitudinal continuous and survival data with single failure type", "\n\n")
     cat("Model summary:\n")
@@ -231,8 +243,20 @@ print.FastJM <- function(x, ...) {
 
     # restore a matrix from its uppertri
     sd_sigmamatrix = matrix(0, dim(x$sigma_matrix)[1], dim(x$sigma_matrix)[1])
-    sd_sigmamatrix[lower.tri(sd_sigmamatrix, diag = TRUE)] <- x$se_sigma
-    sd_sigmamatrix <- t(sd_sigmamatrix)
+
+    if (dim(x$sigma_matrix)[1] == 1) {
+      sd_sigmamatrix[1, 1] <- x$se_sigma
+    } else {
+      for (t in 1:dim(x$sigma_matrix)[1]) {
+        sd_sigmamatrix[t, t] <- x$se_sigma[t]
+      }
+
+      for (q in 2:dim(x$sigma_matrix)[1]) {
+        for (t in 1:(dim(x$sigma_matrix)[1] + 1 - q)) {
+          sd_sigmamatrix[t, q+t-1] <- x$se_sigma[1+t+(q-1)*(dim(x$sigma_matrix)[1]-1)]
+        }
+      }
+    }
 
     # print sigmabii
     cat("\nRandom effects:                 \n")

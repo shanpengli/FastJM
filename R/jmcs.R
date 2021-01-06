@@ -13,10 +13,13 @@
 ##' in the longitudinal sub-model.
 ##' @param model an element that specifies the model type of random effects.
 ##' Deafult is "interslope", i.e., both random intercept and slope are included.
+##' @param REML a logic object that indicates the use of REML estimator. Default is TRUE.
 ##' @param point the number of pseudo-adaptive Gauss-Hermite quadrature points
 ##' to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.
 ##' @param maxiter the maximum number of iterations of the EM algorithm that the function will perform. Default is 10000.
 ##' @param do.trace Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.
+##' @param survinitial Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.
+##' @param tol Tolerance parameter. Default is 0.001.
 ##' @return Object of class \code{FastJM} with elements
 ##'   \tabular{ll}{
 ##'       \code{vcmatrix}    \tab  The variance-covariance matrix for all the parameters. The parameters are in the order: \eqn{\beta}, \eqn{\sigma^2}, \eqn{\gamma}, \eqn{\nu}, and \eqn{\Sigma}. The elements in \eqn{\Sigma} are output in the order along the main diagonal line, then the second main diagonal line, and so on. \cr
@@ -37,8 +40,8 @@
 ##' @export
 ##'
 
-jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "interslope",
-                 point = 6, maxiter = 10000, do.trace = FALSE)
+jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE = NULL, model = "interslope",
+                 REML = TRUE, point = 6, maxiter = 10000, do.trace = FALSE, survinital = TRUE, tol = 0.0001)
 {
   if (do.trace) {
     trace=1;
@@ -137,18 +140,18 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
   fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
 
   writeLines("Model fit is starting!")
-  lmem <- lme4::lmer(formula = fmla, data = ydata, REML = FALSE)
+  lmem <- lme4::lmer(formula = fmla, data = ydata, REML = REML)
   yfile <- cbind(ydata[, long[1]], ydata_RE, ydata_FE)
   colnames(yfile)[1] <- long[1]
 
   cfile <- cdata[, survival]
 
   if (sum(complete.cases(yfile)) != n1) {
-    stop("Missing values detected! Please make sure your longitudinal data is complete!")
+    stop("Missing values detected in ydata! Please make sure your longitudinal data is complete!")
   }
 
   if (sum(complete.cases(cfile)) != cdim[1]) {
-    stop("Missing values detected! Please make sure your survival data is complete!")
+    stop("Missing values detected in cdata! Please make sure your survival data is complete!")
   }
 
   if (p1a > 3) {
@@ -174,6 +177,7 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
   name <- names(D)
   D <- as.data.frame(D[name])
   D <- as.matrix(D)
+  print(D)
   Sigcovfile = tempfile(pattern = "", fileext = ".txt")
   writenh(D, Sigcovfile)
   ##Residuals
@@ -181,16 +185,48 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
   ##marginal covariance matrix V
   beta <- lme4::fixef(lmem)
   beta <- c(beta, sigma)
+  #beta <- c(91.314884, 0.350534, 0.706091, 4.157956, -2.360598, 2.630575, -2.584545, -1.674665, 168.939393)
   beta <- matrix(beta, ncol = 1, nrow = length(beta))
   Betasigmafile = tempfile(pattern = "", fileext = ".txt")
   writenh(beta, Betasigmafile)
   if (prod(c(0, 1, 2) %in% unlist(unique(cfile[, 2]))) == 1) {
-    myresult=jmcs_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
-                       mfilenew, Betasigmafile, Sigcovfile, trace)
+    if (survinital) {
+      ## fit a Cox model
+      surv_xnam <- paste(survival[3:length(survival)], sep = "")
+      survfmla.fixed <- paste(surv_xnam, collapse= "+")
+      survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
+      survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
+      fitSURV1 <- survival::coxph(formula = survfmla, data = cfile, x = TRUE)
+      gamma1 <- fitSURV1$coefficients
+
+      survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
+      survfmla <- as.formula(paste(survfmla.out2, survfmla.fixed, sep = "~"))
+      fitSURV2 <- survival::coxph(formula = survfmla, data = cfile, x = TRUE)
+      gamma2 <- fitSURV2$coefficients
+    } else {
+      gamma1 <- rep(0, p2)
+      gamma2 <- rep(0, p2)
+    }
+
+    myresult=jmcs_main(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
+                       mfilenew, Betasigmafile, Sigcovfile, gamma1, gamma2, trace)
     myresult$type="jmcs";
   } else if (prod(c(0, 1) %in% unlist(unique(cfile[, 2]))) == 1) {
-    myresult=jmcsf_main(k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
-                        mfilenew, Betasigmafile, Sigcovfile, trace)
+
+    if (survinital) {
+      ## fit a Cox model
+      surv_xnam <- paste(survival[3:length(survival)], sep = "")
+      survfmla.fixed <- paste(surv_xnam, collapse= "+")
+      survfmla.out <- paste0("survival::Surv(", survival[1], ", ", survival[2], ")")
+      survfmla <- as.formula(paste(survfmla.out, survfmla.fixed, sep = "~"))
+      fitSURV <- survival::coxph(formula = survfmla, data = cfile, x = TRUE)
+      gamma <- fitSURV$coefficients
+    } else {
+      gamma <- rep(0, p2)
+    }
+
+    myresult=jmcsf_main(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
+                        mfilenew, Betasigmafile, Sigcovfile, gamma, trace)
     myresult$type="jmcsf";
   } else {
     stop(paste0(unique(cfile[, 2]), " is not an appropriate code of single / competing risks failure type.
@@ -225,6 +261,7 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE, model = "inte
 
   myresult$SummaryInfo <- SummaryInfo
   myresult$point <- point
+  myresult$REML <- REML
 
   class(myresult) <- "FastJM"
 
