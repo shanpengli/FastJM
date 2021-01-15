@@ -2788,10 +2788,14 @@ namespace jmcsspace {
         gsl_matrix *VV = gsl_matrix_calloc(p1a, p1a);
         gsl_matrix_memcpy(VV, sig);
 
-        for(i=0;i<p1a;i++)
+        if(p1a>1)
         {
-            for(j=0;j<i;j++)    gsl_matrix_set(VV,i,j,gsl_matrix_get(VV,j,i));
+            for(i=0;i<p1a;i++)
+            {
+                for(j=i+1;j<p1a;j++)    gsl_matrix_set(VV,j,i,gsl_matrix_get(VV,i,j));
+            }
         }
+
         gsl_permutation * vp = gsl_permutation_calloc(p1a);
         gsl_linalg_LU_decomp (VV, vp, &i);
         double u=sqrt(gsl_linalg_LU_det(VV,i));
@@ -3869,6 +3873,7 @@ namespace jmcsspace {
         NumericVector sd_vee2_estimate(p1a);
         double sigma2_val;
         double se_sigma2_val;
+        int iter_val;
         NumericMatrix sigma_matrix(p1a,p1a);
         NumericVector sd_sigma((p1a)*(p1a+1)/2);
 
@@ -3965,6 +3970,7 @@ namespace jmcsspace {
 
                 sigma2_val=sigma;
                 se_sigma2_val=sqrt(v_sigma);
+                iter_val=iter;
 
                 for (i=0;i<p1a;i++)
                 {
@@ -4033,6 +4039,7 @@ namespace jmcsspace {
         ret["sigma_matrix"] = sigma_matrix;
         ret["se_sigma"] = sd_sigma;
         ret["loglike"] = loglike;
+        ret["iters"] = iter_val;
         return ret;
 
     }

@@ -1880,10 +1880,14 @@ namespace jmcsfspace {
         gsl_matrix *VV = gsl_matrix_calloc(p1a, p1a);
         gsl_matrix_memcpy(VV, sig);
 
-        for(i=0;i<p1a;i++)
+        if(p1a>1)
         {
-            for(j=0;j<i;j++)    gsl_matrix_set(VV,i,j,gsl_matrix_get(VV,j,i));
+            for(i=0;i<p1a;i++)
+            {
+                for(j=i+1;j<p1a;j++)    gsl_matrix_set(VV,j,i,gsl_matrix_get(VV,i,j));
+            }
         }
+
         gsl_permutation * vp = gsl_permutation_calloc(p1a);
         gsl_linalg_LU_decomp (VV, vp, &i);
         double u=sqrt(gsl_linalg_LU_det(VV,i));
