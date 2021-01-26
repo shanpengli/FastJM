@@ -5,4 +5,5 @@
 #' @importFrom utils  read.table
 #' @importFrom lme4 VarCorr fixef lmer
 #' @importFrom survival coxph
+#' @importFrom reshape2 melt
 NULL
