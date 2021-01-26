@@ -16,7 +16,6 @@ summary.FastJM <-
     if (!inherits(object, "FastJM"))
       stop("Use only with 'FastJM' objects.\n")
     if (object$type == "jmcs") {
-      p1a <- length(object$vee1_estimate)
       if (coeff == "longitudinal") {
         ##Estimates of betas
         Estimate <- object$betas
@@ -35,6 +34,7 @@ summary.FastJM <-
 
         return(out)
       } else if (coeff == "survival") {
+        p1a <- length(object$vee1_estimate)
         Estimate <- t(object$gamma_matrix)
         Estimate <- reshape2::melt(Estimate)
         SE <- t(object$se_gamma_matrix)
@@ -72,7 +72,6 @@ summary.FastJM <-
         stop("Unexpected arguments! Must choose one of the following options: longitudinal, survival")
       }
     } else if (object$type == "jmcsf") {
-      p1a <- length(object$vee1_estimate)
       if (coeff == "longitudinal") {
         ##Estimates of betas
         Estimate <- object$betas
@@ -90,6 +89,7 @@ summary.FastJM <-
 
         return(out)
       } else if (coeff == "survival") {
+        p1a <- length(object$vee1_estimate)
         Estimate <- t(object$gamma_matrix)
         SE <- t(object$se_gamma_matrix)
         LowerLimit <- Estimate[, 1] - 1.96 * SE[, 1]
