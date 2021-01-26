@@ -16,6 +16,7 @@ summary.FastJM <-
     if (!inherits(object, "FastJM"))
       stop("Use only with 'FastJM' objects.\n")
     if (object$type == "jmcs") {
+      p1a <- length(object$vee1_estimate)
       if (coeff == "longitudinal") {
         ##Estimates of betas
         Estimate <- object$betas
@@ -71,6 +72,7 @@ summary.FastJM <-
         stop("Unexpected arguments! Must choose one of the following options: longitudinal, survival")
       }
     } else if (object$type == "jmcsf") {
+      p1a <- length(object$vee1_estimate)
       if (coeff == "longitudinal") {
         ##Estimates of betas
         Estimate <- object$betas
