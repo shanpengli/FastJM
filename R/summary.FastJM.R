@@ -34,7 +34,6 @@ summary.FastJM <-
 
         return(out)
       } else if (coeff == "survival") {
-        p1a <- length(object$vee1_estimate)
         Estimate <- t(object$gamma_matrix)
         Estimate <- reshape2::melt(Estimate)
         SE <- t(object$se_gamma_matrix)
@@ -57,8 +56,8 @@ summary.FastJM <-
         pval = 2 * pnorm(-abs(zval))
         outvee <- data.frame(Estimate, exp(Estimate), SE, LowerLimit, UpperLimit, pval)
         Survival <- vector()
-        for (i in 1:p1a) Survival[i] <- paste0("vee_", 1, i)
-        for (i in 1:p1a) Survival[i+p1a] <- paste0("vee_", 2, i)
+        for (i in 1:length(object$vee1_estimate)) Survival[i] <- paste0("vee_", 1, i)
+        for (i in 1:length(object$vee1_estimate)) Survival[i+length(object$vee1_estimate)] <- paste0("vee_", 2, i)
         outvee <- cbind(Survival, outvee)
         ##round p-val (TBD Hong Wang)
         names(outvee) <- c("Survival", "coef", "exp(coef)", "SE(coef)", "95%Lower", "95%Upper", "p-values")
@@ -89,7 +88,6 @@ summary.FastJM <-
 
         return(out)
       } else if (coeff == "survival") {
-        p1a <- length(object$vee1_estimate)
         Estimate <- t(object$gamma_matrix)
         SE <- t(object$se_gamma_matrix)
         LowerLimit <- Estimate[, 1] - 1.96 * SE[, 1]
@@ -110,7 +108,7 @@ summary.FastJM <-
         pval = 2 * pnorm(-abs(zval))
         outvee <- data.frame(Estimate, exp(Estimate), SE, LowerLimit, UpperLimit, pval)
         Survival <- vector()
-        for (i in 1:p1a) Survival[i] <- paste0("vee_", 1, i)
+        for (i in 1:length(object$vee1_estimate)) Survival[i] <- paste0("vee_", 1, i)
         outvee <- cbind(Survival, outvee)
         ##round p-val (TBD Hong Wang)
         names(outvee) <- c("Survival", "coef", "exp(coef)", "SE(coef)", "95%Lower", "95%Upper", "p-values")
