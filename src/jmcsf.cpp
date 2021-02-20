@@ -1835,43 +1835,69 @@ namespace jmcsfspace {
         {
             if (risk1_index>=0)
             {
-                   gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
-                   if (gsl_matrix_get(C,j,1) == 1)
-                   {
+                if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H01,0,risk1_index))
+                {
+                    gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                }
+                else
+                {
+                    risk1_index--;
+                    if (risk1_index>=0)
+                    {
+                        gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                    }
+                }
+            }
+            else
+            {
+                risk1_index=0;
+            }
+        }
 
-                       if (j == k-1)
-                       {
-                           gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                           risk1_index--;
-                       }
-                       else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                       {
-                           gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                           risk1_index--;
-                       }
+        risk1_index = a-1;
 
-                       else
-                       {
-                           for (j=j+1;j<k;j++)
-                           {
-                               gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
-                               if (j == k-1)
-                               {
-                                   gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                                   risk1_index--;
-                                   break;
-                               }
-                               else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                               {
-                                   gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                                   risk1_index--;
-                                   break;
-                               }
-                               else continue;
-                           }
-                       }
-
-                   }
+        for (j=0;j<k;j++)
+        {
+            if (risk1_index>=0)
+            {
+                //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
+                {
+                    gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
+                }
+                if ((int)gsl_matrix_get(C,j,1) == 1)
+                {
+                    if (j == k-1)
+                    {
+                        risk1_index--;
+                    }
+                    else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                    {
+                        risk1_index--;
+                    }
+                    else
+                    {
+                        for (j=j+1;j<k;j++)
+                        {
+                            //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                            if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
+                            {
+                                gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
+                            }
+                            if (j == k-1)
+                            {
+                                risk1_index--;
+                                break;
+                            }
+                            else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                            {
+                                risk1_index--;
+                                break;
+                            }
+                            else continue;
+                        }
+                    }
+                }
                 else continue;
             }
             else continue;

@@ -83,8 +83,8 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE = NULL, model 
   if (!(ID %in% cnames)) {
     stop(paste0("ID column ", ID, " not found in surv_data"))
   }
-  if (is.null(model)) {
-    stop("model type must be specified. It should be one of the following options: intercept or interslope.")
+  if (is.null(RE) & model == "interslope") {
+    stop("Random effects covariates must be specified.")
   }
   yID <- unique(ydata[, ID])
   cID <- cdata[, ID]
@@ -98,6 +98,7 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE = NULL, model 
   mdata <- as.data.frame(table(ydata[, ID]))
   mdata <- as.data.frame(mdata[, 2])
   n1 = ydim[1]
+
 
   if (nrow(mdata) != cdim[1]) {
     stop(paste("The number of subjects in cdata are not consistent with ydata.
@@ -189,6 +190,7 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE = NULL, model 
   beta <- matrix(beta, ncol = 1, nrow = length(beta))
   Betasigmafile = tempfile(pattern = "", fileext = ".txt")
   writenh(beta, Betasigmafile)
+
   if (prod(c(0, 1, 2) %in% unlist(unique(cfile[, 2]))) == 1) {
     if (survinital) {
       ## fit a Cox model

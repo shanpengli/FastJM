@@ -10,6 +10,43 @@
 
 namespace jmcsspace {
 
+    double CH(const gsl_matrix *H, double t)
+    {
+        int a=H->size2;
+        int i;
+
+        double ch;
+
+        if(t<gsl_matrix_get(H,0,0)) ch=0;
+        else
+        {
+            ch=0;
+            i=0;
+            do
+            {
+                ch+=gsl_matrix_get(H,2,i);
+                i+=1;
+            }while(i<=a-1 && t>=gsl_matrix_get(H,0,i));
+        }
+
+        return (ch);
+    }
+
+
+    double HAZ(const gsl_matrix *H, double t)
+    {
+        int a=H->size2;
+        int i;
+        double temp=0;
+
+        for(i=0;i<a;i++)
+        {
+            if(t==gsl_matrix_get(H,0,i)) temp=gsl_matrix_get(H,2,i);
+        }
+
+        return (temp);
+    }
+
     double GetPosbi(
                     const gsl_matrix *Y,
                     const gsl_vector *beta,
@@ -2195,45 +2232,45 @@ namespace jmcsspace {
         {
             if (risk1_index>=0)
             {
-                   //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
-                   if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
-                   {
-                       gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                   }
-                   if ((int)gsl_matrix_get(C,j,1) == 1)
-                   {
-                       if (j == k-1)
-                       {
-                           risk1_index--;
-                       }
-                       else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                       {
-                           risk1_index--;
-                       }
-                       else
-                       {
-                           for (j=j+1;j<k;j++)
-                           {
-                               //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
-                               if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
-                               {
-                                   gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                               }
-                               if (j == k-1)
-                               {
-                                   risk1_index--;
-                                   break;
-                               }
-                               else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                               {
-                                   risk1_index--;
-                                   break;
-                               }
-                               else continue;
-                           }
-                       }
-                   }
-                   else continue;
+                //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
+                {
+                    gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
+                }
+                if ((int)gsl_matrix_get(C,j,1) == 1)
+                {
+                    if (j == k-1)
+                    {
+                        risk1_index--;
+                    }
+                    else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                    {
+                        risk1_index--;
+                    }
+                    else
+                    {
+                        for (j=j+1;j<k;j++)
+                        {
+                            //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                            if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
+                            {
+                                gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
+                            }
+                            if (j == k-1)
+                            {
+                                risk1_index--;
+                                break;
+                            }
+                            else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                            {
+                                risk1_index--;
+                                break;
+                            }
+                            else continue;
+                        }
+                    }
+                }
+                else continue;
             }
             else continue;
         }
@@ -2242,47 +2279,48 @@ namespace jmcsspace {
         {
             if (risk2_index>=0)
             {
-                   if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
-                   {
-                       gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                   }
-                   if ((int)gsl_matrix_get(C,j,1) == 2)
-                   {
-                       if (j == k-1)
-                       {
-                           risk2_index--;
-                       }
-                       else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                       {
-                           risk2_index--;
-                       }
-                       else
-                       {
-                          for (j=j+1;j<k;j++)
-                          {
-                              if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
-                              {
-                                  gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                              }
+                if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
+                {
+                    gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
+                }
+                if ((int)gsl_matrix_get(C,j,1) == 2)
+                {
+                    if (j == k-1)
+                    {
+                        risk2_index--;
+                    }
+                    else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                    {
+                        risk2_index--;
+                    }
+                    else
+                    {
+                        for (j=j+1;j<k;j++)
+                        {
+                            if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
+                            {
+                                gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
+                            }
 
-                              if (j == k-1)
-                              {
-                                  risk2_index--;
-                                  break;
-                              }
-                              else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                              {
-                                  risk2_index--;
-                                  break;
-                              }
-                              else continue;
-                          }
-                       }
-                   }
-                   else continue;
+                            if (j == k-1)
+                            {
+                                risk2_index--;
+                                break;
+                            }
+                            else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                            {
+                                risk2_index--;
+                                break;
+                            }
+                            else continue;
+                        }
+                    }
+                }
+                else continue;
             }
             else continue;
         }
+
 
         gsl_matrix *VC = gsl_matrix_calloc(p1a,p1a);
         gsl_matrix_memcpy(VC,sig);
@@ -2298,6 +2336,7 @@ namespace jmcsspace {
         status=inv_matrix(VC);
         gsl_vector *tiii = gsl_vector_calloc(p1a);
         double u;
+        //double Testcuh01, Testcuh02, Testhaz01, Testhaz02;
 
         for(j=0;j<k;j++)
         {
@@ -2307,6 +2346,19 @@ namespace jmcsspace {
             cuh02=gsl_vector_get(CUH02,j);
             haz01=gsl_vector_get(HAZ01,j);
             haz02=gsl_vector_get(HAZ02,j);
+
+            // cuh01=CH(H01, gsl_matrix_get(C, j, 0));
+            // if (Testcuh01 != cuh01) Rprintf("%d th Testcuh01=%.*f, cuh01=%.*f\n", j, 15, Testcuh01, 15, cuh01);
+            // cuh02=CH(H02, gsl_matrix_get(C, j, 0));
+            // if (Testcuh01 != cuh01) Rprintf("%d th Testcuh02=%.*f, cuh02=%.*f\n", j, 15, Testcuh02, 15, cuh02);
+            //
+            // haz01=HAZ(H01,gsl_matrix_get(C,j,0));
+            // if (haz01 != Testhaz01) Rprintf("%d th Truehaz01=%.*f, haz01=%.*f\n", j, 15, Testhaz01, 15, haz01);
+            // haz02=HAZ(H02,gsl_matrix_get(C,j,0));
+            // if (haz02 != Testhaz02) Rprintf("%d th Truehaz02=%f, haz02=%f\n", j, Testhaz02, haz02);
+            //
+
+
             for(i=0;i<p2;i++)
             {
                 gsl_vector_set(X,i,gsl_matrix_get(C,j,2+i));
@@ -2697,43 +2749,92 @@ namespace jmcsspace {
         {
             if (risk1_index>=0)
             {
-                   gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
-                   if (gsl_matrix_get(C,j,1) == 1)
-                   {
+                if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H01,0,risk1_index))
+                {
+                    gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                }
+                else
+                {
+                    risk1_index--;
+                    if (risk1_index>=0)
+                    {
+                        gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                    }
+                }
+            }
+            else
+            {
+                risk1_index=0;
+            }
+        }
+        for (j=0;j<k;j++)
+        {
+            if (risk2_index>=0)
+            {
+                if (gsl_matrix_get(C,j,0) >= gsl_matrix_get(H02,0,risk2_index))
+                {
+                    gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
+                }
+                else
+                {
+                    risk2_index--;
+                    if (risk2_index>=0)
+                    {
+                        gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
+                    }
+                }
+            }
+            else
+            {
+                risk2_index=0;
+            }
+        }
 
-                       if (j == k-1)
-                       {
-                           gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                           risk1_index--;
-                       }
-                       else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                       {
-                           gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                           risk1_index--;
-                       }
+        risk1_index = a-1;
+        risk2_index = b-1;
 
-                       else
-                       {
-                           for (j=j+1;j<k;j++)
-                           {
-                               gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
-                               if (j == k-1)
-                               {
-                                   gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                                   risk1_index--;
-                                   break;
-                               }
-                               else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                               {
-                                   gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
-                                   risk1_index--;
-                                   break;
-                               }
-                               else continue;
-                           }
-                       }
-
-                   }
+        for (j=0;j<k;j++)
+        {
+            if (risk1_index>=0)
+            {
+                //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
+                {
+                    gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
+                }
+                if ((int)gsl_matrix_get(C,j,1) == 1)
+                {
+                    if (j == k-1)
+                    {
+                        risk1_index--;
+                    }
+                    else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                    {
+                        risk1_index--;
+                    }
+                    else
+                    {
+                        for (j=j+1;j<k;j++)
+                        {
+                            //gsl_vector_set(CUH01,j,gsl_vector_get(CumuH01,risk1_index));
+                            if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H01,0,risk1_index))
+                            {
+                                gsl_vector_set(HAZ01,j,gsl_matrix_get(H01,2,risk1_index));
+                            }
+                            if (j == k-1)
+                            {
+                                risk1_index--;
+                                break;
+                            }
+                            else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                            {
+                                risk1_index--;
+                                break;
+                            }
+                            else continue;
+                        }
+                    }
+                }
                 else continue;
             }
             else continue;
@@ -2743,43 +2844,43 @@ namespace jmcsspace {
         {
             if (risk2_index>=0)
             {
-                   gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
-                   if (gsl_matrix_get(C,j,1) == 2)
-                   {
+                if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
+                {
+                    gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
+                }
+                if ((int)gsl_matrix_get(C,j,1) == 2)
+                {
+                    if (j == k-1)
+                    {
+                        risk2_index--;
+                    }
+                    else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                    {
+                        risk2_index--;
+                    }
+                    else
+                    {
+                        for (j=j+1;j<k;j++)
+                        {
+                            if (gsl_matrix_get(C,j,0) == gsl_matrix_get(H02,0,risk2_index))
+                            {
+                                gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
+                            }
 
-                       if (j == k-1)
-                       {
-                           gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                           risk2_index--;
-                       }
-                       else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                       {
-                           gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                           risk2_index--;
-                       }
-
-                       else
-                       {
-                           for (j=j+1;j<k;j++)
-                           {
-                               gsl_vector_set(CUH02,j,gsl_vector_get(CumuH02,risk2_index));
-                               if (j == k-1)
-                               {
-                                   gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                                   risk2_index--;
-                                   break;
-                               }
-                               else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
-                               {
-                                   gsl_vector_set(HAZ02,j,gsl_matrix_get(H02,2,risk2_index));
-                                   risk2_index--;
-                                   break;
-                               }
-                               else continue;
-                           }
-                       }
-
-                   }
+                            if (j == k-1)
+                            {
+                                risk2_index--;
+                                break;
+                            }
+                            else if (gsl_matrix_get(C,j+1,0) != gsl_matrix_get(C,j,0))
+                            {
+                                risk2_index--;
+                                break;
+                            }
+                            else continue;
+                        }
+                    }
+                }
                 else continue;
             }
             else continue;
@@ -2803,6 +2904,7 @@ namespace jmcsspace {
         //Rprintf("det=%f\n",u);
 
         m=0;
+        //double Truehaz01, Truehaz02;
         for(j=0;j<k;j++)
         {
             q=(int)gsl_vector_get(M1,j);
@@ -2810,7 +2912,13 @@ namespace jmcsspace {
             cuh01=gsl_vector_get(CUH01,j);
             cuh02=gsl_vector_get(CUH02,j);
             haz01=gsl_vector_get(HAZ01,j);
+
             haz02=gsl_vector_get(HAZ02,j);
+
+            //Truehaz01=HAZ(H01,gsl_matrix_get(C,j,0));
+            //if (haz01 != Truehaz01) Rprintf("%d th Truehaz01=%.*f, haz01=%.*f\n", j, 15, Truehaz01, 15, haz01);
+            //Truehaz02=HAZ(H02,gsl_matrix_get(C,j,0));
+            //if (haz02 != Truehaz02) Rprintf("%d th Truehaz02=%f, haz02=%f\n", j, Truehaz02, haz02);
 
 
             for(i=0;i<p2;i++)
@@ -3718,8 +3826,6 @@ namespace jmcsspace {
         gsl_vector_free(Posbivec);
         gsl_vector_free(Y_row);
 
-        auto start = std::chrono::high_resolution_clock::now();
-
         iter=0;
         status=0;
 
@@ -3840,11 +3946,6 @@ namespace jmcsspace {
                presig,sig,tol)==1
                && status != 100 && status != 1000 && iter<maxiter);
 
-        auto finish = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = finish - start;
-        Rprintf("Elapsed time for EM: %f\n", elapsed.count());
-
-        auto start_Cov = std::chrono::high_resolution_clock::now();
 
         if(status==100)
         {
@@ -3893,10 +3994,6 @@ namespace jmcsspace {
             {
 
                 status=inv_matrix(Cov);
-
-                auto finish_Cov = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> elapsed_Cov = finish_Cov - start_Cov;
-                Rprintf("Elapsed time for Covariance: %f\n", elapsed_Cov.count());
 
                 if(status==100)
                 {
