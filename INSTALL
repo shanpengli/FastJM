@@ -88,7 +88,7 @@ For OS X users, the installation steps are even simpler.
 1. Install Homebrew:
 Open terminal and type
 
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 2. Install GSL:
 Open terminal and type
