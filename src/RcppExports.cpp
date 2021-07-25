@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // jmcs_main
 Rcpp::List jmcs_main(SEXP tol, SEXP k, SEXP n1, SEXP p1, SEXP p2, SEXP p1a, SEXP maxiter, SEXP point, SEXP xs, SEXP ws, SEXP yfile, SEXP cfile, SEXP mfile, SEXP Betasigmafile, SEXP Sigcovfile, SEXP gamma1, SEXP gamma2, SEXP trace);
 RcppExport SEXP _FastJM_jmcs_main(SEXP tolSEXP, SEXP kSEXP, SEXP n1SEXP, SEXP p1SEXP, SEXP p2SEXP, SEXP p1aSEXP, SEXP maxiterSEXP, SEXP pointSEXP, SEXP xsSEXP, SEXP wsSEXP, SEXP yfileSEXP, SEXP cfileSEXP, SEXP mfileSEXP, SEXP BetasigmafileSEXP, SEXP SigcovfileSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP traceSEXP) {

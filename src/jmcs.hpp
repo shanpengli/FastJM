@@ -23,6 +23,7 @@
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_sort_vector.h>
 #include <Rcpp.h>
+#include <chrono>
 using namespace Rcpp;
 
 namespace jmcsspace {
@@ -102,7 +103,6 @@ namespace jmcsspace {
                const std::vector<double> xs,
                const std::vector<double> ws
                );
-
 
     int GetE(
              gsl_matrix *FUNB,
@@ -193,6 +193,18 @@ namespace jmcsspace {
                      const int k,
                      const int p1,
                      const int p1a
+    );
+
+    double GetPoscovNL(
+            const gsl_matrix *Y,
+            const gsl_vector *beta,
+            const gsl_vector *M1,
+            const gsl_matrix *Sigcov,
+            const double sigma,
+            gsl_matrix *Poscov,
+            const int k,
+            const int p1,
+            const int p1a
     );
 
     //declare before use it

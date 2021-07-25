@@ -5,14 +5,11 @@
 ##' Each subject has one data entry.
 ##' @param long.formula a formula object with the response variable and fixed effects covariates
 ##' to be included in the longitudinal sub-model.
+##' @param random a one-sided formula object describing the random effects part of the longitudinal sub-model.
+##' For example, fitting a random intercept model takes the form ~ 1|ID.
+##' Alternatively. Fitting a random intercept and slope model takes the form ~ x1 + ... + xn|ID.
 ##' @param surv.formula a formula object with the survival time, event indicator, and the covariates
 ##' to be included in the survival sub-model.
-##' @param ID an element with the name identification of subject to
-##' identify subject identification in the dataframes.
-##' @param RE a vector of the names of random effect covariates to be included
-##' in the longitudinal sub-model.
-##' @param model an element that specifies the model type of random effects.
-##' Deafult is "interslope", i.e., both random intercept and slope are included.
 ##' @param REML a logic object that indicates the use of REML estimator. Default is TRUE.
 ##' @param point the number of pseudo-adaptive Gauss-Hermite quadrature points
 ##' to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.
@@ -40,8 +37,8 @@
 ##' @export
 ##'
 
-jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE = NULL, model = "interslope",
-                 REML = TRUE, point = 6, maxiter = 10000, do.trace = FALSE, survinital = TRUE, tol = 0.0001)
+jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML = TRUE,
+                 point = 6, maxiter = 10000, do.trace = FALSE, survinital = TRUE, tol = 0.0001)
 {
   if (do.trace) {
     trace=1;
@@ -65,6 +62,16 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE = NULL, model 
 
   long <- all.vars(long.formula)
   survival <- all.vars(surv.formula)
+  random.form <- all.vars(random)
+  ID <- random.form[length(random.form)]
+  if (length(random.form) == 1) {
+    RE <- NULL
+    model <- "intercept"
+  } else {
+    RE <- random.form[-length(random.form)]
+    model <- "interslope"
+  }
+
   cnames=colnames(cdata)
   ynames=colnames(ydata)
 
@@ -178,7 +185,6 @@ jmcs <- function(ydata, cdata, long.formula, surv.formula, ID, RE = NULL, model 
   name <- names(D)
   D <- as.data.frame(D[name])
   D <- as.matrix(D)
-  print(D)
   Sigcovfile = tempfile(pattern = "", fileext = ".txt")
   writenh(D, Sigcovfile)
   ##Residuals

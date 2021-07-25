@@ -210,6 +210,141 @@ namespace jmcsspace {
         return 0;
     }
 
+double GetPoscovNL(
+        const gsl_matrix *Y,
+        const gsl_vector *beta,
+        const gsl_vector *M1,
+        const gsl_matrix *Sigcov,
+        const double sigma,
+        gsl_matrix *Poscov,
+        const int k,
+        const int p1,
+        const int p1a
+)
+    {
+        int i=0;
+        int f=0,w=0,t,j,u,n,o,q=0,g;
+        gsl_matrix *Xinv = gsl_matrix_calloc(p1, p1);
+        gsl_permutation *pp = gsl_permutation_calloc(p1a);
+        for (j=0;j<k;j++)
+        {
+            i=(int)gsl_vector_get(M1,j);
+            gsl_matrix *Z = gsl_matrix_alloc(i, p1a);
+            gsl_matrix *ZT = gsl_matrix_alloc(p1a, i);
+            gsl_matrix *ZZT = gsl_matrix_alloc(i, i);
+            gsl_matrix *DZT = gsl_matrix_alloc(p1a, i);
+            gsl_matrix *ZDT = gsl_matrix_alloc(i, p1a);
+            gsl_matrix *V = gsl_matrix_alloc(i, i);
+            gsl_matrix *X =gsl_matrix_alloc(i, p1);
+            gsl_matrix *VX = gsl_matrix_alloc(i, p1);
+            gsl_matrix *XT = gsl_matrix_alloc(p1, i);
+            gsl_matrix *XXT = gsl_matrix_alloc(i, i);
+            gsl_matrix *XXTV = gsl_matrix_alloc(i, i);
+            gsl_matrix *cov = gsl_matrix_alloc(p1a, p1a);
+            gsl_matrix *covT = gsl_matrix_alloc(p1a, p1a);
+            gsl_matrix_set_identity(V);
+            gsl_vector *bi = gsl_vector_alloc(p1a);
+            for(w=f;w<i+f;w++)
+            {
+                for (t=0;t<p1a;t++) gsl_matrix_set(Z, w-f, t, gsl_matrix_get(Y, w, t+1));
+                for (t=0;t<p1;t++) gsl_matrix_set(X, w-f, t, gsl_matrix_get(Y, w, t+1+p1a));
+            }
+            TransM(Z, ZT);
+            TransM(X, XT);
+            MulMM(Sigcov, ZT, DZT);
+            MulMM(Z, DZT, ZZT);
+            gsl_matrix_scale(V, sigma);
+            gsl_matrix_add(V, ZZT);
+            inv_matrix(V);
+            MulMM(V, X, VX);
+            //Calculate Xinv originally
+            q=0;
+            gsl_matrix_set_zero(Xinv);
+            for (n=0;n<k;n++)
+            {
+                o=(int)gsl_vector_get(M1,n);
+                gsl_matrix *XTV = gsl_matrix_alloc(p1, o);
+                gsl_matrix *XTX = gsl_matrix_alloc(p1, p1);
+                gsl_matrix *Z = gsl_matrix_alloc(o, p1a);
+                gsl_matrix *ZT = gsl_matrix_alloc(p1a, o);
+                gsl_matrix *X =gsl_matrix_alloc(o, p1);
+                gsl_matrix *XT = gsl_matrix_alloc(p1, o);
+                gsl_matrix *ZZT = gsl_matrix_alloc(o, o);
+                gsl_matrix *DZT = gsl_matrix_alloc(p1a, o);
+                gsl_matrix *V = gsl_matrix_alloc(o, o);
+                gsl_matrix_set_identity(V);
+                for(g=q;g<o+q;g++)
+                {
+                    for (t=0;t<p1a;t++) gsl_matrix_set(Z, g-q, t, gsl_matrix_get(Y, g, t+1));
+                    for (t=0;t<p1;t++) gsl_matrix_set(X, g-q, t, gsl_matrix_get(Y, g, t+1+p1a));
+                }
+                q=q+o;
+                TransM(Z, ZT);
+                TransM(X, XT);
+                MulMM(Sigcov, ZT, DZT);
+                MulMM(Z, DZT, ZZT);
+                gsl_matrix_scale(V, sigma);
+                gsl_matrix_add(V, ZZT);
+                inv_matrix(V);
+                MulMM(XT, V, XTV);
+                MulMM(XTV, X, XTX);
+                gsl_matrix_add(Xinv, XTX);
+                gsl_matrix_free(XTV);
+                gsl_matrix_free(XTX);
+                gsl_matrix_free(Z);
+                gsl_matrix_free(ZT);
+                gsl_matrix_free(ZZT);
+                gsl_matrix_free(DZT);
+                gsl_matrix_free(X);
+                gsl_matrix_free(XT);
+                gsl_matrix_free(V);
+            }
+            inv_matrix(Xinv);
+            MulMM(VX, Xinv, X);
+            MulMM(X, XT, XXT);
+            MulMM(XXT, V, XXTV);
+            gsl_matrix_sub(V, XXTV);
+            MulMM(DZT, V, ZT);
+            TransM(DZT, ZDT);
+            MulMM(ZT, ZDT, cov);
+            gsl_matrix_scale(cov, -1);
+            gsl_matrix_add(cov, Sigcov);
+            inv_matrix(cov);
+            gsl_linalg_cholesky_decomp1(cov);
+            if (p1a>1)
+            {
+                for(u=1;u<p1a;u++)
+                {
+                    for(t=0;t<p1a-u;t++)   gsl_matrix_set(cov,t,u+t,0);
+                }
+            }
+            TransM(cov, covT);
+            gsl_linalg_LU_invert(covT, pp, cov);
+            for (t=0;t<p1a;t++)
+            {
+                gsl_matrix_get_row(bi, cov, t);
+                gsl_matrix_set_row(Poscov, j*p1a+t, bi);
+            }
+            f=f+i;
+            gsl_matrix_free(Z);
+            gsl_matrix_free(ZT);
+            gsl_matrix_free(ZZT);
+            gsl_matrix_free(DZT);
+            gsl_matrix_free(ZDT);
+            gsl_matrix_free(V);
+            gsl_matrix_free(X);
+            gsl_matrix_free(VX);
+            gsl_matrix_free(XT);
+            gsl_matrix_free(XXT);
+            gsl_matrix_free(XXTV);
+            gsl_matrix_free(cov);
+            gsl_matrix_free(covT);
+            gsl_vector_free(bi);
+        }
+        gsl_permutation_free(pp);
+        return 0;
+    }
+
     int EM(
            gsl_vector *beta,
            gsl_matrix *gamma,
@@ -3516,11 +3651,13 @@ namespace jmcsspace {
         sigma = gsl_vector_get(Betasigma, p1);
         /*calculate the Posbi and Poscov*/
         i=0;
-        //auto start_Pos = std::chrono::high_resolution_clock::now();
+        auto start_Pos = std::chrono::high_resolution_clock::now();
         gsl_matrix *Xinv = gsl_matrix_calloc(p1,p1);
         GetPosbi(Y,beta,M1,Sigcov,sigma,Xinv,Posbi,k,p1,p1a);
         inv_matrix(Xinv);
         GetPoscov(Y,beta,M1,Sigcov,sigma,Xinv,Poscov,k,p1,p1a);
+        //GetPoscovNL(Y,beta,M1,Sigcov,sigma,Poscov,k,p1,p1a);
+
         /* allocate space for pre parameters */
 
         gsl_vector * prebeta=gsl_vector_calloc(p1);
@@ -3829,53 +3966,53 @@ namespace jmcsspace {
         iter=0;
         status=0;
 
-        Rprintf("iter=%d   status=%d\n",iter,status);
-        Rprintf("Beta = \n");
-        for (i=0;i<p1;i++)
-        {
-            Rprintf("%f     ", gsl_vector_get(beta,i));
-
-        }
-        Rprintf("\n");
-
-
-        Rprintf("Gamma = \n");
-        for (i=0;i<g;i++)
-        {
-            for(j=0;j<p2;j++)
-            {
-                Rprintf("%f    ", gsl_matrix_get(gamma,i,j));
-            }
-            Rprintf("\n");
-        }
-
-        Rprintf("Vee1 = \n");
-        for (i=0;i<p1a;i++)
-        {
-            Rprintf("%f     ", gsl_vector_get(vee1,i));
-
-        }
-        Rprintf("\n");
-
-        Rprintf("Vee2 = \n");
-        for (i=0;i<p1a;i++)
-        {
-            Rprintf("%f     ", gsl_vector_get(vee2,i));
-
-        }
-        Rprintf("\n");
-
-        Rprintf("sigma = %f\n",sigma);
-
-        Rprintf("Sig = \n");
-        for (i=0;i<p1a;i++)
-        {
-            for(j=0;j<p1a;j++)
-            {
-                Rprintf("%f    ", gsl_matrix_get(sig,i,j));
-            }
-            Rprintf("\n");
-        }
+        // Rprintf("iter=%d   status=%d\n",iter,status);
+        // Rprintf("Beta = \n");
+        // for (i=0;i<p1;i++)
+        // {
+        //     Rprintf("%f     ", gsl_vector_get(beta,i));
+        //
+        // }
+        // Rprintf("\n");
+        //
+        //
+        // Rprintf("Gamma = \n");
+        // for (i=0;i<g;i++)
+        // {
+        //     for(j=0;j<p2;j++)
+        //     {
+        //         Rprintf("%f    ", gsl_matrix_get(gamma,i,j));
+        //     }
+        //     Rprintf("\n");
+        // }
+        //
+        // Rprintf("Vee1 = \n");
+        // for (i=0;i<p1a;i++)
+        // {
+        //     Rprintf("%f     ", gsl_vector_get(vee1,i));
+        //
+        // }
+        // Rprintf("\n");
+        //
+        // Rprintf("Vee2 = \n");
+        // for (i=0;i<p1a;i++)
+        // {
+        //     Rprintf("%f     ", gsl_vector_get(vee2,i));
+        //
+        // }
+        // Rprintf("\n");
+        //
+        // Rprintf("sigma = %f\n",sigma);
+        //
+        // Rprintf("Sig = \n");
+        // for (i=0;i<p1a;i++)
+        // {
+        //     for(j=0;j<p1a;j++)
+        //     {
+        //         Rprintf("%f    ", gsl_matrix_get(sig,i,j));
+        //     }
+        //     Rprintf("\n");
+        // }
 
         do
         {
@@ -3946,7 +4083,9 @@ namespace jmcsspace {
                presig,sig,tol)==1
                && status != 100 && status != 1000 && iter<maxiter);
 
-
+        auto end_Pos = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_Pos = end_Pos - start_Pos;
+        printf("Elapsed time for EM: %f\n", elapsed_Pos.count());
         if(status==100)
         {
             Rprintf("program stops because of error\n");

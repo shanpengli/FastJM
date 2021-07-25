@@ -8,10 +8,8 @@ jmcs(
   ydata,
   cdata,
   long.formula,
+  random = NULL,
   surv.formula,
-  ID,
-  RE = NULL,
-  model = "interslope",
   REML = TRUE,
   point = 6,
   maxiter = 10000,
@@ -29,17 +27,12 @@ Each subject has one data entry.}
 \item{long.formula}{a formula object with the response variable and fixed effects covariates
 to be included in the longitudinal sub-model.}
 
+\item{random}{a one-sided formula object describing the random effects part of the longitudinal sub-model.
+For example, fitting a random intercept model takes the form ~ 1|ID.
+Alternatively. Fitting a random intercept and slope model takes the form ~ x1 + ... + xn|ID.}
+
 \item{surv.formula}{a formula object with the survival time, event indicator, and the covariates
 to be included in the survival sub-model.}
-
-\item{ID}{an element with the name identification of subject to
-identify subject identification in the dataframes.}
-
-\item{RE}{a vector of the names of random effect covariates to be included
-in the longitudinal sub-model.}
-
-\item{model}{an element that specifies the model type of random effects.
-Deafult is "interslope", i.e., both random intercept and slope are included.}
 
 \item{REML}{a logic object that indicates the use of REML estimator. Default is TRUE.}
 
