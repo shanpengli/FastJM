@@ -270,6 +270,9 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
   myresult$SummaryInfo <- SummaryInfo
   myresult$point <- point
   myresult$REML <- REML
+  myresult$ydata <- ydata
+  myresult$cdata <- cdata
+  myresult$mdata <- mdata
 
   class(myresult) <- "FastJM"
 

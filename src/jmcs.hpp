@@ -104,6 +104,27 @@ namespace jmcsspace {
                const std::vector<double> ws
                );
 
+    // int Getfitted(
+    //         gsl_vector *fittedval,
+    //         const gsl_matrix *Y,
+    //         const gsl_vector *beta,
+    //         const gsl_vector *M1,
+    //         const double sigma,
+    //         const gsl_vector *vee1,
+    //         const gsl_vector *vee2,
+    //         const gsl_matrix *H01,
+    //         const gsl_matrix *H02,
+    //         const gsl_matrix *C,
+    //         const gsl_matrix *Posbi,
+    //         const gsl_matrix *Poscov,
+    //         const gsl_matrix *sig,
+    //         const gsl_matrix *gamma,
+    //         const int p1a,
+    //         const int point,
+    //         const std::vector<double> xs,
+    //         const std::vector<double> ws
+    // );
+
     int GetE(
              gsl_matrix *FUNB,
              gsl_matrix *FUNBS,
