@@ -219,7 +219,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
     myresult=jmcs_main(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
                        mfilenew, Betasigmafile, Sigcovfile, gamma1, gamma2, trace)
     myresult$type="jmcs";
-  } else if (prod(c(1) %in% unlist(unique(cfile[, 2]))) == 1) {
+  } else if (prod(c(1) %in% unique(cfile[, 2])) == 1) {
 
     if (survinital) {
       ## fit a Cox model
