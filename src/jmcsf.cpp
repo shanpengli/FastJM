@@ -2838,16 +2838,42 @@ namespace jmcsfspace {
         int iter_val;
         NumericMatrix sigma_matrix(p1a,p1a);
         NumericVector sd_sigma((p1a)*(p1a+1)/2);
+        NumericMatrix FUNB_matrix(p1a,k);
 
         double loglike=0.0;
+        int status2=0;
         if(status != 100 && iter<maxiter)
         {
             /* if algorithm coverges, compute the variance-covariance matrix of parameters ***/
             status = GetCov(Cov,beta,gamma,vee1,H01,sigma,sig,Y_new,C_new,M1_new,Posbi_new,Poscov_new,p1a,point,xs,ws);
 
+            gsl_matrix *FUNB_new=gsl_matrix_calloc(p1a,k),
+                *FUNB=gsl_matrix_calloc(p1a,k),
+                *FUNBS=gsl_matrix_calloc(p1a*(p1a+1)/2,k),
+                *FUNE=gsl_matrix_calloc(g,k),
+                *FUNBSE=gsl_matrix_calloc(g*p1a*(p1a+1)/2,k),
+                *FUNBE=gsl_matrix_calloc(g*p1a,k);
+
+                gsl_vector *bi=gsl_vector_calloc(p1a);
+
+                status2 = GetE(FUNB_new,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,H01,sigma,sig,Y_new,C_new,M1_new,Posbi_new,Poscov_new,p1a,point,xs,ws);
+
+                for (j=0;j<k;j++)
+                {
+                    index = k - 1 - (int) gsl_permutation_get(rank, j);
+                    gsl_matrix_get_col(bi, FUNB_new, index);
+                    gsl_matrix_set_col(FUNB, j, bi);
+                }
+
             if(status==100)
             {
                 printf("program stops because of error\n");
+                return R_NilValue;
+            }
+
+            if(status2==100)
+            {
+                Rprintf("program stops because of error\n");
                 return R_NilValue;
             }
 
@@ -2932,8 +2958,29 @@ namespace jmcsfspace {
                 }
                 iter_val = iter;
 
+                if (status2 != 100) {
+
+                    for (i=0;i<p1a;i++)
+                    {
+                        for (j=0;j<k;j++)
+                        {
+                            FUNB_matrix(i,j)=gsl_matrix_get(FUNB,i,j);
+                        }
+                    }
+
                 }
+
+                }
+
+
             }
+
+            gsl_vector_free(bi);
+            gsl_matrix_free(FUNB);
+            gsl_matrix_free(FUNB_new);
+            gsl_matrix_free(FUNBE);
+            gsl_matrix_free(FUNBS);
+            gsl_matrix_free(FUNBSE);
         }
 
         gsl_matrix_free(FH01);
@@ -2979,6 +3026,7 @@ namespace jmcsfspace {
         ret["se_sigma"] = sd_sigma;
         ret["loglike"] = loglike;
         ret["iters"] = iter_val;
+        ret["ranef"] = FUNB_matrix;
         return ret;
 
     }
