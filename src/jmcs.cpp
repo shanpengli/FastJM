@@ -4013,7 +4013,7 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
     //     }
     //     Rprintf("\n");
     // }
-
+    int convergence = 0;
     do
     {
         iter=iter+1;
@@ -4089,17 +4089,14 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
     if(status==100)
     {
         Rprintf("program stops because of error\n");
-        return R_NilValue;
     }
     if(status==1000)
     {
         Rprintf("dem is zero\n");
-        return R_NilValue;
     }
     if(iter==maxiter)
     {
         Rprintf("program stops because of nonconvergence\n");
-        return R_NilValue;
     }
 
     NumericMatrix vcmatrix(Cov->size1,Cov->size1);
@@ -4148,13 +4145,12 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
         if(status==100)
         {
             Rprintf("program stops because of error\n");
-            return R_NilValue;
+
         }
 
         if(status2==100)
         {
             Rprintf("program stops because of error\n");
-            return R_NilValue;
         }
 
 
@@ -4166,11 +4162,12 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
             if(status==100)
             {
                 Rprintf("program stops because of error\n");
-                return R_NilValue;
+
             }
 
             if(status!=100)
             {
+                convergence = 1;
                 for (i=0;(unsigned)i<Cov->size1;i++)
                 {
                     for(j=0;(unsigned)j<Cov->size1;j++)
@@ -4326,6 +4323,7 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
     ret["loglike"] = loglike;
     ret["iters"] = iter_val;
     ret["ranef"] = FUNB_matrix;
+    ret["convergence"] = convergence;
     return ret;
 
 }
