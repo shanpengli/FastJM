@@ -245,9 +245,12 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
   ydim=dim(yfile)
   cnames=colnames(cfile)
   #names
-  names(myresult$betas)=ynames[(1+p1a+1):ydim[2]]
-
-  colnames(myresult$gamma_matrix)=cnames[3:(p2+3-1)]
+  if (!is.null(myresult$betas)) {
+    names(myresult$betas)=ynames[(1+p1a+1):ydim[2]]
+  }
+  if (!is.null(myresult$gamma_matrix)) {
+    colnames(myresult$gamma_matrix)=cnames[3:(p2+3-1)]
+  }
 
   myresult$k=k
 
