@@ -384,11 +384,19 @@ int EM(
         *FUNBE=gsl_matrix_calloc(g*p1a,k),
         *FUNE=gsl_matrix_calloc(g,k);
 
+        // auto start_E = std::chrono::high_resolution_clock::now();
+
         int status;
         status = GetE(FUNB,FUNBS,FUNBSE,FUNBE,FUNE,beta,gamma,vee1,vee2,H01,H02,*sigma,sig,Y,C,M1,Posbi,Poscov,p1a,point,xs,ws);
         if (status==100 || status==1000) {
             return status;
         }
+
+        // auto end_E = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> elapsed_E = end_E - start_E;
+        // Rprintf("Elapsed time for E step: %f\n", elapsed_E.count());
+        //
+        // auto start_M = std::chrono::high_resolution_clock::now();
 
         gsl_vector * SX = gsl_vector_calloc(p2);
         gsl_matrix * SXX = gsl_matrix_calloc(p2,p2);
@@ -1128,9 +1136,9 @@ int EM(
 
         for(j=0;j<p1a;j++)  gsl_vector_set(vee2,j,gsl_vector_get(vee2,j)+gsl_vector_get(N,j));
 
-        //auto finish_M = std::chrono::high_resolution_clock::now();
-        //std::chrono::duration<double> elapsed_M = finish_M - start_M;
-        //printf("Elapsed time for M step: %f\n", elapsed_M.count());
+        // auto end_M = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> elapsed_M = end_M - start_M;
+        // Rprintf("Elapsed time for M step: %f\n", elapsed_M.count());
 
 
         gsl_vector_free(Z);
@@ -3651,12 +3659,16 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
     sigma = gsl_vector_get(Betasigma, p1);
     /*calculate the Posbi and Poscov*/
     i=0;
-    auto start_Pos = std::chrono::high_resolution_clock::now();
+
     gsl_matrix *Xinv = gsl_matrix_calloc(p1,p1);
+
+
     GetPosbi(Y,beta,M1,Sigcov,sigma,Xinv,Posbi,k,p1,p1a);
     inv_matrix(Xinv);
     GetPoscov(Y,beta,M1,Sigcov,sigma,Xinv,Poscov,k,p1,p1a);
     //GetPoscovNL(Y,beta,M1,Sigcov,sigma,Poscov,k,p1,p1a);
+    //printf("Elapsed time for Empirical Bayes Est: %f\n", elapsed.count());
+
 
     /* allocate space for pre parameters */
 
@@ -4030,7 +4042,6 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
         presigma=sigma;
 
         /* get new parameter estimates */
-
         status = EM(beta,gamma,vee1,vee2,H01,H02,&sigma,sig,p1a,Y_new,C_new,M1_new,Posbi_new,Poscov_new,point,xs,ws);
 
         if (trace == 1)
@@ -4083,9 +4094,6 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
                 presig,sig,tol)==1
                && status != 100 && status != 1000 && iter<maxiter);
 
-    auto end_Pos = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_Pos = end_Pos - start_Pos;
-    printf("Elapsed time for EM: %f\n", elapsed_Pos.count());
     if(status==100)
     {
         Rprintf("program stops because of error\n");
@@ -4269,6 +4277,8 @@ Rcpp::List jmcs_cmain(double tol, int k, int n1,int p1,int p2, int p1a, int maxi
         gsl_matrix_free(FUNBS);
         gsl_matrix_free(FUNBSE);
     }
+
+
 
     gsl_matrix_free(FH01);
     gsl_matrix_free(FH02);

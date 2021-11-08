@@ -45,7 +45,7 @@ jmcsf_main <- function(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfile, c
 #' p1a_val=2;
 #' p2_val=2;
 #' g_val=2;
-#' truebeta=c(2,1,-1.5);
+#' truebeta=c(10,1,-1.5);
 #' truegamma=c(0.8,-1,0.5,-1.5);
 #' randeffect=c(0.5,0.5,0.25);
 #' truevee1=c(1,0.5);

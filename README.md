@@ -15,11 +15,9 @@ Reminder: GSL library must be preinstalled before the installation of FastJM. Se
     data(ydata)
     data(cdata)
     fit <- jmcs(ydata = ydata, cdata = cdata,
-                    long.formula = response ~ time + x1,
-                    surv.formula = Surv(surv, failure_type) ~ x1 + x2,
-                    ID = "ID",
-                    RE = "time",
-                    model = "interslope")
+                long.formula = response ~ time + x1,
+                random = ~time|ID,
+                surv.formula = Surv(surv, failure_type) ~ x1 + x2)
     fit
 
 

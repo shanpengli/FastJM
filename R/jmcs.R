@@ -276,6 +276,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
   myresult$ydata <- ydata
   myresult$cdata <- cdata
   myresult$mdata <- mdata
+  myresult$call <- match.call()
 
   class(myresult) <- "FastJM"
 

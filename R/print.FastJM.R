@@ -1,6 +1,4 @@
 ##' Print contents of FastJM object.
-##'
-##'
 ##' @title Print FastJM
 ##' @param x Object of class 'FastJM'.
 ##' @param ... Further arguments passed to or from other methods.
@@ -11,10 +9,8 @@ print.FastJM <- function(x, ...) {
   if (!inherits(x, "FastJM"))
     stop("Not a legitimate \"FastJM\" object")
 
+  cat("\nCall:\n", sprintf(format(paste(deparse(x$call, width.cutoff = 500), collapse = ""))), "\n\n")
   if (x$type == "jmcs") {
-    cat("Call:\n")
-    ##need to add function call (Hong)
-    cat("Function\n")
     cat("Data Summary:\n")
     cat("Number of observations:", x$SummaryInfo$Numobs, "\n")
     cat("Number of groups:", x$k, "\n\n")
