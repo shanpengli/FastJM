@@ -23,7 +23,6 @@
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_sort_vector.h>
 #include <Rcpp.h>
-#include <chrono>
 using namespace Rcpp;
 
 namespace jmcsspace {
