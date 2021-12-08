@@ -2,7 +2,7 @@
 % Please edit documentation in R/jmcs.R
 \name{jmcs}
 \alias{jmcs}
-\title{Joint Modelling for Continuous outcomes}
+\title{Joint modeling of longitudinal continuous data and competing risks}
 \usage{
 jmcs(
   ydata,
@@ -11,11 +11,13 @@ jmcs(
   random = NULL,
   surv.formula,
   REML = TRUE,
-  point = 6,
+  quadpoint = NULL,
   maxiter = 10000,
-  do.trace = FALSE,
-  survinital = TRUE,
-  tol = 1e-04
+  print.para = FALSE,
+  survinitial = TRUE,
+  tol = 1e-04,
+  method = "pseudo-adaptive",
+  opt = "nlminb"
 )
 }
 \arguments{
@@ -36,35 +38,20 @@ to be included in the survival sub-model.}
 
 \item{REML}{a logic object that indicates the use of REML estimator. Default is TRUE.}
 
-\item{point}{the number of pseudo-adaptive Gauss-Hermite quadrature points
+\item{quadpoint}{the number of pseudo-adaptive Gauss-Hermite quadrature points
 to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.}
 
 \item{maxiter}{the maximum number of iterations of the EM algorithm that the function will perform. Default is 10000.}
 
-\item{do.trace}{Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.}
-
-\item{tol}{Tolerance parameter. Default is 0.001.}
+\item{print.para}{Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.}
 
 \item{survinitial}{Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.}
-}
-\value{
-Object of class \code{FastJM} with elements
-  \tabular{ll}{
-      \code{vcmatrix}    \tab  The variance-covariance matrix for all the parameters. The parameters are in the order: \eqn{\beta}, \eqn{\sigma^2}, \eqn{\gamma}, \eqn{\nu}, and \eqn{\Sigma}. The elements in \eqn{\Sigma} are output in the order along the main diagonal line, then the second main diagonal line, and so on. \cr
-      \code{betas} \tab The point  estimates of \eqn{\beta}. \cr
-      \code{se_betas} \tab The standard error estimate of \eqn{\beta}. \cr
-      \code{gamma_matrix} \tab  The point  estimate of \eqn{\gamma}. \cr
-      \code{se_gamma_matrix}   \tab  The standard error estimate of \eqn{\gamma}. \cr
-      \code{vee1_estimate} \tab The point  estimate of \eqn{\nu_1}. \cr
-      \code{se_vee1_estimate}    \tab The standard error estimate of \eqn{\nu_1}. \cr
-      \code{vee2_estimate} \tab The point  estimate of \eqn{\nu_2}. \cr
-      \code{se_vee2_estimate}    \tab The standard error estimate of \eqn{\nu_2}. \cr
-      \code{sigma2_val}     \tab  The point estimate of \eqn{\sigma^2}.\cr
-      \code{se_sigma2_val}     \tab  The standard error estimate of \eqn{\sigma^2}.\cr
-      \code{sigma_matrix}     \tab The point estimate of \eqn{\Sigma} (only the upper triangle portion of the matrix is output).\cr
-      \code{se_sigma}     \tab The standard error estimate of \eqn{\Sigma}.The standard errors are given in this order: main diagonal, the second main diagonal, and so on. \cr
-      \code{loglike}     \tab Log Likelihood.\cr
-  }
+
+\item{tol}{Tolerance parameter. Default is 0.0001.}
+
+\item{method}{Method for proceeding numerical integration in the E-step. Default is pseudo-adaptive.}
+
+\item{opt}{Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.}
 }
 \description{
 Joint modeling of longitudinal continuous data and competing risks

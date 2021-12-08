@@ -1,5 +1,6 @@
 ##' Joint modeling of longitudinal continuous data and competing risks
-##' @title Joint Modelling for Continuous outcomes
+##' @title Joint modeling of longitudinal continuous data and competing risks
+##' @name jmcs
 ##' @param ydata a longitudinal data frame in long format.
 ##' @param cdata a survival data frame with competing risks or single failure.
 ##' Each subject has one data entry.
@@ -11,57 +12,34 @@
 ##' @param surv.formula a formula object with the survival time, event indicator, and the covariates
 ##' to be included in the survival sub-model.
 ##' @param REML a logic object that indicates the use of REML estimator. Default is TRUE.
-##' @param point the number of pseudo-adaptive Gauss-Hermite quadrature points
+##' @param quadpoint the number of pseudo-adaptive Gauss-Hermite quadrature points
 ##' to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.
 ##' @param maxiter the maximum number of iterations of the EM algorithm that the function will perform. Default is 10000.
-##' @param do.trace Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.
+##' @param print.para Print detailed information of each iteration. Default is FALSE, i.e., not to print the iteration details.
 ##' @param survinitial Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.
-##' @param tol Tolerance parameter. Default is 0.001.
-##' @return Object of class \code{FastJM} with elements
-##'   \tabular{ll}{
-##'       \code{vcmatrix}    \tab  The variance-covariance matrix for all the parameters. The parameters are in the order: \eqn{\beta}, \eqn{\sigma^2}, \eqn{\gamma}, \eqn{\nu}, and \eqn{\Sigma}. The elements in \eqn{\Sigma} are output in the order along the main diagonal line, then the second main diagonal line, and so on. \cr
-##'       \code{betas} \tab The point  estimates of \eqn{\beta}. \cr
-##'       \code{se_betas} \tab The standard error estimate of \eqn{\beta}. \cr
-##'       \code{gamma_matrix} \tab  The point  estimate of \eqn{\gamma}. \cr
-##'       \code{se_gamma_matrix}   \tab  The standard error estimate of \eqn{\gamma}. \cr
-##'       \code{vee1_estimate} \tab The point  estimate of \eqn{\nu_1}. \cr
-##'       \code{se_vee1_estimate}    \tab The standard error estimate of \eqn{\nu_1}. \cr
-##'       \code{vee2_estimate} \tab The point  estimate of \eqn{\nu_2}. \cr
-##'       \code{se_vee2_estimate}    \tab The standard error estimate of \eqn{\nu_2}. \cr
-##'       \code{sigma2_val}     \tab  The point estimate of \eqn{\sigma^2}.\cr
-##'       \code{se_sigma2_val}     \tab  The standard error estimate of \eqn{\sigma^2}.\cr
-##'       \code{sigma_matrix}     \tab The point estimate of \eqn{\Sigma} (only the upper triangle portion of the matrix is output).\cr
-##'       \code{se_sigma}     \tab The standard error estimate of \eqn{\Sigma}.The standard errors are given in this order: main diagonal, the second main diagonal, and so on. \cr
-##'       \code{loglike}     \tab Log Likelihood.\cr
-##'   }
+##' @param tol Tolerance parameter. Default is 0.0001.
+##' @param method Method for proceeding numerical integration in the E-step. Default is pseudo-adaptive. 
+##' @param opt Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.
 ##' @export
+##'
 ##'
 
 jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML = TRUE,
-                 point = 6, maxiter = 10000, do.trace = FALSE, survinital = TRUE, tol = 0.0001)
+                 quadpoint = NULL, maxiter = 10000, print.para = FALSE, survinitial = TRUE, tol = 0.0001, 
+                 method = "pseudo-adaptive", opt = "nlminb")
 {
-  if (do.trace) {
-    trace=1;
-  }else{
-    trace=0;
+  
+  if (method == "pseudo-adaptive" & is.null(quadpoint)) {
+    quadpoint <- 6
   }
-
-  #Gaussian-Hermite quadrature nodes and weights
-  #The dimension of xs/ws is half of the point value since they are symmetric
-
-  if (point %% 2 == 1)
-  {
-    stop("Number of quadrature points can only be even!")
+  
+  if (method == "standard" & is.null(quadpoint)) {
+    quadpoint <- 20
   }
-
-  gq_vals <- statmod::gauss.quad(n = point, kind = "hermite")
-
-  xs <- gq_vals$nodes[(point / 2 + 1) : point]
-
-  ws <- gq_vals$weights[(point / 2 + 1) : point]
-
-  long <- all.vars(long.formula)
-  survival <- all.vars(surv.formula)
+  
+  if (!(method %in% c("standard", "pseudo-adaptive")))
+    stop("Please choose one of the following metho for numerical integration: standard, pseudo-adaptive. See help() for details of the methods.")
+  
   random.form <- all.vars(random)
   ID <- random.form[length(random.form)]
   if (length(random.form) == 1) {
@@ -71,215 +49,508 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
     RE <- random.form[-length(random.form)]
     model <- "interslope"
   }
-
-  cnames=colnames(cdata)
-  ynames=colnames(ydata)
-
-  ##variable check
-  if (prod(long %in% ynames) == 0) {
-    Fakename <- which(long %in% ynames == FALSE)
-    stop(paste0("The variable ", long[Fakename], " not found"))
-  }
-  if (prod(survival %in% cnames) == 0) {
-    Fakename <- which(survival %in% cnames == FALSE)
-    stop(paste0("The variable ", survival[Fakename], " not found"))
-  }
-  if (!(ID %in% ynames)) {
-    stop(paste0("ID column ", ID, " not found in long_data"))
-  }
-  if (!(ID %in% cnames)) {
-    stop(paste0("ID column ", ID, " not found in surv_data"))
-  }
-  if (is.null(RE) & model == "interslope") {
-    stop("Random effects covariates must be specified.")
-  }
-  yID <- unique(ydata[, ID])
-  cID <- cdata[, ID]
-  if (prod(yID == cID) == 0) {
-    stop("The order of subjects in ydata doesn't match with cdata.")
-  }
-
-
-  ydim = dim(ydata)
-  cdim = dim(cdata)
-  mdata <- as.data.frame(table(ydata[, ID]))
-  mdata <- as.data.frame(mdata[, 2])
-  n1 = ydim[1]
-
-
-  if (nrow(mdata) != cdim[1]) {
-    stop(paste("The number of subjects in cdata are not consistent with ydata.
-         Please make sure the cdata has", nrow(mdata), "subjects!", sep = " "))
-  }
-
-  ##random effect covariates
-  if (model == "interslope") {
-    if (prod(RE %in% ynames) == 0) {
-      Fakename <- which(RE %in% ynames == FALSE)
-      stop(paste0("The variable ", RE[Fakename], " not found"))
-    } else {
-      p1a <- 1 + length(RE)
-      random.xnam <- paste(RE[1:length(RE)], sep = "")
-      fmla.random <- paste("(", paste(random.xnam, collapse= "+"), "|", ID, ")", sep = "")
-      ydata_RE <- data.frame(1, ydata[, RE])
-      colnames(ydata_RE)[2:length(ydata_RE)] <- paste0(RE, "_RE")
-      colnames(ydata_RE)[1] <- "intercept_RE"
-    }
-  } else if (model == "intercept") {
-    if (!is.null(RE)) {
-      stop("You are fitting a mixed effects model with random intercept only
-           but random effects covariates are specified at the same time. Please respecify your model!")
-    }
-    fmla.random <- paste("(", 1, "|", ID, ")", sep = "")
-    p1a <- 1
-    ydata_RE <- as.data.frame(rep(1, n1))
-    colnames(ydata_RE) <- "intercept_RE"
+  
+  getinit <- Getinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
+                     surv.formula = surv.formula,
+                     model = model, ID = ID, RE = RE, survinitial = survinitial, 
+                     REML = REML, random = random, opt = opt)
+  
+  cdata <- getinit$cdata
+  ydata <- getinit$ydata
+  
+  survival <- all.vars(surv.formula)
+  status <- as.vector(cdata[, survival[2]])
+  if (prod(c(0, 1, 2) %in% unique(status))) {
+    ## initialize parameters
+    
+    getriskset <- Getriskset(cdata = cdata, surv.formula = surv.formula)
+    
+    ## number of distinct survival time
+    H01 <- getriskset$tablerisk1
+    H02 <- getriskset$tablerisk2
+    
+    ## initialize parameters
+    beta <- getinit$beta
+    gamma1 <- getinit$gamma1
+    gamma2 <- getinit$gamma2
+    alpha1 <- getinit$alpha1
+    alpha2 <- getinit$alpha2
+    Sig <- getinit$Sig
+    p1a <- ncol(Sig)
+    
+    CompetingRisk <- TRUE
   } else {
-    stop("model should be one of the following options: interslope or intercept.")
+    ## initialize parameters
+    getriskset <- Getriskset(cdata = cdata, surv.formula = surv.formula)
+    
+    ## number of distinct survival time
+    H01 <- as.matrix(getriskset$tablerisk1)
+    
+    ## initialize parameters
+    beta <- getinit$beta
+    gamma1 <- getinit$gamma1
+    alpha1 <- getinit$alpha1
+    Sig <- getinit$Sig
+    p1a <- ncol(Sig)
+    
+    CompetingRisk <- FALSE
   }
-
-  ##fixed effects covariates
-  ydata_FE <- data.frame(1, ydata[, long[2:length(long)]])
-  p1 <- ncol(ydata_FE)
-  colnames(ydata_FE)[1] <- "intercept"
-  colnames(ydata_FE)[2:ncol(ydata_FE)] <- long[2:length(long)]
-  xnam <- paste(long[2:length(long)], sep = "")
-  fmla.fixed <- paste(long[1], " ~ ", paste(xnam, collapse= "+"))
-  fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
-
-  writeLines("Model fit is starting!")
-  lmem <- lme4::lmer(formula = fmla, data = ydata, REML = REML)
-  yfile <- cbind(ydata[, long[1]], ydata_RE, ydata_FE)
-  colnames(yfile)[1] <- long[1]
-
-  cfile <- cdata[, survival]
-
-  if (sum(complete.cases(yfile)) != n1) {
-    stop("Missing values detected in ydata! Please make sure your longitudinal data is complete!")
+  
+  gq_vals <- statmod::gauss.quad(n = quadpoint, kind = "hermite")
+  xs <- gq_vals$nodes
+  ws <- gq_vals$weights
+  
+  if (p1a > 3 | p1a < 1) {
+    stop("The current package cannot handle this dimension of random effects. Please re-consider your model.")
   }
-
-  if (sum(complete.cases(cfile)) != cdim[1]) {
-    stop("Missing values detected in cdata! Please make sure your survival data is complete!")
-  }
-
-  if (p1a > 3) {
-    stop("Maximum of 3 random effects are allowed. Please reconsider the random effect covariates you need!")
-  }
-
-  if((p1<1)|(p1a<1)){
-    stop("Possibe wrong dimension of fixed effects in Y!")
-  }
-
-  # number of subjects in study is equals to the #of rows in C matrix
-  k=cdim[1]
-  p2=length(survival)-2
-
-  yfilenew=tempfile(pattern = "", fileext = ".txt")
-  writenh(yfile,yfilenew)
-  mfilenew=tempfile(pattern = "", fileext = ".txt")
-  writenh(mdata,mfilenew)
-  cfilenew=tempfile(pattern = "", fileext = ".txt")
-  writenh(cfile,cfilenew)
-
-  D <- lme4::VarCorr(lmem)
-  name <- names(D)
-  D <- as.data.frame(D[name])
-  D <- as.matrix(D)
-  Sigcovfile = tempfile(pattern = "", fileext = ".txt")
-  writenh(D, Sigcovfile)
-  ##Residuals
-  sigma <- sigma(lmem)^2
-  ##marginal covariance matrix V
-  beta <- lme4::fixef(lmem)
-  beta <- c(beta, sigma)
-  #beta <- c(91.314884, 0.350534, 0.706091, 4.157956, -2.360598, 2.630575, -2.584545, -1.674665, 168.939393)
-  beta <- matrix(beta, ncol = 1, nrow = length(beta))
-  Betasigmafile = tempfile(pattern = "", fileext = ".txt")
-  writenh(beta, Betasigmafile)
-
-  if (prod(c(1, 2) %in% unlist(unique(cfile[, 2]))) == 1) {
-    if (survinital) {
-      ## fit a Cox model
-      surv_xnam <- paste(survival[3:length(survival)], sep = "")
-      survfmla.fixed <- paste(surv_xnam, collapse= "+")
-      survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
-      survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
-      fitSURV1 <- survival::coxph(formula = survfmla, data = cfile, x = TRUE)
-      gamma1 <- fitSURV1$coefficients
-
-      survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
-      survfmla <- as.formula(paste(survfmla.out2, survfmla.fixed, sep = "~"))
-      fitSURV2 <- survival::coxph(formula = survfmla, data = cfile, x = TRUE)
-      gamma2 <- fitSURV2$coefficients
-    } else {
-      gamma1 <- rep(0, p2)
-      gamma2 <- rep(0, p2)
+  
+  if (p1a == 3) {
+    xsmatrix <- matrix(0, nrow = 3, ncol = quadpoint^3)
+    wsmatrix <- xsmatrix
+    xsmatrix[3, ] <- rep(xs, quadpoint^2)
+    Total <- NULL
+    for (i in 1:quadpoint) {
+      sub <- rep(xs[i], quadpoint)
+      Total <- c(Total, sub)
     }
-
-    myresult=jmcs_main(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
-                       mfilenew, Betasigmafile, Sigcovfile, gamma1, gamma2, trace)
-    myresult$type="jmcs";
-  } else if (prod(c(1) %in% unique(cfile[, 2])) == 1) {
-
-    if (survinital) {
-      ## fit a Cox model
-      surv_xnam <- paste(survival[3:length(survival)], sep = "")
-      survfmla.fixed <- paste(surv_xnam, collapse= "+")
-      survfmla.out <- paste0("survival::Surv(", survival[1], ", ", survival[2], ")")
-      survfmla <- as.formula(paste(survfmla.out, survfmla.fixed, sep = "~"))
-      fitSURV <- survival::coxph(formula = survfmla, data = cfile, x = TRUE)
-      gamma <- fitSURV$coefficients
-    } else {
-      gamma <- rep(0, p2)
+    xsmatrix[2, ] <- rep(Total, quadpoint)
+    Total <- NULL
+    for (i in 1:quadpoint) {
+      sub <- rep(xs[i], quadpoint^2)
+      Total <- c(Total, sub)
     }
-
-    myresult=jmcsf_main(tol, k, n1, p1, p2, p1a, maxiter, point, xs, ws, yfilenew, cfilenew,
-                        mfilenew, Betasigmafile, Sigcovfile, gamma, trace)
-    myresult$type="jmcsf";
+    xsmatrix[1, ] <- Total
+    xsmatrix <- t(xsmatrix)
+    
+    wsmatrix[3, ] <- rep(ws, quadpoint^2)
+    Total <- NULL
+    for (i in 1:quadpoint) {
+      sub <- rep(ws[i], quadpoint)
+      Total <- c(Total, sub)
+    }
+    wsmatrix[2, ] <- rep(Total, quadpoint)
+    Total <- NULL
+    for (i in 1:quadpoint) {
+      sub <- rep(ws[i], quadpoint^2)
+      Total <- c(Total, sub)
+    }
+    wsmatrix[1, ] <- Total
+    wsmatrix <- t(wsmatrix)
+  } else if (p1a == 2) {
+    xsmatrix <- matrix(0, nrow = 2, ncol = quadpoint^2)
+    wsmatrix <- xsmatrix
+    xsmatrix[2, ] <- rep(xs, quadpoint)
+    Total <- NULL
+    for (i in 1:quadpoint) {
+      sub <- rep(xs[i], quadpoint)
+      Total <- c(Total, sub)
+    }
+    xsmatrix[1, ] <- Total
+    xsmatrix <- t(xsmatrix)
+    
+    wsmatrix[2, ] <- rep(ws, quadpoint)
+    Total <- NULL
+    for (i in 1:quadpoint) {
+      sub <- rep(ws[i], quadpoint)
+      Total <- c(Total, sub)
+    }
+    wsmatrix[1, ] <- Total
+    wsmatrix <- t(wsmatrix)
   } else {
-    stop(paste0(unique(cfile[, 2]), " is not an appropriate code of single / competing risks failure type.
-                  Please correctly specify the event variable."))
+    xsmatrix <- matrix(0, nrow = 1, ncol = quadpoint)
+    wsmatrix <- xsmatrix
+    xsmatrix[1, ] <- xs
+    xsmatrix <- t(xsmatrix)
+    wsmatrix[1, ] <- ws
+    wsmatrix <- t(wsmatrix)
   }
-  PropComp <- round(table(cfile[, 2])/k * 100, 2)
-  ynames=colnames(yfile)
-  ydim=dim(yfile)
-  cnames=colnames(cfile)
-  #names
-  if (!is.null(myresult$betas)) {
-    names(myresult$betas)=ynames[(1+p1a+1):ydim[2]]
+  
+  iter=0
+  
+  Z <- getinit$Z
+  X1 <- getinit$X1
+  Y <- getinit$Y
+  X2 <- getinit$X2
+  sigma <- getinit$sigma
+  survtime <- getinit$survtime
+  cmprsk <- getinit$cmprsk
+  mdata <- getinit$mdata
+  n <- nrow(mdata)
+  mdata <- as.data.frame(mdata)
+  mdata <- as.vector(mdata$ni)
+  mdataS <- rep(0, n) 
+  mdataS[1] <- 1
+  mdataCum <- cumsum(mdata)
+  mdata2 <- mdata - 1
+  mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
+  
+  if (method == "pseudo-adaptive") {
+
+    getBayesEst <- getBayes(beta, Sig, sigma, Z, X1, Y, mdata, mdataS)
+    Posbi <- getBayesEst$Posbi
+    Poscov <- getBayesEst$Poscov
+  } else {
+    Posbi <- 0
+    Poscov <- 0
   }
-  if (!is.null(myresult$gamma_matrix)) {
-    colnames(myresult$gamma_matrix)=cnames[3:(p2+3-1)]
+
+  
+  if (CompetingRisk == TRUE) {
+    repeat
+    {
+      iter <- iter + 1
+      prebeta <- beta
+      pregamma1 <- gamma1
+      pregamma2 <- gamma2
+      prealpha1 <- alpha1
+      prealpha2 <- alpha2
+      preSig <- Sig
+      presigma <- sigma
+      preH01 <- H01
+      preH02 <- H02
+      if (print.para) {
+        writeLines("iter is:")
+        print(iter)
+        writeLines("beta is:")
+        print(beta)
+        writeLines("gamma1 is:")
+        print(gamma1)
+        writeLines("gamma2 is:")
+        print(gamma2)
+        writeLines("nu1 is:")
+        print(alpha1)
+        writeLines("nu2 is:")
+        print(alpha2)
+        writeLines("Sig is:")
+        print(Sig)
+        writeLines("Error variance is:")
+        print(sigma)
+      }
+      
+      
+      
+      GetEfun <- GetE(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, 
+                      Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, method, Posbi, Poscov)
+
+      GetMpara <- GetM(GetEfun, beta, gamma1, gamma2, alpha1, alpha2, H01, H02, 
+                       Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS)
+
+      
+      beta <- GetMpara$beta
+      sigma <- GetMpara$sigma
+      gamma1 <- GetMpara$gamma1
+      gamma2 <- GetMpara$gamma2
+      alpha1 <- GetMpara$alpha1
+      alpha2 <- GetMpara$alpha2
+      Sig <- GetMpara$Sig
+      sigma <- GetMpara$sigma
+      H01 <- GetMpara$H01
+      H02 <- GetMpara$H02
+      
+      if((Diff(beta, prebeta, sigma, presigma, gamma1, pregamma1, gamma2, pregamma2,
+               alpha1, prealpha1, alpha2, prealpha2,
+               Sig, preSig, H01, preH01, H02, preH02, tol) == 0) || (iter == maxiter) || (!is.list(GetEfun))
+         || (!is.list(GetMpara))) {
+        break
+      }
+      
+    }
+    
+    if (iter == maxiter) {
+      writeLines("program stops because of nonconvergence")
+      convergence = 0
+      result <- list(beta, gamma1, gamma2, alpha1, alpha2, H01, 
+                     H02, Sig, sigma, iter, convergence)
+      
+      names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", 
+                         "H01", "H02", "Sig", "sigma", "iter", "convergence")
+      
+      return(result)
+    } else if (!is.list(GetEfun)) {
+      writeLines("Something wrong in the E steps")
+      beta <- NULL
+      gamma1 <- NULL
+      gamma2 <- NULL
+      alpha1 <- NULL
+      alpha2 <- NULL
+      H01 <- NULL
+      H02 <- NULL
+      Sig <- NULL
+      sigma <- NULL
+      iter <- NULL
+      result <- list(beta, gamma1, gamma2, alpha1, alpha2, H01, 
+                     H02, Sig, sigma, iter)
+      
+      names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", 
+                         "H01", "H02", "Sig", "sigma", "iter")
+      
+      return(result)
+    } else if (!is.list(GetMpara)) {
+      writeLines("Something wrong in the M steps")
+      beta <- NULL
+      gamma1 <- NULL
+      gamma2 <- NULL
+      alpha1 <- NULL
+      alpha2 <- NULL
+      H01 <- NULL
+      H02 <- NULL
+      Sig <- NULL
+      sigma <- NULL
+      iter <- NULL
+      result <- list(beta, gamma1, gamma2, alpha1, alpha2, H01, 
+                     H02, Sig, sigma, iter)
+      names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", 
+                         "H01", "H02", "Sig", "sigma",  "iter")
+      
+      return(result)
+    } else {
+      
+      convergence = 1
+      
+      GetEfun <- GetE(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, 
+                      Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, method, Posbi, Poscov)
+      
+      FUNBS <- as.matrix(GetEfun$FUNBS)
+      FUNEC <- as.matrix(GetEfun$FUNEC)
+      FUNBEC <- as.matrix(GetEfun$FUNBEC)
+      FUNBSEC <- as.matrix(GetEfun$FUNBSEC)
+      FUNB <- as.matrix(GetEfun$FUNB)
+      
+      getcov <- getCov(beta, gamma1, gamma2, alpha1, alpha2, H01, 
+                       H02, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS,
+                       FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+      
+      vcov <- getcov$vcov
+      sebeta <- getcov$sebeta
+      segamma1 <- getcov$segamma1
+      segamma2 <- getcov$segamma2
+      sealpha1 <- getcov$sealpha1
+      sealpha2 <- getcov$sealpha2
+      seSig <- getcov$seSig
+      sesigma <- getcov$sesigma
+      
+      getloglike <- getLoglike(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, 
+                               Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, 
+                               xsmatrix, wsmatrix, method, Posbi, Poscov)
+      
+      getfitted <- getfitted(beta, Z, X1, Y, mdata, mdataS, FUNB)
+      
+      CH01 <- data.frame(H01[, 1], cumsum(H01[, 3]), NA)
+      colnames(CH01) <- c("Time", "CH01", "CH02")
+      CH02 <- data.frame(H02[, 1], NA, cumsum(H02[, 3]))
+      colnames(CH02) <- c("Time", "CH01", "CH02")
+      CH012 <- rbind(CH01, CH02)
+      CH012 <- CH012[order(CH012$Time), ]
+      if (is.na(CH012$CH01[1])) CH012$CH01[1] <- 0
+      if (is.na(CH012$CH02[1])) CH012$CH02[1] <- 0
+      CH012[is.na(CH012)] <- 0 
+      CH012 <- as.matrix(CH012)
+      getfittedSurv <- getfittedSurv(gamma1, gamma2, X2, CH012, alpha1, alpha2, FUNB)
+      
+      long <- all.vars(long.formula)
+      survival <- all.vars(surv.formula)
+      id <- ydata[, ID]
+      
+      names(beta) <- c("(Intercept)", long[-1])
+      
+      names(gamma1) <- paste0(survival[-(1:2)], "_1")
+      names(gamma2) <- paste0(survival[-(1:2)], "_2")
+      
+      PropComp <- as.data.frame(table(cdata[, survival[2]]))
+      
+      LongOut <- long[1]
+      LongX <- paste0(long[-1], collapse = "+")
+      FunCall_long <- as.formula(paste(LongOut, LongX, sep = "~"))
+      
+      SurvOut <- paste0("Surv(", survival[1], ",", survival[2], ")")
+      SurvX <- paste0(survival[-(1:2)], collapse = "+")
+      FunCall_survival <- as.formula(paste(SurvOut, SurvX, sep = "~"))
+      
+      ## return the joint modelling result
+      mycall <- match.call()
+      
+      result <- list(beta, gamma1, gamma2, alpha1, alpha2, H01, 
+                     H02, Sig, sigma, iter, convergence, vcov, sebeta, segamma1,
+                     segamma2, sealpha1, sealpha2, seSig, sesigma, getloglike, 
+                     getfitted, getfittedSurv, FUNB, CompetingRisk,
+                     quadpoint, ydata, cdata, PropComp, FunCall_long,
+                     FunCall_survival, random, mycall, method, id)
+      
+      names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", "H01", "H02", "Sig", 
+                         "sigma", "iter", "convergence", "vcov",
+                         "sebeta", "segamma1", "segamma2", "senu1", "senu2", 
+                          "seSig", "sesigma", "loglike", "fitted", "fittedSurv", 
+                         "FUNB", "CompetingRisk", "quadpoint",
+                         "ydata", "cdata", "PropEventType", "LongitudinalSubmodel",
+                          "SurvivalSubmodel", "random", "call", "Quad.method", "id")
+      
+      class(result) <- "jmcs"
+      
+      return(result)
+    }
+  } else {
+    repeat
+    {
+      iter <- iter + 1
+      prebeta <- beta
+      pregamma1 <- gamma1
+      prealpha1 <- alpha1
+      preSig <- Sig
+      presigma <- sigma
+      preH01 <- H01
+      if (print.para) {
+        writeLines("iter is:")
+        print(iter)
+        writeLines("beta is:")
+        print(beta)
+        writeLines("gamma1 is:")
+        print(gamma1)
+        writeLines("nu1 is:")
+        print(alpha1)
+        writeLines("Sig is:")
+        print(Sig)
+        writeLines("sigma is:")
+        print(sigma)
+      }
+      
+      GetEfun <- GetESF(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, 
+                        X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, method, Posbi, Poscov)
+      
+      
+      GetMpara <- GetMSF(GetEfun, beta, gamma1, alpha1, H01,
+                         Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS)
+      
+      beta <- GetMpara$beta
+      gamma1 <- GetMpara$gamma1
+      alpha1 <- GetMpara$alpha1
+      Sig <- GetMpara$Sig
+      sigma <- GetMpara$sigma
+      H01 <- GetMpara$H01
+      
+      if((DiffSF(beta, prebeta, sigma, presigma, gamma1, pregamma1,
+                 alpha1, prealpha1, Sig, preSig, H01, preH01, tol) == 0) 
+         || (iter == maxiter) || (!is.list(GetEfun)) || (!is.list(GetMpara))) {
+        break
+      }
+      
+    }
+    
+    if (iter == maxiter) {
+      writeLines("program stops because of nonconvergence")
+      convergence = 0
+      result <- list(beta, gamma1, alpha1, H01, Sig, sigma, iter, convergence)
+      
+      names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma", 
+                         "iter", "convergence")
+      
+      return(result)
+    } else if (!is.list(GetEfun)) {
+      writeLines("Something wrong in the E steps")
+      beta <- NULL
+      gamma1 <- NULL
+      alpha1 <- NULL
+      H01 <- NULL
+      Sig <- NULL
+      sigma <- NULL
+      iter <- NULL
+      result <- list(beta, gamma1, alpha1, H01, Sig, sigma, iter)
+      names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma", "iter")
+      return(result)
+    } else if (!is.list(GetMpara)) {
+      writeLines("Something wrong in the M steps")
+      beta <- NULL
+      gamma1 <- NULL
+      alpha1 <- NULL
+      H01 <- NULL
+      Sig <- NULL
+      sigma <- NULL
+      iter <- NULL
+      result <- list(beta, gamma1, alpha1, H01, Sig, sigma, iter)
+      names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma", "iter")
+      return(result)
+    } else {
+      
+      convergence = 1
+      
+      GetEfun <- GetESF(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, 
+                        X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, method, Posbi, Poscov)
+      
+      FUNBS <- as.matrix(GetEfun$FUNBS)
+      FUNEC <- as.matrix(GetEfun$FUNEC)
+      FUNBEC <- as.matrix(GetEfun$FUNBEC)
+      FUNBSEC <- as.matrix(GetEfun$FUNBSEC)
+      FUNB <- as.matrix(GetEfun$FUNB)
+      
+      getcov <- getCovSF(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, 
+                         X2, survtime, cmprsk, mdata, mdataS,
+                         FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+      
+      vcov <- getcov$vcov
+      sebeta <- getcov$sebeta
+      segamma1 <- getcov$segamma1
+      sealpha1 <- getcov$sealpha1
+      sesigma <- getcov$sesigma
+      seSig <- getcov$seSig
+      
+      getloglike <- getLoglikeSF(beta, gamma1, alpha1, H01,
+                               Sig, sigma, Z, X1, Y, X2, 
+                               survtime, cmprsk, mdata, mdataS, 
+                               xsmatrix, wsmatrix, method, Posbi, Poscov)
+      
+      getfitted <- getfitted(beta, Z, X1, Y, mdata, mdataS, FUNB)
+      
+      CH01 <- data.frame(H01, cumsum(H01[, 3]))
+      CH01 <- as.matrix(CH01)
+      getfittedSurv <- getfittedSurvSF(gamma1, X2, CH01, alpha1, FUNB)
+      
+      long <- all.vars(long.formula)
+      survival <- all.vars(surv.formula)
+      id <- ydata[, ID]
+      
+      names(beta) <- c("(Intercept)", long[-1])
+      
+      names(gamma1) <- paste0(survival[-(1:2)], "_1")
+      
+      PropComp <- as.data.frame(table(cdata[, survival[2]]))
+      
+      LongOut <- long[1]
+      LongX <- paste0(long[-1], collapse = "+")
+      FunCall_long <- as.formula(paste(LongOut, LongX, sep = "~"))
+      
+      SurvOut <- paste0("Surv(", survival[1], ",", survival[2], ")")
+      SurvX <- paste0(survival[-(1:2)], collapse = "+")
+      FunCall_survival <- as.formula(paste(SurvOut, SurvX, sep = "~"))
+      
+      ## return the joint modelling result
+      mycall <- match.call()
+      
+      result <- list(beta, gamma1, alpha1, H01, Sig, sigma, iter, convergence, 
+                     vcov, sebeta, segamma1, sealpha1, seSig, sesigma, getloglike, 
+                     getfitted, getfittedSurv, FUNB, CompetingRisk,
+                     quadpoint, ydata, cdata, PropComp, FunCall_long, FunCall_survival, 
+                     random, mycall, method, id)
+      
+      names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma",
+                         "iter", "convergence", "vcov", "sebeta", "segamma1", 
+                         "senu1", "seSig", "sesigma", "loglike", "fitted", "fittedSurv", 
+                         "FUNB", "CompetingRisk", "quadpoint",
+                         "ydata", "cdata", "PropEventType", "LongitudinalSubmodel",
+                         "SurvivalSubmodel", "random", "call", "Quad.method", "id")
+      
+      class(result) <- "jmcs"
+      
+      return(result)
+    }
+    
+    
+    
+    
   }
-
-  myresult$k=k
-
-  LongOut <- ynames[1]
-  LongX <- paste0(ynames[(3+p1a):length(ynames)], collapse = "+")
-  FunCall_long <- as.formula(paste(LongOut, LongX, sep = "~"))
-
-  ##create survival submodel formula
-  #cnames <- colnames(cdata)
-  SurvOut <- paste0("Surv(", cnames[1], ",", cnames[2], ")")
-  SurvX <- paste0(cnames[-(1:2)], collapse = "+")
-  FunCall_survival <- as.formula(paste(SurvOut, SurvX, sep = "~"))
-
-
-  DataPath <- NULL
-  SummaryInfo <- list(k, n1, PropComp, FunCall_long, FunCall_survival, DataPath)
-  names(SummaryInfo) <- c("NumSub", "Numobs", "PropComp",
-                          "LongitudinalSubmodel", "SurvivalSubmodel", "DataPath")
-
-  myresult$SummaryInfo <- SummaryInfo
-  myresult$point <- point
-  myresult$REML <- REML
-  myresult$ydata <- ydata
-  myresult$cdata <- cdata
-  myresult$mdata <- mdata
-  myresult$call <- match.call()
-
-  class(myresult) <- "FastJM"
-
-  return (myresult)
-
+  
+  
+  
+  
+  
+  
+  
 }

@@ -1,14 +1,7 @@
-## This assumes that the LIB_GSL variable points to working GSL libraries
+## With Rcpp 0.11.0 and later, we no longer need to set PKG_LIBS as there is
+## no user-facing library. The include path to headers is already set by R.
+#PKG_LIBS = 
 
-	PKG_CPPFLAGS=-I$(LIB_GSL)/include -I../inst/include
-	  
-	ifeq "$(WIN)" "64"
-		PKG_LIBS=-L$(LIB_GSL)/lib/x64 -lgsl -lgslcblas 
-	else
-		PKG_LIBS=-L$(LIB_GSL)/lib/i386 -lgsl -lgslcblas 
-	endif
-
-  
- 
-## PKG_CPPFLAGS=-I$(LIB_GSL)/include
-## PKG_LIBS=-L$(LIB_GSL)/lib -lgsl -lgslcblas
+## With R 3.1.0 or later, you can uncomment the following line to tell R to 
+## enable compilation with C++11 (or even C++14) where available
+#CXX_STD = CXX11

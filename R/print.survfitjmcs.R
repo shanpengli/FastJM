@@ -1,0 +1,25 @@
+##' @title Print survfitjmcs
+##' @name print.survfitjmcs
+##' @aliases print.survfitjmcs
+##' @param x x of class 'survfitjmcs'.
+##' @param ... Further arguments passed to or from other methods.
+##' @seealso \code{\link{survfitjmcs}}
+##' @author Shanpeng Li
+##' @export
+##' 
+print.survfitjmcs <- function (x, ...) {
+  if (!inherits(x, "survfitjmcs"))
+    stop("Use only with 'survfitjmcs' xs.\n")
+  
+  cat("\nPrediction of Conditional Probabilities of Event\n\tbased on", x$M, "Monte Carlo samples\n\n")
+    f <- function (d, t) {
+      a <- matrix(1, nrow = 1, ncol = 5)
+      a[1, 1] <- t 
+      a <- as.data.frame(a)
+      colnames(a) <- colnames(d)
+      d <- rbind(a, d)
+      d
+    }
+    print(mapply(f, x$Pred, x$Last.time[, 2], SIMPLIFY = FALSE))
+    invisible(x)
+  }

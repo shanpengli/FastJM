@@ -4,11 +4,9 @@ Fast fitting of joint models with longitudinal and competing risks data applying
 # Install from github:
 
     library(devtools)
-    install_github("shanpengli/FastJM", build_vignettes = TRUE)
+    install_github("shanpengli/FastJMEigen", build_vignettes = FALSE, ref = "master")
 
-Reminder: GSL library must be preinstalled before the installation of FastJM. See INSTALL file.
-
-## This package depends on R (>=3.5.0)
+## This package depends on R (>=4.1.0)
 
 # Run the package using a toy example 
 
@@ -19,5 +17,4 @@ Reminder: GSL library must be preinstalled before the installation of FastJM. Se
                 random = ~time|ID,
                 surv.formula = Surv(surv, failure_type) ~ x1 + x2)
     fit
-
 
