@@ -4,7 +4,7 @@ Fast fitting of joint models with longitudinal and competing risks data applying
 # Install from github:
 
     library(devtools)
-    install_github("shanpengli/FastJMEigen", build_vignettes = FALSE, ref = "master")
+    install_github("shanpengli/FastJM", build_vignettes = FALSE)
 
 ## This package depends on R (>=4.1.0)
 
