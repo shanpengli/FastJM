@@ -1,6 +1,5 @@
 ##' @title Estimated coefficients estimates for joint models
 ##' @name fixef
-##' @aliases fixef.jmcs
 ##' @description Extracts the fixed effects for a fitted joint model.
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param process for which sub-model to extract the estimated coefficients.
@@ -8,7 +7,7 @@
 ##' @export
 ##' 
 
-fixef.jmcs <- function(object, process = c("Longitudinal", "Event"), ...) {
+fixef <- function(object, process = c("Longitudinal", "Event"), ...) {
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
   

@@ -49,7 +49,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
     RE <- random.form[-length(random.form)]
     model <- "interslope"
   }
-  
+
   getinit <- Getinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
                      surv.formula = surv.formula,
                      model = model, ID = ID, RE = RE, survinitial = survinitial, 
@@ -57,6 +57,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
   
   cdata <- getinit$cdata
   ydata <- getinit$ydata
+
   
   survival <- all.vars(surv.formula)
   status <- as.vector(cdata[, survival[2]])
