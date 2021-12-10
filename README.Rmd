@@ -1,12 +1,22 @@
+---
+output: github_document
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
 
 # FastJM
 
-The `FastJM` package implement efficient computation of semi-parametric
-joint model of longitudinal and competing risks data.
+The `FastJM` package implement efficient computation of semi-parametric joint model of longitudinal and competing risks data.
 
 # Installation
 
-``` r
+```{r, eval=FALSE}
 library(devtools)
 devtools::install_github("shanpengli/FastJM", build_vignettes = FALSE)
 ```
@@ -15,7 +25,7 @@ devtools::install_github("shanpengli/FastJM", build_vignettes = FALSE)
 
 The `FastJM` package comes with several simulated datasets.
 
-``` r
+```{r, eval=FALSE}
 library(FastJM)
 data(ydata)
 data(cdata)
@@ -25,3 +35,5 @@ surv.formula = Surv(surv, failure_type) ~ x1 + x2,
 random =  ~ time| ID)
 fit
 ```
+
+
