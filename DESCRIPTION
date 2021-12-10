@@ -8,9 +8,8 @@ Maintainer: Shanpeng Li <lishanpeng0913@ucla.edu>
 Description: Maximum likelihood estimation for the semiparametric joint modeling of survival and longitudinal data.
 License: GPL (>= 3)
 NeedsCompilation: yes
-Imports: Rcpp (>= 1.0.7), MASS
+Imports: Rcpp (>= 1.0.7), MASS, statmod, survival, dplyr, nlme, mvtnorm
 LinkingTo: Rcpp, RcppEigen
-Depends: R (>= 3.5.0), statmod, survival, dplyr, nlme, mvtnorm
-Suggests: testthat
+Depends: R (>= 3.5.0)
 RoxygenNote: 7.1.2
 LazyData: true

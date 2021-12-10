@@ -53,6 +53,77 @@ to be chosen for numerical integration. Default is 6 which produces stable estim
 
 \item{opt}{Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.}
 }
+\value{
+Object of class \code{jmcs} with elements
+  \tabular{ll}{
+  \code{beta} \tab the vector of fixed effects for the linear mixed effects model. \cr
+  \code{gamma1} \tab the vector of fixed effects for type 1 failure for the survival model. \cr
+  \code{gamma2} \tab the vector of fixed effects for type 2 failure for the survival model. Valid only if \code{CompetingRisk = TRUE}. \cr
+  \code{nu1} \tab the vector of association parameter(s) for type 1 failure. \cr
+  \code{nu2} \tab the vector of association parameter(s) for type 2 failure. Valid only if \code{CompetingRisk = TRUE}. \cr
+  \code{H01} \tab the matrix that collects baseline hazards evaluated at each uncensored event time for type 1 failure. The first column denotes uncensored event times, 
+  the second column the number of events, and the third columns the hazards obtained by Breslow estimator. \cr
+  \code{H02} \tab the matrix that collects baseline hazards evaluated at each uncensored event time for type 2 failure. 
+  The data structure is the same as \code{H01}. Valid only if \code{CompetingRisk = TRUE}.  \cr
+  \code{Sig} \tab the variance-covariance matrix of the random effects. \cr
+  \code{sigma} \tab the variance of the measurement error for the linear mixed effects model. \cr
+  \code{iter} \tab the total number of iterations until convergence. \cr
+  \code{convergence} \tab convergence identifier: 1 corresponds to successful convergence, 
+  whereas 0 to a problem (i.e., when 0, usually more iterations are required). \cr
+  \code{vcov} \tab the variance-covariance matrix of all the fixed effects for both models. \cr
+  \code{sebeta} \tab the standard error of \code{beta}. \cr
+  \code{segamma1} \tab the standard error of \code{gamma1}. \cr
+  \code{segamma2} \tab the standard error of \code{gamma2}. Valid only if \code{CompetingRisk = TRUE}. \cr
+  \code{senu1} \tab the standard error of \code{nu1}. \cr
+  \code{senu2} \tab the standard error of \code{nu2}. Valid only if \code{CompetingRisk = TRUE}. \cr
+  \code{seSig} \tab the vector of standard errors of covariance of random effects. \cr
+  \code{sesigma} \tab the standard error of variance of measurement error for the linear mixed effects model. \cr
+  \code{loglike} \tab the log-likelihood value. \cr
+  \code{fitted} \tab a list with the fitted values. \cr
+  \code{fittedSurv} \tab the estimated survival rate evaluated at each uncensored event time. \cr
+  \code{FUNB} \tab the estimated random effects for each subject. \cr
+  \code{CompetingRisk} \tab logical value; TRUE if competing risks event are accounted for. \cr
+  \code{quadpoint} \tab the number of Gauss Hermite quadrature points used for numerical integration. \cr
+  \code{ydata} \tab the input longitudinal dataset for fitting a joint model. 
+  It has been re-ordered in accordance with descending observation times in \code{cdata}. \cr
+  \code{cdata} \tab the input survival dataset for fitting a joint model. 
+  It has been re-ordered in accordance with descending observation times. \cr
+  \code{PropEventType} \tab a frequency table of number of events. \cr
+  \code{LongitudinalSubmodel} \tab the component of the \code{long.formula}. \cr
+  \code{SurvivalSubmodel} \tab the component of the \code{surv.formula}. \cr
+  \code{random} \tab the component of the \code{random}. \cr
+  \code{call} \tab the matached call. \cr
+  \code{Quad.method} \tab the quadrature rule used for integration. 
+  If pseudo-adaptive quadrature rule is used, then return \code{pseudo-adaptive}. Otherwise return \code{standard}. \cr
+  \code{id} \tab the grouping vector for the longitudinal outcome. \cr
+  }
+}
 \description{
 Joint modeling of longitudinal continuous data and competing risks
+}
+\examples{
+
+require(FastJM)
+data(ydata)
+data(cdata)
+\dontrun{
+fit <- jmcs(ydata = ydata, cdata = cdata, 
+long.formula = response ~ time + x1, 
+surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+random =  ~ time| ID)
+fit
+# Extract the parameter estimates of longitudinal sub-model fixed effects
+fixef(fit, process = "Longitudinal")
+# Extract the parameter estimates of survival sub-model fixed effects
+fixef(fit, process = "Event")
+# Obtain the random effects estimates for first 6 subjects 
+head(ranef(fit))
+}
+
+}
+\seealso{
+\code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, \link{residuals.jmcs}}
+}
+\author{
+Shanpeng Li \email{lishanpeng0913@ucla.edu}
 }
