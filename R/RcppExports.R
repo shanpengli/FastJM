@@ -2,114 +2,114 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 GetrisksetC <- function(cdata) {
-    .Call('_FastJM_GetrisksetC', PACKAGE = 'FastJM', cdata)
+    .Call(`_FastJM_GetrisksetC`, cdata)
 }
 
 GetrisksetCSF <- function(cdata) {
-    .Call('_FastJM_GetrisksetCSF', PACKAGE = 'FastJM', cdata)
+    .Call(`_FastJM_GetrisksetCSF`, cdata)
 }
 
 MultVV <- function(x, y) {
-    .Call('_FastJM_MultVV', PACKAGE = 'FastJM', x, y)
+    .Call(`_FastJM_MultVV`, x, y)
 }
 
 MultVVoutprod <- function(x) {
-    .Call('_FastJM_MultVVoutprod', PACKAGE = 'FastJM', x)
+    .Call(`_FastJM_MultVVoutprod`, x)
 }
 
 MultVV2outprod <- function(x, y) {
-    .Call('_FastJM_MultVV2outprod', PACKAGE = 'FastJM', x, y)
+    .Call(`_FastJM_MultVV2outprod`, x, y)
 }
 
 MultVVinprod <- function(x) {
-    .Call('_FastJM_MultVVinprod', PACKAGE = 'FastJM', x)
+    .Call(`_FastJM_MultVVinprod`, x)
 }
 
 getdeterminant <- function(H) {
-    .Call('_FastJM_getdeterminant', PACKAGE = 'FastJM', H)
+    .Call(`_FastJM_getdeterminant`, H)
 }
 
 CH <- function(H, t) {
-    .Call('_FastJM_CH', PACKAGE = 'FastJM', H, t)
+    .Call(`_FastJM_CH`, H, t)
 }
 
 HAZ <- function(H, t) {
-    .Call('_FastJM_HAZ', PACKAGE = 'FastJM', H, t)
+    .Call(`_FastJM_HAZ`, H, t)
 }
 
 MultMM <- function(x, y) {
-    .Call('_FastJM_MultMM', PACKAGE = 'FastJM', x, y)
+    .Call(`_FastJM_MultMM`, x, y)
 }
 
 getBayes <- function(beta, Sig, sigma, Z, X1, Y, mdata, mdataS) {
-    .Call('_FastJM_getBayes', PACKAGE = 'FastJM', beta, Sig, sigma, Z, X1, Y, mdata, mdataS)
+    .Call(`_FastJM_getBayes`, beta, Sig, sigma, Z, X1, Y, mdata, mdataS)
 }
 
 getCov <- function(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
-    .Call('_FastJM_getCov', PACKAGE = 'FastJM', beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+    .Call(`_FastJM_getCov`, beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
 }
 
 getCovSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
-    .Call('_FastJM_getCovSF', PACKAGE = 'FastJM', beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+    .Call(`_FastJM_getCovSF`, beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
 }
 
 getECpseudo <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov) {
-    .Call('_FastJM_getECpseudo', PACKAGE = 'FastJM', beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov)
+    .Call(`_FastJM_getECpseudo`, beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov)
 }
 
 getECpseudoSF <- function(beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbi, Poscov) {
-    .Call('_FastJM_getECpseudoSF', PACKAGE = 'FastJM', beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbi, Poscov)
+    .Call(`_FastJM_getECpseudoSF`, beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbi, Poscov)
 }
 
 getECstandard <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02) {
-    .Call('_FastJM_getECstandard', PACKAGE = 'FastJM', beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02)
+    .Call(`_FastJM_getECstandard`, beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02)
 }
 
 getECstandardSF <- function(beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01) {
-    .Call('_FastJM_getECstandardSF', PACKAGE = 'FastJM', beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
+    .Call(`_FastJM_getECstandardSF`, beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
 }
 
 getHazard <- function(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02) {
-    .Call('_FastJM_getHazard', PACKAGE = 'FastJM', CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
+    .Call(`_FastJM_getHazard`, CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
 }
 
 getHazardSF <- function(CumuH01, survtime, cmprsk, H01, CUH01, HAZ01) {
-    .Call('_FastJM_getHazardSF', PACKAGE = 'FastJM', CumuH01, survtime, cmprsk, H01, CUH01, HAZ01)
+    .Call(`_FastJM_getHazardSF`, CumuH01, survtime, cmprsk, H01, CUH01, HAZ01)
 }
 
 getMC <- function(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
-    .Call('_FastJM_getMC', PACKAGE = 'FastJM', beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+    .Call(`_FastJM_getMC`, beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
 }
 
 getMCSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
-    .Call('_FastJM_getMCSF', PACKAGE = 'FastJM', beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+    .Call(`_FastJM_getMCSF`, beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
 }
 
 getfitted <- function(beta, Z, X1, Y, mdata, mdataS, FUNB) {
-    .Call('_FastJM_getfitted', PACKAGE = 'FastJM', beta, Z, X1, Y, mdata, mdataS, FUNB)
+    .Call(`_FastJM_getfitted`, beta, Z, X1, Y, mdata, mdataS, FUNB)
 }
 
 getfittedSurv <- function(gamma1, gamma2, X2, CH012, alpha1, alpha2, FUNB) {
-    .Call('_FastJM_getfittedSurv', PACKAGE = 'FastJM', gamma1, gamma2, X2, CH012, alpha1, alpha2, FUNB)
+    .Call(`_FastJM_getfittedSurv`, gamma1, gamma2, X2, CH012, alpha1, alpha2, FUNB)
 }
 
 getfittedSurvSF <- function(gamma1, X2, CH01, alpha1, FUNB) {
-    .Call('_FastJM_getfittedSurvSF', PACKAGE = 'FastJM', gamma1, X2, CH01, alpha1, FUNB)
+    .Call(`_FastJM_getfittedSurvSF`, gamma1, X2, CH01, alpha1, FUNB)
 }
 
 getloglikeCpseudo <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov) {
-    .Call('_FastJM_getloglikeCpseudo', PACKAGE = 'FastJM', beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov)
+    .Call(`_FastJM_getloglikeCpseudo`, beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov)
 }
 
 getloglikeCpseudoSF <- function(beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbi, Poscov) {
-    .Call('_FastJM_getloglikeCpseudoSF', PACKAGE = 'FastJM', beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbi, Poscov)
+    .Call(`_FastJM_getloglikeCpseudoSF`, beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbi, Poscov)
 }
 
 getloglikeCstandard <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02) {
-    .Call('_FastJM_getloglikeCstandard', PACKAGE = 'FastJM', beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02)
+    .Call(`_FastJM_getloglikeCstandard`, beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02)
 }
 
 getloglikeCstandardSF <- function(beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01) {
-    .Call('_FastJM_getloglikeCstandardSF', PACKAGE = 'FastJM', beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
+    .Call(`_FastJM_getloglikeCstandardSF`, beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
 }
 

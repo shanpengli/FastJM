@@ -1,5 +1,9 @@
-
+^README.Rmd
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^doc$
 ^Meta$
+^\.travis\.yml$
+^\.github$
+^README\.Rmd$
+^FastJM.R

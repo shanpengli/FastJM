@@ -20,6 +20,25 @@ print.survfitjmcs <- function (x, ...) {
       d <- rbind(a, d)
       d
     }
-    print(mapply(f, x$Pred, x$Last.time[, 2], SIMPLIFY = FALSE))
-    invisible(x)
+    
+    f.CR <- function (d, t) {
+        a <- matrix(0, nrow = 1, ncol = 5)
+        a[1, 1] <- t 
+        a <- as.data.frame(a)
+        
+        colnames(a) <- colnames(d[[1]])
+        for (i in 1:2) {
+          d[[i]] <- rbind(a, d[[i]])
+        }
+        d
+    }
+    x$Last.time <- as.data.frame(x$Last.time)
+    if (!x$CompetingRisk) {
+      print(mapply(f, x$Pred, x$Last.time[, 2], SIMPLIFY = FALSE))
+      invisible(x)
+    } else {
+      print(mapply(f.CR, x$Pred, x$Last.time[, 2], SIMPLIFY = FALSE))
+      invisible(x)
+      }
+
   }
