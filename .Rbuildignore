@@ -7,3 +7,4 @@
 ^\.github$
 ^README\.Rmd$
 ^FastJM.R
+^cran-comments\.md$
