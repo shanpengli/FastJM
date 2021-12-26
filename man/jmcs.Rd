@@ -30,8 +30,8 @@ Each subject has one data entry.}
 to be included in the longitudinal sub-model.}
 
 \item{random}{a one-sided formula object describing the random effects part of the longitudinal sub-model.
-For example, fitting a random intercept model takes the form ~ 1|ID.
-Alternatively. Fitting a random intercept and slope model takes the form ~ x1 + ... + xn|ID.}
+For example, fitting a random intercept model takes the form \code{ ~ 1|ID}.
+Alternatively. Fitting a random intercept and slope model takes the form \code{~ x1 + ... + xn|ID}.}
 
 \item{surv.formula}{a formula object with the survival time, event indicator, and the covariates
 to be included in the survival sub-model.}
@@ -51,7 +51,7 @@ to be chosen for numerical integration. Default is 6 which produces stable estim
 
 \item{method}{Method for proceeding numerical integration in the E-step. Default is pseudo-adaptive.}
 
-\item{opt}{Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.}
+\item{opt}{Optimization method to fit a linear mixed effects model, either \code{nlminb} (default) or \code{optim}.}
 }
 \value{
 Object of class \code{jmcs} with elements
@@ -92,7 +92,7 @@ Object of class \code{jmcs} with elements
   \code{LongitudinalSubmodel} \tab the component of the \code{long.formula}. \cr
   \code{SurvivalSubmodel} \tab the component of the \code{surv.formula}. \cr
   \code{random} \tab the component of the \code{random}. \cr
-  \code{call} \tab the matached call. \cr
+  \code{call} \tab the matched call. \cr
   \code{Quad.method} \tab the quadrature rule used for integration. 
   If pseudo-adaptive quadrature rule is used, then return \code{pseudo-adaptive}. Otherwise return \code{standard}. \cr
   \code{id} \tab the grouping vector for the longitudinal outcome. \cr
@@ -118,11 +118,23 @@ fixef(fit, process = "Longitudinal")
 fixef(fit, process = "Event")
 # Obtain the random effects estimates for first 6 subjects 
 head(ranef(fit))
+# Prediction of cumulative incidence for competing risks data
+ND <- ydata[ydata$ID \%in\% c(419, 218), ]
+ID <- unique(ND$ID)
+NDc <- cdata[cdata$ID  \%in\% ID, ]
+survfit <- survfitjmcs(fit, 
+                       ynewdata = ND, 
+                       cnewdata = NDc, 
+                       u = seq(3, 4.8, by = 0.2), 
+                       M = 100)
+survfit
 }
 
 }
 \seealso{
-\code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, \link{residuals.jmcs}}
+\code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, 
+\link{residuals.jmcs}, \link{survfitjmcs}, \link{plot.jmcs}, \link{plot.survfitjmcs},
+\link{vcov.jmcs}}
 }
 \author{
 Shanpeng Li \email{lishanpeng0913@ucla.edu}

@@ -7,8 +7,8 @@
 ##' @param long.formula a formula object with the response variable and fixed effects covariates
 ##' to be included in the longitudinal sub-model.
 ##' @param random a one-sided formula object describing the random effects part of the longitudinal sub-model.
-##' For example, fitting a random intercept model takes the form ~ 1|ID.
-##' Alternatively. Fitting a random intercept and slope model takes the form ~ x1 + ... + xn|ID.
+##' For example, fitting a random intercept model takes the form \code{ ~ 1|ID}.
+##' Alternatively. Fitting a random intercept and slope model takes the form \code{~ x1 + ... + xn|ID}.
 ##' @param surv.formula a formula object with the survival time, event indicator, and the covariates
 ##' to be included in the survival sub-model.
 ##' @param REML a logic object that indicates the use of REML estimator. Default is TRUE.
@@ -19,7 +19,7 @@
 ##' @param survinitial Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.
 ##' @param tol Tolerance parameter. Default is 0.0001.
 ##' @param method Method for proceeding numerical integration in the E-step. Default is pseudo-adaptive. 
-##' @param opt Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.
+##' @param opt Optimization method to fit a linear mixed effects model, either \code{nlminb} (default) or \code{optim}.
 ##' @return  Object of class \code{jmcs} with elements
 ##'   \tabular{ll}{
 ##'   \code{beta} \tab the vector of fixed effects for the linear mixed effects model. \cr
@@ -58,13 +58,15 @@
 ##'   \code{LongitudinalSubmodel} \tab the component of the \code{long.formula}. \cr
 ##'   \code{SurvivalSubmodel} \tab the component of the \code{surv.formula}. \cr
 ##'   \code{random} \tab the component of the \code{random}. \cr
-##'   \code{call} \tab the matached call. \cr
+##'   \code{call} \tab the matched call. \cr
 ##'   \code{Quad.method} \tab the quadrature rule used for integration. 
 ##'   If pseudo-adaptive quadrature rule is used, then return \code{pseudo-adaptive}. Otherwise return \code{standard}. \cr
 ##'   \code{id} \tab the grouping vector for the longitudinal outcome. \cr
 ##'   }
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, \link{residuals.jmcs}}
+##' @seealso \code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, 
+##' \link{residuals.jmcs}, \link{survfitjmcs}, \link{plot.jmcs}, \link{plot.survfitjmcs},
+##' \link{vcov.jmcs}}
 ##' @examples 
 ##' 
 ##' require(FastJM)
@@ -82,6 +84,16 @@
 ##' fixef(fit, process = "Event")
 ##' # Obtain the random effects estimates for first 6 subjects 
 ##' head(ranef(fit))
+##' # Prediction of cumulative incidence for competing risks data
+##' ND <- ydata[ydata$ID %in% c(419, 218), ]
+##' ID <- unique(ND$ID)
+##' NDc <- cdata[cdata$ID  %in% ID, ]
+##' survfit <- survfitjmcs(fit, 
+##'                        ynewdata = ND, 
+##'                        cnewdata = NDc, 
+##'                        u = seq(3, 4.8, by = 0.2), 
+##'                        M = 100)
+##' survfit
 ##' }
 ##' 
 ##' @export
