@@ -13,6 +13,9 @@
 ##' @param u a numeric vector of times for which prediction survival probabilities are to be computed.
 ##' @param M the number of Monte Carlo samples to be generated. Default is 200.
 ##' @param ... further arguments passed to or from other methods.
+##' @return a list of matrices with conditional probabilities for subjects.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @seealso \code{\link{jmcs}}
 ##' @export
 ##' 
 survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL, 

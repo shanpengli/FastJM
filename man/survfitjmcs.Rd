@@ -31,8 +31,17 @@ for which prediction of survival probabilities is required.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
+\value{
+a list of matrices with conditional probabilities for subjects.
+}
 \description{
 This function computes the conditional probability of 
 surviving later times than the last observed time for which a longitudinal 
 measurement was available.
+}
+\seealso{
+\code{\link{jmcs}}
+}
+\author{
+Shanpeng Li \email{lishanpeng0913@ucla.edu}
 }

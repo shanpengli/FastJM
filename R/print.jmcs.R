@@ -4,8 +4,9 @@
 ##' @param x Object of class 'jmcs'.
 ##' @param digits the number of significant digits to use when printing. 
 ##' @param ... Further arguments passed to or from other methods.
+##' @return a summary of data, joint model, log likelihood, and parameter estimates.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @seealso \code{\link{jmcs}}
-##' @author Shanpeng Li
 ##' @export
 ##' 
 print.jmcs <- function(x, digits = 4, ...) {

@@ -118,6 +118,8 @@ fixef(fit, process = "Longitudinal")
 fixef(fit, process = "Event")
 # Obtain the random effects estimates for first 6 subjects 
 head(ranef(fit))
+# Obtain the variance-covariance matrix of all parameter estimates 
+vcov(fit)
 # Prediction of cumulative incidence for competing risks data
 ND <- ydata[ydata$ID \%in\% c(419, 218), ]
 ID <- unique(ND$ID)
@@ -128,6 +130,7 @@ survfit <- survfitjmcs(fit,
                        u = seq(3, 4.8, by = 0.2), 
                        M = 100)
 survfit
+plot(survfit, estimator = "both", include.y = TRUE)
 }
 
 }

@@ -26,6 +26,37 @@ over the M replications of the Monte Carlo scheme described in \code{survfitjmcs
 
 \item{...}{further arguments passed to or from other methods.}
 }
+\value{
+plots of conditional probabilities over different pre-specified time points for subjects. 
+If single failure type, then survival probabilities will be returned. 
+Otherwise, cumulative incidence probabilities for each failure type will be returned.
+}
 \description{
 Plot survival probabilities for new subjects.
+}
+\examples{
+\dontrun{
+a joint model fit
+fit <- jmcs(ydata = ydata, cdata = cdata, 
+long.formula = response ~ time + x1, 
+surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+random =  ~ time| ID)
+
+# Prediction of cumulative incidence for competing risks data
+ND <- ydata[ydata$ID \%in\% c(419, 218), ]
+ID <- unique(ND$ID)
+NDc <- cdata[cdata$ID  \%in\% ID, ]
+survfit <- survfitjmcs(fit, 
+                       ynewdata = ND, 
+                       cnewdata = NDc, 
+                       u = seq(3, 4.8, by = 0.2), 
+                       M = 100)
+plot(survfit, estimator = "both", include.y = TRUE)
+}
+}
+\seealso{
+\code{\link{survfitjmcs}}
+}
+\author{
+Shanpeng Li \email{lishanpeng0913@ucla.edu}
 }

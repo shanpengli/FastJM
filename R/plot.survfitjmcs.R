@@ -10,6 +10,30 @@
 ##' @param conf.int logical; if TRUE, then a pointwise confidence interval is included in the plot. Default is TRUE.
 ##' @param include.y include longitudinal responses of this subject versus time. Default is FALSE.
 ##' @param ... further arguments passed to or from other methods.
+##' @return plots of conditional probabilities over different pre-specified time points for subjects. 
+##' If single failure type, then survival probabilities will be returned. 
+##' Otherwise, cumulative incidence probabilities for each failure type will be returned.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @seealso \code{\link{survfitjmcs}}
+##' @examples 
+##' \dontrun{
+##' a joint model fit
+##' fit <- jmcs(ydata = ydata, cdata = cdata, 
+##' long.formula = response ~ time + x1, 
+##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+##' random =  ~ time| ID)
+##' 
+##' # Prediction of cumulative incidence for competing risks data
+##' ND <- ydata[ydata$ID %in% c(419, 218), ]
+##' ID <- unique(ND$ID)
+##' NDc <- cdata[cdata$ID  %in% ID, ]
+##' survfit <- survfitjmcs(fit, 
+##'                        ynewdata = ND, 
+##'                        cnewdata = NDc, 
+##'                        u = seq(3, 4.8, by = 0.2), 
+##'                        M = 100)
+##' plot(survfit, estimator = "both", include.y = TRUE)
+##' }
 ##' @export
 ##' 
 plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"), 

@@ -3,8 +3,9 @@
 ##' @aliases print.survfitjmcs
 ##' @param x x of class 'survfitjmcs'.
 ##' @param ... Further arguments passed to or from other methods.
-##' @seealso \code{\link{survfitjmcs}}
-##' @author Shanpeng Li
+##' @return a list of matrices with conditional probabilities for subjects.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
 ##' @export
 ##' 
 print.survfitjmcs <- function (x, ...) {

@@ -4,6 +4,21 @@
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param process for which sub-model to extract the estimated coefficients.
 ##' @param ... further arguments passed to or from other methods.
+##' @return A numeric vector or a list of the estimated parameters for the fitted model.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @examples 
+##' \dontrun{
+##' # a joint model fit
+##' fit <- jmcs(ydata = ydata, cdata = cdata, 
+##' long.formula = response ~ time + x1, 
+##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+##' random =  ~ time| ID)
+##' 
+##' # fixed effects for the longitudinal process
+##' fixef(fit, process = "Longitudinal")
+##' # fixed effects for the event process
+##' fixef(fit, process = "Event")
+##' }
 ##' @export
 ##' 
 

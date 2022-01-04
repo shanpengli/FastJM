@@ -14,6 +14,9 @@
 
 \item{...}{Further arguments passed to or from other methods.}
 }
+\value{
+a summary of data, joint model, log likelihood, and parameter estimates.
+}
 \description{
 Print jmcs
 }
@@ -21,5 +24,5 @@ Print jmcs
 \code{\link{jmcs}}
 }
 \author{
-Shanpeng Li
+Shanpeng Li \email{lishanpeng0913@ucla.edu}
 }

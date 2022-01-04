@@ -5,6 +5,23 @@
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param type what type of residuals to calculate. 
 ##' @param ... further arguments passed to or from other methods.
+##' @return a vector of residuals of the longitudinal sub-model.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @seealso \code{\link{jmcs}}
+##' @examples 
+##' \dontrun{
+##' # a joint model fit
+##' fit <- jmcs(ydata = ydata, cdata = cdata, 
+##' long.formula = response ~ time + x1, 
+##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+##' random =  ~ time| ID)
+##' 
+##' # residuals of the longitudinal sub-model
+##' head(cbind(
+##'   "Marg" = residuals(fit, type = "Marginal"), 
+##'   "Subj" = residuals(fit, type = "Subject")
+##' ))
+##' }
 ##' @export
 ##' 
 

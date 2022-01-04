@@ -5,6 +5,20 @@
 ##' @param x x of class 'jmcs'.
 ##' @param add.smooth logical; if \code{TRUE} a smooth line is superimposed in the "Residuals vs Fitted" plot.
 ##' @param ... further arguments passed to or from other methods.
+##' @return The first two plots are longitudinal sub-model diagnostics and the last two are marginal survival function and marginal cumulative hazard.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @examples 
+##' \dontrun{
+##' # a joint model fit
+##' fit <- jmcs(ydata = ydata, cdata = cdata, 
+##' long.formula = response ~ time + x1, 
+##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+##' random =  ~ time| ID)
+##' 
+##' par(mfrow = c(2, 2))
+##' plot(fit)
+##' }
+##' 
 ##' @export
 ##' 
 

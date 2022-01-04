@@ -3,6 +3,20 @@
 ##' @description Extracts the posterior mean of the random effects for a fitted joint model.
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param ... further arguments passed to or from other methods.
+##' @return a matrix of random effects estimates.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @seealso \code{\link{jmcs}}
+##' @examples 
+##' \dontrun{
+##' # a joint model fit
+##' fit <- jmcs(ydata = ydata, cdata = cdata, 
+##' long.formula = response ~ time + x1, 
+##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+##' random =  ~ time| ID)
+##' 
+##' # extract random effects estimates
+##' head(ranef(fit))
+##' }
 ##' @export
 ##' 
 

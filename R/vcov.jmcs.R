@@ -4,6 +4,9 @@
 ##' @description Extract variance-covariance matrix for joint models.
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param ... further arguments passed to or from other methods.
+##' @return a matrix of variance covariance of all parameter estimates.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @seealso \code{\link{jmcs}}
 ##' @export
 ##' 
 

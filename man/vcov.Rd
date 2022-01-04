@@ -12,6 +12,15 @@
 
 \item{...}{further arguments passed to or from other methods.}
 }
+\value{
+a matrix of variance covariance of all parameter estimates.
+}
 \description{
 Extract variance-covariance matrix for joint models.
+}
+\seealso{
+\code{\link{jmcs}}
+}
+\author{
+Shanpeng Li \email{lishanpeng0913@ucla.edu}
 }

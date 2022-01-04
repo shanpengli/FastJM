@@ -6,6 +6,24 @@
 ##' @param type for which type of fitted values to calculate.
 ##' @param process for which sub-model to calculate the fitted values.
 ##' @param ... further arguments passed to or from other methods.
+##' @return a numeric vector of fitted values.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @examples
+##' \dontrun{
+##' fit <- jmcs(ydata = ydata, cdata = cdata, 
+##' long.formula = response ~ time + x1, 
+##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+##' random =  ~ time| ID)
+##'
+##' # fitted for the longitudinal process
+##' head(cbind(
+##'   "Marg" = fitted(fit, type = "Marginal", process = "Longitudinal"), 
+##'   "Subj" = fitted(fit, type = "Subject", process = "Longitudinal")
+##' ))
+##' # fitted for the levent process - marginal survival function
+##' head(fitted(fit, type = "Marginal", process = "Event"))
+##' }
+##' 
 ##' @export
 ##' 
 

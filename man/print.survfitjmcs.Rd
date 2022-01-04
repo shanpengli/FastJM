@@ -11,12 +11,15 @@
 
 \item{...}{Further arguments passed to or from other methods.}
 }
+\value{
+a list of matrices with conditional probabilities for subjects.
+}
 \description{
 Print survfitjmcs
 }
 \seealso{
-\code{\link{survfitjmcs}}
+\code{\link{jmcs}, \link{survfitjmcs}}
 }
 \author{
-Shanpeng Li
+Shanpeng Li \email{lishanpeng0913@ucla.edu}
 }
