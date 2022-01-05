@@ -20,15 +20,16 @@ The first two plots are longitudinal sub-model diagnostics and the last two are 
 Plot Diagnostics for Joint Models.
 }
 \examples{
-\dontrun{
+\donttest{
 # a joint model fit
 fit <- jmcs(ydata = ydata, cdata = cdata, 
 long.formula = response ~ time + x1, 
 surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
 random =  ~ time| ID)
 
-par(mfrow = c(2, 2))
+oldpar <- par(mfrow = c(2, 2))
 plot(fit)
+par(oldpar)
 }
 
 }

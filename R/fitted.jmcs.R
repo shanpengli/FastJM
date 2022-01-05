@@ -9,7 +9,7 @@
 ##' @return a numeric vector of fitted values.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @examples
-##' \dontrun{
+##' \donttest{
 ##' fit <- jmcs(ydata = ydata, cdata = cdata, 
 ##' long.formula = response ~ time + x1, 
 ##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 

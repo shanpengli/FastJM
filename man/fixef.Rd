@@ -20,7 +20,7 @@ A numeric vector or a list of the estimated parameters for the fitted model.
 Extracts the fixed effects for a fitted joint model.
 }
 \examples{
-\dontrun{
+\donttest{
 # a joint model fit
 fit <- jmcs(ydata = ydata, cdata = cdata, 
 long.formula = response ~ time + x1, 

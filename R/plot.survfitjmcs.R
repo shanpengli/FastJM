@@ -16,8 +16,8 @@
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @seealso \code{\link{survfitjmcs}}
 ##' @examples 
-##' \dontrun{
-##' a joint model fit
+##' \donttest{
+##' # a joint model fit
 ##' fit <- jmcs(ydata = ydata, cdata = cdata, 
 ##' long.formula = response ~ time + x1, 
 ##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
@@ -32,7 +32,10 @@
 ##'                        cnewdata = NDc, 
 ##'                        u = seq(3, 4.8, by = 0.2), 
 ##'                        M = 100)
+##'                        
+##' oldpar <- par(mfrow = c(2, 2))
 ##' plot(survfit, estimator = "both", include.y = TRUE)
+##' par(oldpar)
 ##' }
 ##' @export
 ##' 

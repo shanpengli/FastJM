@@ -21,7 +21,7 @@ a vector of residuals of the longitudinal sub-model.
 Extract residuals for joint models.
 }
 \examples{
-\dontrun{
+\donttest{
 # a joint model fit
 fit <- jmcs(ydata = ydata, cdata = cdata, 
 long.formula = response ~ time + x1, 

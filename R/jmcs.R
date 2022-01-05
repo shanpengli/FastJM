@@ -72,7 +72,7 @@
 ##' require(FastJM)
 ##' data(ydata)
 ##' data(cdata)
-##' \dontrun{
+##' \donttest{
 ##' fit <- jmcs(ydata = ydata, cdata = cdata, 
 ##' long.formula = response ~ time + x1, 
 ##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
@@ -96,7 +96,10 @@
 ##'                        u = seq(3, 4.8, by = 0.2), 
 ##'                        M = 100)
 ##' survfit
+##' 
+##' oldpar <- par(mfrow = c(2, 2))
 ##' plot(survfit, estimator = "both", include.y = TRUE)
+##' par(oldpar)
 ##' }
 ##' 
 ##' @export

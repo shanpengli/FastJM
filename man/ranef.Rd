@@ -18,7 +18,7 @@ a matrix of random effects estimates.
 Extracts the posterior mean of the random effects for a fitted joint model.
 }
 \examples{
-\dontrun{
+\donttest{
 # a joint model fit
 fit <- jmcs(ydata = ydata, cdata = cdata, 
 long.formula = response ~ time + x1, 
