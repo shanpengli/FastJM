@@ -24,7 +24,7 @@ Rcpp::List getCovSF(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1
   int a = H01.rows();
   int k = mdata.size();
   
-  int i,p,q,j,t,u;
+  int i,q,j,t;
   
   double temp,temp1;
   
@@ -49,7 +49,6 @@ Rcpp::List getCovSF(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1
     }
   
   double epsilon=0;
-  double qq=0;
   double qqsigma=0;
   int p1 = beta.size();
   int p1a = Z.cols();

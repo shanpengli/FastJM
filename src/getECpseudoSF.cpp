@@ -23,7 +23,7 @@ Rcpp::List getECpseudoSF(const Eigen::VectorXd & beta,
   int k=mdata.size();
   int p1a=Z.cols();
   
-  double dem,cuh01,cuh02,haz01,haz02,xgamma1,xgamma2,temp,mu,zb;
+  double dem,cuh01,haz01,xgamma1,temp,mu,zb;
   Eigen::VectorXd bi(p1a);
   Eigen::VectorXd bii(p1a);
   Eigen::VectorXd bi2(p1a);

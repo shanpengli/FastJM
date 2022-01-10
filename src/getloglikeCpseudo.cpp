@@ -37,7 +37,7 @@ double getloglikeCpseudo(const Eigen::VectorXd & beta,
   
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(Sig.inverse(), Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::VectorXd eigenSQ = svd.singularValues();
-  int i,j,q,t,db;
+  int i,j,q,db;
   for (i=0;i<eigenSQ.size();i++) {
     eigenSQ(i) = sqrt(eigenSQ(i));
   }

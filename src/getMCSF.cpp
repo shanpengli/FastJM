@@ -25,7 +25,7 @@ Rcpp::List getMCSF(Eigen::VectorXd & beta, Eigen::VectorXd & gamma1,
   int p1 = X1.cols();
   int p1a = Z.cols();
   
-  int i,p,q,j,t,u;
+  int i,q,j,t,u;
   
   double scalef=0;
   
