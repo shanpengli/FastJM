@@ -1,15 +1,13 @@
 
 # FastJM
 
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/shanpengli/FastJM/workflows/R-CMD-check/badge.svg)](https://github.com/shanpengli/FastJM/actions)
+<!-- badges: end -->
+
 The `FastJM` package implement efficient computation of semi-parametric
 joint model of longitudinal and competing risks data.
-
-# Installation
-
-``` r
-library(devtools)
-devtools::install_github("shanpengli/FastJM", build_vignettes = FALSE)
-```
 
 # Example
 
@@ -17,7 +15,7 @@ The `FastJM` package comes with several simulated datasets. To fit a
 joint model, we use `jmcs` function.
 
 ``` r
-library(FastJM)
+require(FastJM)
 data(ydata)
 data(cdata)
 fit <- jmcs(ydata = ydata, cdata = cdata, 
