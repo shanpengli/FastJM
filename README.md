@@ -20,72 +20,82 @@ joint model, we use `jmcs` function.
 
 ``` r
 require(FastJM)
+#> Loading required package: FastJM
 data(ydata)
 data(cdata)
 fit <- jmcs(ydata = ydata, cdata = cdata, 
-long.formula = response ~ time + x1, 
-surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
-random =  ~ time| ID)
+            long.formula = response ~ time + gender + x1 + race, 
+            surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
+            random =  ~ time| ID)
 fit
-# Call:
-#  jmcs(ydata = ydata, cdata = cdata, long.formula = response ~ time + x1, random = ~time | ID, surv.formula = Surv(surv, failure_type) ~ x1 + x2) 
-# 
-# Data Summary:
-# Number of observations: 3067 
-# Number of groups: 1000 
-# 
-# Proportion of competing risks: 
-# Risk 1 : 34.9 %
-# Risk 2 : 29.8 %
-# 
-# Numerical intergration:
-# Method: pseudo-adaptive Guass-Hermite quadrature
-# Number of quadrature points:  6 
-# 
-# Model Type: joint modeling of longitudinal continuous and competing risks data 
-# 
-# Model summary:
-# Longitudinal process: linear mixed effects model
-# Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
-# 
-# Loglikelihood:  -8993.048 
-# 
-# Fixed effects in the longitudinal sub-model:  response ~ time + x1 
-# 
-#             Estimate      SE   Z value  p-val
-# (Intercept)  2.00436 0.03977  50.40076 0.0000
-# time         0.98386 0.03134  31.39642 0.0000
-# x1          -1.47905 0.05829 -25.37387 0.0000
-# 
-#         Estimate     SE  Z value  p-val
-# sigma^2  0.49167 0.0179 27.46542 0.0000
-# 
-# Fixed effects in the survival sub-model:  Surv(surv, failure_type) ~ x1 + x2 
-# 
-#      Estimate      SE   Z value  p-val
-# x1_1  0.53967 0.18334   2.94347 0.0032
-# x2_1 -1.10429 0.12705  -8.69205 0.0000
-# x1_2  0.64837 0.20087   3.22789 0.0012
-# x2_2 -1.76851 0.15214 -11.62453 0.0000
-# 
-# Association parameters:                 
-#       Estimate      SE Z value  p-val
-# nu1_1  0.94239 0.12086 7.79744 0.0000
-# nu1_2  0.34631 0.19589 1.76789 0.0771
-# nu2_1  0.95740 0.13516 7.08357 0.0000
-# nu2_2  0.00769 0.24067 0.03195 0.9745
-# 
-# 
-# Random effects:                 
-#   Formula: ~time | ID 
-#                  Estimate      SE  Z value  p-val
-# (Intercept)       0.53136 0.03930 13.51907 0.0000
-# time              0.25915 0.02259 11.47045 0.0000
-# (Intercept):time -0.02614 0.02517 -1.03838 0.2991
+#> 
+#> Call:
+#>  jmcs(ydata = ydata, cdata = cdata, long.formula = response ~ time + gender + x1 + race, random = ~time | ID, surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race) 
+#> 
+#> Data Summary:
+#> Number of observations: 3067 
+#> Number of groups: 1000 
+#> 
+#> Proportion of competing risks: 
+#> Risk 1 : 34.9 %
+#> Risk 2 : 29.8 %
+#> 
+#> Numerical intergration:
+#> Method: pseudo-adaptive Guass-Hermite quadrature
+#> Number of quadrature points:  6 
+#> 
+#> Model Type: joint modeling of longitudinal continuous and competing risks data 
+#> 
+#> Model summary:
+#> Longitudinal process: linear mixed effects model
+#> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
+#> 
+#> Loglikelihood:  -8989.389 
+#> 
+#> Fixed effects in the longitudinal sub-model:  response ~ time + gender + x1 + race 
+#> 
+#>             Estimate      SE   Z value  p-val
+#> (Intercept)  2.01853 0.05704  35.38803 0.0000
+#> time         0.98292 0.03147  31.22885 0.0000
+#> genderMale  -0.07766 0.05860  -1.32527 0.1851
+#> x1          -1.47810 0.05851 -25.26356 0.0000
+#> raceWhite    0.04527 0.05911   0.76581 0.4438
+#> 
+#>         Estimate      SE  Z value  p-val
+#> sigma^2  0.49182 0.01793 27.43751 0.0000
+#> 
+#> Fixed effects in the survival sub-model:  Surv(surv, failure_type) ~ x1 + gender + x2 + race 
+#> 
+#>              Estimate      SE   Z value  p-val
+#> x1_1          0.54672 0.18540   2.94892 0.0032
+#> genderMale_1 -0.18781 0.11935  -1.57359 0.1156
+#> x2_1         -1.10450 0.12731  -8.67602 0.0000
+#> raceWhite_1  -0.10027 0.11802  -0.84960 0.3955
+#> x1_2          0.62986 0.20064   3.13927 0.0017
+#> genderMale_2  0.10834 0.13065   0.82926 0.4070
+#> x2_2         -1.76738 0.15245 -11.59296 0.0000
+#> raceWhite_2   0.03194 0.13049   0.24479 0.8066
+#> 
+#> Association parameters:                 
+#>       Estimate      SE Z value  p-val
+#> nu1_1  0.93973 0.12160 7.72809 0.0000
+#> nu1_2  0.31691 0.19318 1.64051 0.1009
+#> nu2_1  0.96486 0.13646 7.07090 0.0000
+#> nu2_2  0.03772 0.24137 0.15629 0.8758
+#> 
+#> 
+#> Random effects:                 
+#>   Formula: ~time | ID 
+#>                  Estimate      SE  Z value  p-val
+#> (Intercept)       0.52981 0.03933 13.47048 0.0000
+#> time              0.25885 0.02262 11.44217 0.0000
+#> (Intercept):time -0.02765 0.02529 -1.09330 0.2743
 ```
 
-The `FastJM` package can proceed dynamic prediction given the
-longitudinal history information.
+The `FastJM` package can make dynamic prediction given the longitudinal
+history information. Below is a toy example for competing risks data.
+Conditional cumulative incidence probabilities for each failure will be
+presented.
 
 ``` r
 ND <- ydata[ydata$ID %in% c(419, 218), ]
@@ -95,68 +105,69 @@ survfit <- survfitjmcs(fit,
                        ynewdata = ND, 
                        cnewdata = NDc, 
                        u = seq(3, 4.8, by = 0.2), 
-                       M = 100)
+                       M = 100,
+                       seed = 100)
 survfit
-
-# Prediction of Conditional Probabilities of Event
-#   based on 100 Monte Carlo samples
-# 
-# $`218`
-# $`218`$`Cumulative incidence probabilities for type 1 failure`
-#       times      Mean     Median   95%Lower  95%Upper
-# 1  2.441634 0.0000000 0.00000000 0.00000000 0.0000000
-# 2  3.000000 0.1042089 0.08501926 0.03167305 0.2361048
-# 3  3.200000 0.1265429 0.10504460 0.03963747 0.2839815
-# 4  3.400000 0.1583911 0.13562638 0.05111005 0.3528610
-# 5  3.600000 0.1893599 0.16617725 0.06106590 0.4168163
-# 6  3.800000 0.2158977 0.19320244 0.06977831 0.4685929
-# 7  4.000000 0.2320297 0.21009903 0.07502376 0.4987382
-# 8  4.200000 0.2537060 0.23138395 0.08186588 0.5374272
-# 9  4.400000 0.2567729 0.23435594 0.08281619 0.5427199
-# 10 4.600000 0.2832645 0.26198248 0.09068803 0.5865385
-# 11 4.800000 0.3001481 0.28039390 0.09835850 0.6121160
-# 
-# $`218`$`Cumulative incidence probabilities for type 2 failure`
-#       times      Mean    Median   95%Lower  95%Upper
-# 1  2.441634 0.0000000 0.0000000 0.00000000 0.0000000
-# 2  3.000000 0.1313353 0.1234973 0.04242986 0.3261823
-# 3  3.200000 0.1604026 0.1517229 0.05344900 0.3873897
-# 4  3.400000 0.1946131 0.1861315 0.06727745 0.4539016
-# 5  3.600000 0.2115190 0.2033670 0.07463875 0.4844251
-# 6  3.800000 0.2386425 0.2317131 0.08740303 0.5298890
-# 7  4.000000 0.2546127 0.2500329 0.09537971 0.5546613
-# 8  4.200000 0.2804137 0.2728269 0.10906506 0.5915387
-# 9  4.400000 0.2906288 0.2831806 0.11478894 0.6051476
-# 10 4.600000 0.3208521 0.3140568 0.13262484 0.6428100
-# 11 4.800000 0.3443734 0.3334078 0.14814465 0.6684966
-# 
-# 
-# $`419`
-# $`419`$`Cumulative incidence probabilities for type 1 failure`
-#       times       Mean     Median    95%Lower   95%Upper
-# 1  2.432155 0.00000000 0.00000000 0.000000000 0.00000000
-# 2  3.000000 0.03054195 0.02650777 0.009682452 0.06045416
-# 3  3.200000 0.03858212 0.03358989 0.012290781 0.07604747
-# 4  3.400000 0.05134066 0.04492659 0.016484373 0.10049422
-# 5  3.600000 0.06488123 0.05705475 0.021002405 0.12609668
-# 6  3.800000 0.07742440 0.06837507 0.025250365 0.14949952
-# 7  4.000000 0.08571303 0.07591435 0.028094204 0.16477277
-# 8  4.200000 0.09778120 0.08697629 0.032288587 0.18673217
-# 9  4.400000 0.09958676 0.08864021 0.032921754 0.18998849
-# 10 4.600000 0.11682448 0.10441903 0.039049267 0.22063142
-# 11 4.800000 0.12878350 0.11543248 0.043377777 0.24151576
-# 
-# $`419`$`Cumulative incidence probabilities for type 2 failure`
-#       times       Mean     Median    95%Lower   95%Upper
-# 1  2.432155 0.00000000 0.00000000 0.000000000 0.00000000
-# 2  3.000000 0.02109040 0.01930663 0.006954115 0.05474365
-# 3  3.200000 0.02644037 0.02425306 0.008762312 0.06825689
-# 4  3.400000 0.03321015 0.03053788 0.011074073 0.08515274
-# 5  3.600000 0.03685292 0.03393781 0.012335097 0.09411542
-# 6  3.800000 0.04324688 0.03994099 0.014582649 0.10960005
-# 7  4.000000 0.04727913 0.04374293 0.016015715 0.11924210
-# 8  4.200000 0.05428128 0.05037558 0.018534414 0.13575401
-# 9  4.400000 0.05723952 0.05318927 0.019610086 0.14264139
-# 10 4.600000 0.06653590 0.06206307 0.023022383 0.16401714
-# 11 4.800000 0.07480723 0.07000650 0.026133855 0.18250746
+#> 
+#> Prediction of Conditional Probabilities of Event
+#>  based on 100 Monte Carlo samples
+#> 
+#> $`218`
+#> $`218`$`Cumulative incidence probabilities for type 1 failure`
+#>       times      Mean     Median   95%Lower  95%Upper
+#> 1  2.441634 0.0000000 0.00000000 0.00000000 0.0000000
+#> 2  3.000000 0.1042121 0.09168331 0.02551633 0.2519007
+#> 3  3.200000 0.1274778 0.11325876 0.03194108 0.3045305
+#> 4  3.400000 0.1610705 0.14534683 0.04182345 0.3776787
+#> 5  3.600000 0.1940238 0.17773682 0.05219704 0.4449708
+#> 6  3.800000 0.2222930 0.20647921 0.06168556 0.4988277
+#> 7  4.000000 0.2394984 0.22306490 0.06779426 0.5299034
+#> 8  4.200000 0.2627392 0.24462767 0.07650370 0.5696356
+#> 9  4.400000 0.2660452 0.24767362 0.07778946 0.5750665
+#> 10 4.600000 0.2946978 0.27582552 0.09027359 0.6197911
+#> 11 4.800000 0.3129948 0.29613833 0.09759391 0.6456466
+#> 
+#> $`218`$`Cumulative incidence probabilities for type 2 failure`
+#>       times      Mean    Median   95%Lower  95%Upper
+#> 1  2.441634 0.0000000 0.0000000 0.00000000 0.0000000
+#> 2  3.000000 0.1206324 0.1084623 0.02732776 0.2649958
+#> 3  3.200000 0.1480588 0.1343882 0.03402085 0.3175604
+#> 4  3.400000 0.1806585 0.1661039 0.04227422 0.3763843
+#> 5  3.600000 0.1969183 0.1820365 0.04647734 0.4040791
+#> 6  3.800000 0.2231869 0.2086400 0.05336726 0.4459997
+#> 7  4.000000 0.2387306 0.2246734 0.05755825 0.4693403
+#> 8  4.200000 0.2638940 0.2481454 0.06453518 0.5034274
+#> 9  4.400000 0.2738487 0.2583460 0.06736726 0.5155370
+#> 10 4.600000 0.3033470 0.2899113 0.07611484 0.5553568
+#> 11 4.800000 0.3262614 0.3132795 0.08311886 0.5887102
+#> 
+#> 
+#> $`419`
+#> $`419`$`Cumulative incidence probabilities for type 1 failure`
+#>       times       Mean     Median   95%Lower   95%Upper
+#> 1  2.432155 0.00000000 0.00000000 0.00000000 0.00000000
+#> 2  3.000000 0.02872658 0.02687972 0.01029811 0.05720026
+#> 3  3.200000 0.03630935 0.03400285 0.01308744 0.07214694
+#> 4  3.400000 0.04834371 0.04526916 0.01758261 0.09574403
+#> 5  3.600000 0.06117241 0.05729828 0.02244669 0.12066025
+#> 6  3.800000 0.07305485 0.06846044 0.02701788 0.14350806
+#> 7  4.000000 0.08089509 0.07582621 0.03007797 0.15848148
+#> 8  4.200000 0.09235147 0.08658972 0.03461434 0.18021130
+#> 9  4.400000 0.09407310 0.08820711 0.03530296 0.18346131
+#> 10 4.600000 0.11050764 0.10361973 0.04199070 0.21432507
+#> 11 4.800000 0.12196150 0.11437911 0.04673742 0.23556138
+#> 
+#> $`419`$`Cumulative incidence probabilities for type 2 failure`
+#>       times       Mean     Median    95%Lower   95%Upper
+#> 1  2.432155 0.00000000 0.00000000 0.000000000 0.00000000
+#> 2  3.000000 0.02141642 0.01879897 0.006000041 0.05236234
+#> 3  3.200000 0.02685920 0.02362739 0.007557645 0.06536595
+#> 4  3.400000 0.03376509 0.02978113 0.009552346 0.08169752
+#> 5  3.600000 0.03749466 0.03312294 0.010641212 0.09041257
+#> 6  3.800000 0.04406357 0.03904481 0.012581513 0.10556092
+#> 7  4.000000 0.04821486 0.04280435 0.013819254 0.11503185
+#> 8  4.200000 0.05542342 0.04936500 0.015990536 0.13128493
+#> 9  4.400000 0.05846205 0.05214284 0.016914275 0.13806252
+#> 10 4.600000 0.06800699 0.06090433 0.019842673 0.15912501
+#> 11 4.800000 0.07648702 0.06876341 0.022495396 0.17740045
 ```

@@ -14,9 +14,15 @@ vcov.jmcs <- function(object, ...) {
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
   
+  getdum <- getdummy(long.formula = object$LongitudinalSubmodel, 
+                     surv.formula = object$SurvivalSubmodel, 
+                     random = object$random, ydata = object$ydata, cdata = object$cdata)
+  long.formula <- getdum$long.formula
+  surv.formula <- getdum$surv.formula
+  
   vcov <- as.data.frame(object$vcov)
-  long <- all.vars(object$LongitudinalSubmodel)[-1]
-  survival <- all.vars(object$SurvivalSubmodel)[-(1:2)]
+  long <- all.vars(long.formula)[-1]
+  survival <- all.vars(surv.formula)[-(1:2)]
   survival1 <- paste0("T.", survival, "_1")
   long <- paste0("Y.", c("(Intercept)", long))
   p1a <- length(object$nu1)

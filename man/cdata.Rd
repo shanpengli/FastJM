@@ -19,12 +19,15 @@ This data frame contains the following columns:
 
   \item{\code{x2}}{treatment indicator. \code{0} denotes the placebo group and \code{1} the treatment group.}
 
+  \item{\code{gender}}{gender indicator.}
+   
+  \item{\code{race}}{race indicator.}
   }
 }
 \usage{
 data(cdata)
 }
 \description{
-The \code{cdata} data frame has 1000 rows and 5 columns.
+The \code{cdata} data frame has 1000 rows and 7 columns.
 }
 \keyword{datasets}

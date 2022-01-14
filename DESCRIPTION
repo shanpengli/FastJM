@@ -1,7 +1,7 @@
 Package: FastJM
 Type: Package
 Title: Semi-Parametric Joint Modeling of Longitudinal and Survival Data
-Version: 1.0.1
+Version: 1.0.2
 Date: 2022-01-10
 Authors@R: c(
     person("Shanpeng", "Li", email = "lishanpeng0913@ucla.edu", 

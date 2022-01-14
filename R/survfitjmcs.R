@@ -56,6 +56,31 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   if (!(bvar[length(bvar)] %in% colnames(cnewdata)))
     stop(paste("The ID variable", bvar[length(bvar)], "is not found in cnewdata."))
   
+  ydata2 <- rbind(object$ydata, ynewdata)
+  cdata2 <- rbind(object$cdata, cnewdata)
+
+  getdum <- getdummy(long.formula = object$LongitudinalSubmodel,
+                     surv.formula = object$SurvivalSubmodel,
+                     random = object$random, ydata = ydata2, cdata = cdata2)
+
+  ydata2 <- getdum$ydata
+  cdata2 <- getdum$cdata
+
+  long.formula <- getdum$long.formula
+  surv.formula <- getdum$surv.formula
+  Yvar <- all.vars(long.formula)
+  Cvar <- all.vars(surv.formula)
+  bvar <- all.vars(object$random)
+
+  ny <- nrow(ynewdata)
+  nc <- nrow(cnewdata)
+  Ny <- nrow(ydata2)
+  Nc <- nrow(cdata2)
+
+  ynewdata <- ydata2[c((Ny-ny+1):Ny), ]
+  cnewdata <- cdata2[c((Nc-nc+1):Nc), ]
+  
+  
   ## dynamic prediction 
   ## Monte Carlo simulation
   ID <- unique(ynewdata[, bvar[length(bvar)]])

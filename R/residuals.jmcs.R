@@ -12,9 +12,9 @@
 ##' \donttest{
 ##' # a joint model fit
 ##' fit <- jmcs(ydata = ydata, cdata = cdata, 
-##' long.formula = response ~ time + x1, 
-##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
-##' random =  ~ time| ID)
+##'             long.formula = response ~ time + gender + x1 + race, 
+##'             surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
+##'             random =  ~ time| ID)
 ##' 
 ##' # residuals of the longitudinal sub-model
 ##' head(cbind(

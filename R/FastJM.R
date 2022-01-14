@@ -7,5 +7,5 @@
 #' @importFrom mvtnorm rmvt
 #' @importFrom graphics abline axis lines mtext panel.smooth par segments
 #' @importFrom MASS mvrnorm
-#' @importFrom stats as.formula median optim pnorm qqline qqnorm quantile vcov
+#' @importFrom stats as.formula median optim pnorm qqline qqnorm quantile vcov model.matrix
 NULL

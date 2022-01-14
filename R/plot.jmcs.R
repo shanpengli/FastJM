@@ -9,11 +9,10 @@
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @examples 
 ##' \donttest{
-##' # a joint model fit
 ##' fit <- jmcs(ydata = ydata, cdata = cdata, 
-##' long.formula = response ~ time + x1, 
-##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
-##' random =  ~ time| ID)
+##'             long.formula = response ~ time + gender + x1 + race, 
+##'             surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
+##'             random =  ~ time| ID)
 ##' 
 ##' oldpar <- par(mfrow = c(2, 2))
 ##' plot(fit)

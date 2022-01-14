@@ -1,14 +1,16 @@
-cat("\nTests for 'joint model (jmcs)'")
-
 myEps <- if (capabilities("long.double")) .Machine$double.eps else 1e-9
 
-test_that(" joint model for ydata and cdata ",
+test_that(" joint model (jmcs)",
           {
             fit <- jmcs(ydata = ydata, cdata = cdata, 
-                        long.formula = response ~ time + x1, 
-                        surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
+                        long.formula = response ~ time + gender + x1 + race, 
+                        surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
                         random =  ~ time| ID)
-            expect_equal(mean(fit$beta), 0.50305914, tolerance = (10 ^ 8) * myEps)
-            expect_equal(mean(fit$vcov), 0.00111349097, tolerance = (10 ^ 7) * myEps)
-            expect_equal(fit$loglike, -8993.048, tolerance = (10 ^ 12) * myEps)
+            
+            expect_equal(mean(fit$beta), 0.29819263, tolerance = (10 ^ 8) * myEps)
+            expect_equal(mean(fit$vcov), 0.000757106176, tolerance = (10 ^ 7) * myEps)
+            expect_equal(fit$loglike, -8989.389, tolerance = (10 ^ 12) * myEps)
+            
+ 
           })
+

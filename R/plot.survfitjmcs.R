@@ -19,9 +19,9 @@
 ##' \donttest{
 ##' # a joint model fit
 ##' fit <- jmcs(ydata = ydata, cdata = cdata, 
-##' long.formula = response ~ time + x1, 
-##' surv.formula = Surv(surv, failure_type) ~ x1 + x2, 
-##' random =  ~ time| ID)
+##'             long.formula = response ~ time + gender + x1 + race, 
+##'             surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
+##'            random =  ~ time| ID)
 ##' 
 ##' # Prediction of cumulative incidence for competing risks data
 ##' ND <- ydata[ydata$ID %in% c(419, 218), ]
@@ -31,7 +31,8 @@
 ##'                        ynewdata = ND, 
 ##'                        cnewdata = NDc, 
 ##'                        u = seq(3, 4.8, by = 0.2), 
-##'                        M = 100)
+##'                        M = 100,
+##'                        seed = 100)
 ##'                        
 ##' oldpar <- par(mfrow = c(2, 2))
 ##' plot(survfit, estimator = "both", include.y = TRUE)

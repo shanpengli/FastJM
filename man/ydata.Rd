@@ -16,13 +16,16 @@ This data frame contains the following columns:
   \item{\code{time}}{visit time.}
 
   \item{\code{x1}}{treatment indicator. \code{0} denotes the placebo group and \code{1} the treatment group.}
-
+   
+   \item{\code{gender}}{gender indicator.}
+   
+   \item{\code{race}}{race indicator.}
   }
 }
 \usage{
 data(ydata)
 }
 \description{
-The \code{ydata} data frame has 3067 rows and 4 columns.
+The \code{ydata} data frame has 3067 rows and 6 columns.
 }
 \keyword{datasets}

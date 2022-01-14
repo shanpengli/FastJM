@@ -6,21 +6,6 @@ Getinit <- function(cdata, ydata, long.formula, surv.formula,
   cnames <- colnames(cdata)
   ynames <- colnames(ydata)
   
-  ##variable check
-  if (prod(long %in% ynames) == 0) {
-    Fakename <- which(long %in% ynames == FALSE)
-    stop(paste0("The variable ", long[Fakename], " not found"))
-  }
-  if (prod(survival %in% cnames) == 0) {
-    Fakename <- which(survival %in% cnames == FALSE)
-    stop(paste0("The variable ", survival[Fakename], " not found"))
-  }
-  if (!(ID %in% ynames)) {
-    stop(paste0("ID column ", ID, " not found in the longitudinal dataset!"))
-  }
-  if (!(ID %in% cnames)) {
-    stop(paste0("ID column ", ID, " not found in the survival dataset!"))
-  }
   if (is.null(RE) & model == "interslope") {
     stop("Random effects covariates must be specified.")
   }
@@ -42,15 +27,13 @@ Getinit <- function(cdata, ydata, long.formula, surv.formula,
   ## extract covariates
   X <- ydata[, long[-1]]
   X <- as.matrix(cbind(1, X))
-  
+
   ##random effect covariates
   if (model == "interslope") {
     if (prod(RE %in% ynames) == 0) {
       Fakename <- which(RE %in% ynames == FALSE)
       stop(paste0("The variable ", RE[Fakename], " not found"))
     } else {
-      #random.xnam <- paste(RE[1:length(RE)], sep = "")
-      #fmla.random <- paste("(", paste(random.xnam, collapse= "+"), "|", ID, ")", sep = "")
       p1a <- 1 + length(RE)
       Z <- ydata[, RE]
       Z <- cbind(1, Z)
@@ -65,7 +48,6 @@ Getinit <- function(cdata, ydata, long.formula, surv.formula,
     Z <- rep(1, ydim[1])
     Z <- as.data.frame(Z)
     Z <- as.matrix(Z)
-    #fmla.random <- paste("(", 1, "|", ID, ")", sep = "")
     
   } else {
     stop("model should be one of the following options: interslope or intercept.")
@@ -75,20 +57,6 @@ Getinit <- function(cdata, ydata, long.formula, surv.formula,
   X2 <- as.matrix(cdata[, survival[3:length(survival)]])
   survtime <- as.vector(cdata[, survival[1]])
   cmprsk <- as.vector(cdata[, survival[2]])
-  
-  ## get initial estimates of fixed effects in linear mixed effects model
-  # xnam <- paste(long[2:length(long)], sep = "")
-  # fmla.fixed <- paste(long[1], " ~ ", paste(xnam, collapse= "+"))
-  # fmla <- as.formula(paste(fmla.fixed, fmla.random, sep = "+"))
-  # 
-  # longfit <- lme4::lmer(fmla, data = ydata, REML = TRUE)
-  # beta <- lme4::fixef(longfit)
-  # D <- lme4::VarCorr(longfit)
-  # name <- names(D)
-  # D <- as.data.frame(D[name])
-  # D <- as.matrix(D)
-  # ##Residuals
-  # sigma <- sigma(longfit)^2
   
   if (REML) method <- "REML"
   if (!REML) method <- "ML"
