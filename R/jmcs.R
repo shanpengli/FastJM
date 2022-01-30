@@ -144,8 +144,28 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
     stop("\nCox proportional hazards model must be a formula of the form \"Surv(.,.) ~ pred\"")
   }
   
+  long <- all.vars(long.formula)
+  survival <- all.vars(surv.formula)
   random.form <- all.vars(random)
   ID <- random.form[length(random.form)]
+  cnames <- colnames(cdata)
+  ynames <- colnames(ydata)
+  ##variable check
+  if (prod(long %in% ynames) == 0) {
+    Fakename <- which(long %in% ynames == FALSE)
+    stop(paste0("The variable ", long[Fakename], " not found"))
+  }
+  if (prod(survival %in% cnames) == 0) {
+    Fakename <- which(survival %in% cnames == FALSE)
+    stop(paste0("The variable ", survival[Fakename], " not found"))
+  }
+  if (!(ID %in% ynames)) {
+    stop(paste0("ID column ", ID, " not found in the longitudinal dataset!"))
+  }
+  if (!(ID %in% cnames)) {
+    stop(paste0("ID column ", ID, " not found in the survival dataset!"))
+  }
+  
   if (length(random.form) == 1) {
     RE <- NULL
     model <- "intercept"
@@ -158,14 +178,6 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
   survfmla <- surv.formula
   rawydata <- ydata
   rawcdata <- cdata
-  
-  getdum <- getdummy(long.formula = long.formula, surv.formula = surv.formula, 
-                     random = random, ydata = ydata, cdata = cdata)
-  long.formula <- getdum$long.formula
-  surv.formula <- getdum$surv.formula
-  ydata <- getdum$ydata
-  cdata <- getdum$cdata
-  
 
   getinit <- Getinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
                      surv.formula = surv.formula,
@@ -173,8 +185,6 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      REML = REML, random = random, opt = opt)
   
   cdata <- getinit$cdata
-  ydata <- getinit$ydata
-
   
   survival <- all.vars(surv.formula)
   status <- as.vector(cdata[, survival[2]])
@@ -189,7 +199,9 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
     
     ## initialize parameters
     beta <- getinit$beta
+    namesbeta <- names(beta)
     gamma1 <- getinit$gamma1
+    namesgamma1 <- names(gamma1)
     gamma2 <- getinit$gamma2
     alpha1 <- getinit$alpha1
     alpha2 <- getinit$alpha2
@@ -206,7 +218,9 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
     
     ## initialize parameters
     beta <- getinit$beta
+    namesbeta <- names(beta)
     gamma1 <- getinit$gamma1
+    namesgamma1 <- names(gamma1)
     alpha1 <- getinit$alpha1
     Sig <- getinit$Sig
     p1a <- ncol(Sig)
@@ -345,8 +359,6 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
         print(sigma)
       }
       
-      
-      
       GetEfun <- GetE(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, 
                       Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, method, Posbi, Poscov)
 
@@ -465,28 +477,19 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
       CH012 <- as.matrix(CH012)
       getfittedSurv <- getfittedSurv(gamma1, gamma2, X2, CH012, alpha1, alpha2, FUNB)
       
-      long <- all.vars(long.formula)
       survival <- all.vars(surv.formula)
       id <- ydata[, ID]
       
-      names(beta) <- c("(Intercept)", long[-1])
+      names(beta) <- namesbeta
       
-      names(gamma1) <- paste0(survival[-(1:2)], "_1")
-      names(gamma2) <- paste0(survival[-(1:2)], "_2")
+      names(gamma1) <- paste0(namesgamma1, "_1")
+      names(gamma2) <- paste0(namesgamma1, "_2")
       
       PropComp <- as.data.frame(table(cdata[, survival[2]]))
       
+      FunCall_long <- longfmla
       
-      long <- all.vars(longfmla)
-      survival <- all.vars(survfmla)
-      
-      LongOut <- long[1]
-      LongX <- paste0(long[-1], collapse = "+")
-      FunCall_long <- as.formula(paste(LongOut, LongX, sep = "~"))
-      
-      SurvOut <- paste0("Surv(", survival[1], ",", survival[2], ")")
-      SurvX <- paste0(survival[-(1:2)], collapse = "+")
-      FunCall_survival <- as.formula(paste(SurvOut, SurvX, sep = "~"))
+      FunCall_survival <- survfmla
       
       ## return the joint modelling result
       mycall <- match.call()
@@ -625,26 +628,24 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
       CH01 <- as.matrix(CH01)
       getfittedSurv <- getfittedSurvSF(gamma1, X2, CH01, alpha1, FUNB)
       
-      long <- all.vars(long.formula)
       survival <- all.vars(surv.formula)
       id <- ydata[, ID]
       
-      names(beta) <- c("(Intercept)", long[-1])
-      
-      names(gamma1) <- paste0(survival[-(1:2)], "_1")
+      names(beta) <- namesbeta 
+      names(gamma1) <- paste0(namesgamma1, "_1")
+      # names(gamma1) <- paste0(survival[-(1:2)], "_1")
       
       PropComp <- as.data.frame(table(cdata[, survival[2]]))
       
-      long <- all.vars(longfmla)
       survival <- all.vars(survfmla)
       
-      LongOut <- long[1]
-      LongX <- paste0(long[-1], collapse = "+")
-      FunCall_long <- as.formula(paste(LongOut, LongX, sep = "~"))
+      FunCall_long <- longfmla
       
-      SurvOut <- paste0("Surv(", survival[1], ",", survival[2], ")")
-      SurvX <- paste0(survival[-(1:2)], collapse = "+")
-      FunCall_survival <- as.formula(paste(SurvOut, SurvX, sep = "~"))
+      # SurvOut <- paste0("Surv(", survival[1], ",", survival[2], ")")
+      # SurvX <- paste0(survival[-(1:2)], collapse = "+")
+      # FunCall_survival <- as.formula(paste(SurvOut, SurvX, sep = "~"))
+      # 
+      FunCall_survival <- survfmla
       
       ## return the joint modelling result
       mycall <- match.call()

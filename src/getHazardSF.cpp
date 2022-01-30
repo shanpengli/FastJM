@@ -4,10 +4,10 @@
 
 //
 // [[Rcpp::export]]
-int getHazardSF(const Eigen::Map<Eigen::VectorXd> & CumuH01,
-              const Eigen::Map<Eigen::VectorXd> & survtime,
-              const Eigen::Map<Eigen::VectorXd> & cmprsk,
-              const Eigen::Map<Eigen::MatrixXd> & H01,
+int getHazardSF(const Eigen::VectorXd & CumuH01,
+              const Eigen::VectorXd & survtime,
+              const Eigen::VectorXd & cmprsk,
+              const Eigen::MatrixXd & H01,
               Eigen::Map<Eigen::VectorXd> & CUH01,
               Eigen::Map<Eigen::VectorXd> & HAZ01) {
   

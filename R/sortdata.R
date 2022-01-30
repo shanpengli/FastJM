@@ -19,8 +19,7 @@ sortdata <- function(cdata, ydata, ID, surv.formula, long.formula) {
   ydata <- Tdata[, c(ID, long)]
   colnames(cdata)[-1] <- Truesurvival
   colnames(ydata)[-1] <- Truelong
-  #ydata[, ID] <- as.character(ydata[, ID])
-  #cdata[, ID] <- as.character(cdata[, ID])
+  
   mdata <- as.data.frame(table(ydata[, ID]))
   colnames(mdata)[1] <- ID
   mdata[, ID] <- as.character(mdata[, ID])

@@ -153,6 +153,8 @@ Rcpp::List getECpseudo(const Eigen::VectorXd & beta,
     
      }
     
+    
+    
     if(dem==0) {
       Rprintf("E step ran into issue for the %dth subject. Program stops.\n", j);
       return ( 100.0 );

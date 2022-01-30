@@ -45,11 +45,6 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
                The last observed time for risk 1 and 2 is", max(H01[, 1]), "and", max(H02[, 1])))
   }
 
-  
-  long.formula <- object$LongitudinalSubmodel
-  Yvar <- all.vars(long.formula)
-  surv.formula <- object$SurvivalSubmodel
-  Cvar <- all.vars(surv.formula)
   bvar <- all.vars(object$random)
   if (!(bvar[length(bvar)] %in% colnames(ynewdata)))
     stop(paste("The ID variable", bvar[length(bvar)], "is not found in ynewdata."))
@@ -66,10 +61,8 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   ydata2 <- getdum$ydata
   cdata2 <- getdum$cdata
 
-  long.formula <- getdum$long.formula
-  surv.formula <- getdum$surv.formula
-  Yvar <- all.vars(long.formula)
-  Cvar <- all.vars(surv.formula)
+  Yvar <- colnames(ydata2)[-1]
+  Cvar <- colnames(cdata2)[-1]
   bvar <- all.vars(object$random)
 
   ny <- nrow(ynewdata)
@@ -79,7 +72,6 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
 
   ynewdata <- ydata2[c((Ny-ny+1):Ny), ]
   cnewdata <- cdata2[c((Nc-nc+1):Nc), ]
-  
   
   ## dynamic prediction 
   ## Monte Carlo simulation
@@ -181,6 +173,7 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     sum
 
   } else {
+
     Psi <- c(object$beta, object$gamma1, object$gamma2, 
              object$nu1, object$nu2, object$sigma)
     for (l in 1:nsig) Psi <- c(Psi, object$Sig[l, l])
