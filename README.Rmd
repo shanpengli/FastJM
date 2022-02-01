@@ -49,5 +49,12 @@ survfit <- survfitjmcs(fit,
                        seed = 100)
 survfit
 ```
+Plot the cumulative incidence function for each failure with the historical longitudinal observations.
+
+```{r}
+oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
+plot(survfit, estimator = "both", include.y = TRUE)
+par(oldpar)
+```
 
 
