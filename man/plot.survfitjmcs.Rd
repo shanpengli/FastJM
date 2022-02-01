@@ -53,7 +53,7 @@ survfit <- survfitjmcs(fit,
                        M = 100,
                        seed = 100)
                        
-oldpar <- par(mfrow = c(2, 2))
+oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, estimator = "both", include.y = TRUE)
 par(oldpar)
 }

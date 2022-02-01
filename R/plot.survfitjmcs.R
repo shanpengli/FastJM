@@ -34,7 +34,7 @@
 ##'                        M = 100,
 ##'                        seed = 100)
 ##'                        
-##' oldpar <- par(mfrow = c(2, 2))
+##' oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 ##' plot(survfit, estimator = "both", include.y = TRUE)
 ##' par(oldpar)
 ##' }
@@ -78,13 +78,13 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
                      lwd = 1)
           } else {
             plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][, 1])), axes = TRUE, xlab = "Time", 
-                 ylab = "Longitudinal outcome", type = "p", pch = 8)
+                 ylab = "", type = "p", pch = 8)
+            title(ylab = "Longitudinal outcome", line=2.5)
             par(new = TRUE)    
             plot(times, probmean, xlab = "", ylab = "", 
                  main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
-            axis(side = 4, at = pretty(range(c(0, 1)))) 
-            mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
-                                   ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side=4, line=3)
+            axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
+            mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
             lines(times, probmedian, col = "green", type = "l")
             segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                      y1 = 1,
@@ -101,13 +101,13 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
                      lwd = 1)
           } else {
             plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][, 1])), axes = TRUE, xlab = "Time", 
-                 ylab = "Longitudinal outcome", type = "p", pch = 8)
+                 ylab = "", type = "p", pch = 8)
+            title(ylab = "Longitudinal outcome", line=2.5)
             par(new = TRUE)    
             plot(times, probmedian, xlab = "", ylab = "", 
                  main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "green", type = "l", ylim = ylim, axes = FALSE)
-            axis(side = 4, at = pretty(range(c(0, 1)))) 
-            mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
-                                   ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side=4, line=3)
+            axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
+            mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
             segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                      y1 = 1,
                      lwd = 1)
@@ -123,13 +123,13 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
                      lwd = 1)
           } else {
             plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][, 1])), axes = TRUE, xlab = "Time", 
-                 ylab = "Longitudinal outcome", type = "p", pch = 8)
+                 ylab = "", type = "p", pch = 8)
+            title(ylab = "Longitudinal outcome", line=2.5)
             par(new = TRUE)    
             plot(times, probmean, xlab = "", ylab = "", 
                  main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
-            axis(side = 4, at = pretty(range(c(0, 1)))) 
-            mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
-                                   ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side=4, line=3)
+            axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
+            mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
             segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                      y1 = 1,
                      lwd = 1)
@@ -175,20 +175,20 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
             if (!include.y) {
               plot(times, probmean, xlab = "Time", ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
                                                                            ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                   main = paste("Subject", x$Last.time[i, 1], "k=", j, sep = " "), col = "red", type = "l", ylim = ylim)
+                   main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim)
               lines(times, probmedian, col = "green", type = "l")
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
             } else {
               plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][[j]][, 1])), axes = TRUE, xlab = "Time", 
-                   ylab = "Longitudinal outcome", type = "p", pch = 8)
+                   ylab = "", type = "p", pch = 8)
+              title(ylab = "Longitudinal outcome", line=2.5)
               par(new = TRUE)    
               plot(times, probmean, xlab = "", ylab = "", 
-                   main = paste("Subject", x$Last.time[i, 1], "k=", j, sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
-              axis(side = 4, at = pretty(range(c(0, 1)))) 
-              mtext(expression(paste("Pr(", T[i] <= u, ", ", D[i] == k, " | ", T[i] > s, 
-                                     ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side=4, line=3)
+                   main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
+              axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
+              mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
               lines(times, probmedian, col = "green", type = "l")
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
@@ -198,20 +198,20 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
             if (!include.y) {
               plot(times, probmedian, xlab = "Time", ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
                                                                              ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                   main = paste("Subject", x$Last.time[i, 1], "k=", j, sep = " "), col = "green", type = "l", ylim = ylim)
+                   main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "green", type = "l", ylim = ylim)
               abline(v = as.numeric(x$Last.time[i, 2]))
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
             } else {
               plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][[j]][, 1])), axes = TRUE, xlab = "Time", 
-                   ylab = "Longitudinal outcome", type = "p", pch = 8)
+                   ylab = "", type = "p", pch = 8)
+              title(ylab = "Longitudinal outcome", line=2.5)
               par(new = TRUE)    
               plot(times, probmedian, xlab = "", ylab = "", 
-                   main = paste("Subject", x$Last.time[i, 1], "k=", j, sep = " "), col = "green", type = "l", ylim = ylim, axes = FALSE)
-              axis(side = 4, at = pretty(range(c(0, 1)))) 
-              mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
-                                     ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side=4, line=3)
+                   main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "green", type = "l", ylim = ylim, axes = FALSE)
+              axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
+              mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
@@ -220,20 +220,20 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
             if (!include.y) {
               plot(times, probmean, xlab = "Time", ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
                                                                            ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                   main = paste("Subject", x$Last.time[i, 1], "k=", j, sep = " "), col = "red", type = "l", ylim = ylim)
+                   main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim)
               abline(v = as.numeric(x$Last.time[i, 2]))
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
             } else {
               plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][[j]][, 1])), axes = TRUE, xlab = "Time", 
-                   ylab = "Longitudinal outcome", type = "p", pch = 8)
+                   ylab = "", type = "p", pch = 8)
+              title(ylab = "Longitudinal outcome", line=2.5)
               par(new = TRUE)    
               plot(times, probmean, xlab = "", ylab = "", 
-                   main = paste("Subject", x$Last.time[i, 1], "k=", j, sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
-              axis(side = 4, at = pretty(range(c(0, 1)))) 
-              mtext(expression(paste("Pr(", T[i] <= u, ", ", D[i] == k, " | ", T[i] > s, 
-                                     ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side=4, line=3)
+                   main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
+              axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
+              mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)

@@ -141,7 +141,19 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         opt <- optim(rep(0, nsig), logLik, data = data, method = "BFGS", hessian = TRUE)
         meanb <- opt$par
         varb <- solve(opt$hessian)
-        bl <- as.vector(mvtnorm::rmvt(1, delta = meanb, sigma = varb, df = 4))
+        b.old <- meanb
+        ## simulate new random effects estimates using the Metropolis Hastings algorithm
+        propose.bl <- as.vector(mvtnorm::rmvt(1, delta = meanb, sigma = varb, df = 4))
+        dmvt.old <- mvtnorm::dmvt(b.old, meanb, varb, df = 4, TRUE)
+        dmvt.propose <- mvtnorm::dmvt(propose.bl, meanb, varb, df = 4, TRUE)
+        logpost.old <- -logLik(data, b.old)
+        logpost.propose <- -logLik(data, propose.bl)
+        ratio <- min(exp(logpost.propose + dmvt.old - logpost.old - dmvt.propose), 1)
+        if (runif(1) <= ratio) {
+          bl = propose.bl
+        } else {
+          bl = b.old
+        }
         for (jj in 1:lengthu) {
           Pi <- P.us(data, CH0u[jj], bl)
           allPi[i, jj] <- Pi
@@ -231,7 +243,19 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         opt <- optim(rep(0, nsig), logLikCR, data = data, method = "BFGS", hessian = TRUE)
         meanb <- opt$par
         varb <- solve(opt$hessian)
-        bl <- as.vector(mvtnorm::rmvt(1, delta = meanb, sigma = varb, df = 4))
+        b.old <- meanb
+        ## simulate new random effects estimates using the Metropolis Hastings algorithm
+        propose.bl <- as.vector(mvtnorm::rmvt(1, delta = meanb, sigma = varb, df = 4))
+        dmvt.old <- mvtnorm::dmvt(b.old, meanb, varb, df = 4, TRUE)
+        dmvt.propose <- mvtnorm::dmvt(propose.bl, meanb, varb, df = 4, TRUE)
+        logpost.old <- -logLikCR(data, b.old)
+        logpost.propose <- -logLikCR(data, propose.bl)
+        ratio <- min(exp(logpost.propose + dmvt.old - logpost.old - dmvt.propose), 1)
+        if (runif(1) <= ratio) {
+          bl = propose.bl
+        } else {
+          bl = b.old
+        }
         for (jj in 1:lengthu) {
           ## calculate the CIF
           CIF1 <- CIF1.CR(data, H01, H02, s, u[jj], bl)
