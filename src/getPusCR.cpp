@@ -28,7 +28,7 @@ Eigen::MatrixXd getPusCR(const Eigen::VectorXd & beta,
   Eigen::VectorXd CH012 = Eigen::VectorXd::Zero(a);
   int count = 0;
   int i = 0;
-  while (count < b & i < a) {
+  while ((count < b) && (i < a)) {
     if (H02(count, 0) <= H01(i, 0)) {
       CH012(i) += H02(count, 2);
       count += 1;
@@ -42,7 +42,7 @@ Eigen::MatrixXd getPusCR(const Eigen::VectorXd & beta,
   Eigen::VectorXd CH022 = CumSum(H02.col(2));
   count = 0;
   i = 0;
-  while (count < a & i < b) {
+  while ((count < a) && (i < b)) {
     if (H01(count, 0) <= H02(i, 0)) {
       CH021(i) += H01(count, 2);
       count += 1;
@@ -108,7 +108,7 @@ Eigen::MatrixXd getPusCR(const Eigen::VectorXd & beta,
       
       ////Calculate cumulative incidence function for type 1 failure
       for (i=0;i<a;i++) {
-        if (survtime(j) <= H01(i, 0) & u >= H01(i, 0)) {
+        if ((survtime(j) <= H01(i, 0)) && (u >= H01(i, 0))) {
           CIF1 += H01(i, 2)*exp(xgamma1 + xalpha1)*
             exp(-CH011(i)*exp(xgamma1 + xalpha1)-
             CH012(i)*exp(xgamma2 + xalpha2));
@@ -117,7 +117,7 @@ Eigen::MatrixXd getPusCR(const Eigen::VectorXd & beta,
       
       ////Calculate cumulative incidence function for type 2 failure
       for (i=0;i<b;i++) {
-        if (survtime(j) <= H02(i, 0) & u >= H02(i, 0)) {
+        if ((survtime(j) <= H02(i, 0)) && (u >= H02(i, 0))) {
           CIF2 += H02(i, 2)*exp(xgamma2 + xalpha2)*
             exp(-CH021(i)*exp(xgamma1 + xalpha1)-
             CH022(i)*exp(xgamma2 + xalpha2));
