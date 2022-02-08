@@ -13,6 +13,10 @@ MultVV <- function(x, y) {
     .Call(`_FastJM_MultVV`, x, y)
 }
 
+CumSum <- function(x) {
+    .Call(`_FastJM_CumSum`, x)
+}
+
 MultVVoutprod <- function(x) {
     .Call(`_FastJM_MultVVoutprod`, x)
 }
@@ -83,6 +87,14 @@ getMC <- function(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z,
 
 getMCSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
     .Call(`_FastJM_getMCSF`, beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+}
+
+getPus <- function(beta, gamma1, alpha1, Sig, sigma, H01, Z, X1, Y, X2, mdata, mdataS, survtime, xsmatrix, wsmatrix, u) {
+    .Call(`_FastJM_getPus`, beta, gamma1, alpha1, Sig, sigma, H01, Z, X1, Y, X2, mdata, mdataS, survtime, xsmatrix, wsmatrix, u)
+}
+
+getPusCR <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, H01, H02, Z, X1, Y, X2, mdata, mdataS, survtime, xsmatrix, wsmatrix, u) {
+    .Call(`_FastJM_getPusCR`, beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, H01, H02, Z, X1, Y, X2, mdata, mdataS, survtime, xsmatrix, wsmatrix, u)
 }
 
 getfitted <- function(beta, Z, X1, Y, mdata, mdataS, FUNB) {

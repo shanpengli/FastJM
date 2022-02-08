@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.survfitjmcs.R
 \name{plot.survfitjmcs}
 \alias{plot.survfitjmcs}
-\title{Plot survival probabilities for new subjects}
+\title{Plot conditional probabilities for new subjects}
 \usage{
 \method{plot}{survfitjmcs}(
   x,
@@ -32,7 +32,9 @@ If single failure type, then survival probabilities will be returned.
 Otherwise, cumulative incidence probabilities for each failure type will be returned.
 }
 \description{
-Plot survival probabilities for new subjects.
+Plot conditional probabilities for new subjects. 
+If \code{CompetingRisk = FALSE}, print the survival probabilities. 
+Otherwise, print the cumulative incidence probabilities for each failure type.
 }
 \examples{
 \donttest{

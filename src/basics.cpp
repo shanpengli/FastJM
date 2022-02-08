@@ -26,6 +26,18 @@ double  MultVV(const Eigen::VectorXd & x, const Eigen::VectorXd & y) {
 }
 
 // [[Rcpp::export]]
+Eigen::VectorXd CumSum(const Eigen::VectorXd & x) {
+    Eigen::VectorXd a(x.size());
+    int i;
+    double temp = 0;
+    for (i=0;i<a.size();i++) {
+        temp += x(i);
+        a(i) = temp;
+    }
+    return a;
+}
+
+// [[Rcpp::export]]
 Eigen::MatrixXd MultVVoutprod(const Eigen::VectorXd & x) {
     Eigen::MatrixXd m = x * x.transpose();
     return m;
