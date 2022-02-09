@@ -8,7 +8,7 @@ test_that(" joint model (jmcs)",
                         random =  ~ time| ID)
             
             expect_equal(mean(fit$beta), 0.29819263, tolerance = (10 ^ 8) * myEps)
-            expect_equal(mean(fit$vcov), 0.000757106176, tolerance = (10 ^ 7) * myEps)
+            expect_equal(mean(fit$vcov), 0.000757106178, tolerance = (10 ^ 7) * myEps)
             expect_equal(fit$loglike, -8989.389, tolerance = (10 ^ 12) * myEps)
             
  
