@@ -1,3 +1,7 @@
+# FastJM 1.1.2
+
+* Correct testthat error.
+
 # FastJM 1.1.1
 
 * Correct testthat error.
