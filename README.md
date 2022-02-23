@@ -6,6 +6,7 @@
 [![R-CMD-check](https://github.com/shanpengli/FastJM/workflows/R-CMD-check/badge.svg)](https://github.com/shanpengli/FastJM/actions)
 [![metacran
 downloads](https://cranlogs.r-pkg.org/badges/FastJM)](https://cran.r-project.org/package=FastJM)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/FastJM)](https://cran.r-project.org/package=FastJM)
 [![CRAN_time_from_release](https://www.r-pkg.org/badges/ago/FastJM)](https://cran.r-project.org/package=FastJM)
 [![CRAN_Status_Badge_version_last_release](https://www.r-pkg.org/badges/version-last-release/FastJM)](https://cran.r-project.org/package=FastJM)
 <!-- badges: end -->
@@ -21,6 +22,8 @@ joint model, we use `jmcs` function.
 ``` r
 require(FastJM)
 #> Loading required package: FastJM
+#> Loading required package: MASS
+#> Loading required package: statmod
 data(ydata)
 data(cdata)
 fit <- jmcs(ydata = ydata, cdata = cdata, 
