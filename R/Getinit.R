@@ -102,7 +102,7 @@ Getinit <- function(cdata, ydata, long.formula, surv.formula,
       if (survinitial) {
         gamma1 <- fitSURV1$coefficients
       } else {
-        gamma1 = rep(0, ncol(X2))
+        gamma1 = rep(0, length(fitSURV1$coefficients))
         names(gamma1) <- names(fitSURV1$coefficients)
       }
       
