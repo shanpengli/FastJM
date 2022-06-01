@@ -9,6 +9,10 @@
   estimator = c("both", "mean", "median"),
   conf.int = TRUE,
   include.y = FALSE,
+  xlab = NULL,
+  ylab = NULL,
+  xlim = NULL,
+  ylim = NULL,
   ...
 )
 }
@@ -23,6 +27,14 @@ over the M replications of the Monte Carlo scheme described in \code{survfitjmcs
 \item{conf.int}{logical; if TRUE, then a pointwise confidence interval is included in the plot. Default is TRUE.}
 
 \item{include.y}{include longitudinal responses of this subject versus time. Default is FALSE.}
+
+\item{xlab}{X axis label.}
+
+\item{ylab}{Y axis label.}
+
+\item{xlim}{X axis support.}
+
+\item{ylim}{Y axis support.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

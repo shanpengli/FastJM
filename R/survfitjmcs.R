@@ -23,7 +23,7 @@
 ##' @export
 ##' 
 survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL, 
-                           u = NULL, M = 200, simulate = TRUE, quadpoint = NULL, ...) {
+                        u = NULL, M = 200, simulate = TRUE, quadpoint = NULL, ...) {
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
   if (is.null(ynewdata))
@@ -48,7 +48,7 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
          survival probabilities later than the last observed time of the object. 
                The last observed time for risk 1 and 2 is", max(H01[, 1]), "and", max(H02[, 1])))
   }
-
+  
   bvar <- all.vars(object$random)
   if (!(bvar[length(bvar)] %in% colnames(ynewdata)))
     stop(paste("The ID variable", bvar[length(bvar)], "is not found in ynewdata."))
@@ -57,23 +57,23 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   
   ydata2 <- rbind(object$ydata, ynewdata)
   cdata2 <- rbind(object$cdata, cnewdata)
-
+  
   getdum <- getdummy(long.formula = object$LongitudinalSubmodel,
                      surv.formula = object$SurvivalSubmodel,
                      random = object$random, ydata = ydata2, cdata = cdata2)
-
+  
   ydata2 <- getdum$ydata
   cdata2 <- getdum$cdata
-
+  
   Yvar <- colnames(ydata2)[-1]
   Cvar <- colnames(cdata2)[-1]
   bvar <- all.vars(object$random)
-
+  
   ny <- nrow(ynewdata)
   nc <- nrow(cnewdata)
   Ny <- nrow(ydata2)
   Nc <- nrow(cdata2)
-
+  
   ynewdata <- ydata2[c((Ny-ny+1):Ny), ]
   cnewdata <- cdata2[c((Nc-nc+1):Nc), ]
   
@@ -495,8 +495,8 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       
       for (jj in 1:lengthu) {
         Pus <- getPusCR(beta, gamma1, gamma2, nu1, nu2, Sig, sigma, H01, 
-                         H02, Z, X, Y, X2, mdata, mdataS, survtime, 
-                         xsmatrix, wsmatrix, u[jj])
+                        H02, Z, X, Y, X2, mdata, mdataS, survtime, 
+                        xsmatrix, wsmatrix, u[jj])
         Predraw1[, jj] <- Pus[, 1]
         Predraw2[, jj] <- Pus[, 2]
       }
@@ -512,8 +512,8 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       
     }
   }
-    
-
+  
+  
 }
   
 

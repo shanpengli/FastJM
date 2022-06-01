@@ -1,3 +1,7 @@
+# FastJM 1.1.3
+
+* Correct syntax error on ```jmcs()```.
+
 # FastJM 1.1.2
 
 * Correct testthat error.
