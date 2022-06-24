@@ -12,7 +12,8 @@
   xlab = NULL,
   ylab = NULL,
   xlim = NULL,
-  ylim = NULL,
+  ylim.long = NULL,
+  ylim.surv = NULL,
   ...
 )
 }
@@ -34,7 +35,9 @@ over the M replications of the Monte Carlo scheme described in \code{survfitjmcs
 
 \item{xlim}{X axis support.}
 
-\item{ylim}{Y axis support.}
+\item{ylim.long}{Y axis support for the longitudinal outcome.}
+
+\item{ylim.surv}{Y axis support for the event / survival probability.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

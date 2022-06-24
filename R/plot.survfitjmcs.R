@@ -14,7 +14,8 @@
 ##' @param xlab X axis label.
 ##' @param ylab Y axis label.
 ##' @param xlim X axis support.
-##' @param ylim Y axis support.
+##' @param ylim.long Y axis support for the longitudinal outcome.
+##' @param ylim.surv Y axis support for the event / survival probability.
 ##' @param ... further arguments passed to or from other methods.
 ##' @return plots of conditional probabilities over different pre-specified time points for subjects. 
 ##' If single failure type, then survival probabilities will be returned. 
@@ -48,17 +49,18 @@
 ##' 
 plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"), 
                             conf.int = TRUE, include.y = FALSE, xlab = NULL, ylab = NULL, 
-                            xlim = NULL, ylim = NULL, ...) {
+                            xlim = NULL, ylim.long = NULL, ylim.surv = NULL, ...) {
   
   if (!inherits(x, "survfitjmcs"))
     stop("Use only with 'survfitjmcs' xs.\n")
   
   if (x$simulate) {
+    
+    if (is.null(xlab)) xlab = "Time"
+    if (is.null(ylim.surv)) ylim.surv = c(0, 1)
+    
     if (!x$CompetingRisk) {
       which = 1:nrow(x$Last.time)
-      if (is.null(ylim)) ylim <- c(0, 1)
-      if (is.null(xlab)) xlab = "Time"
-      if (is.null(ylab)) ylab = "Longitudinal ouctome"
       ask = (prod(par("mfcol")) < length(which))
       show <- rep(TRUE, length(which))
       return = FALSE
@@ -76,23 +78,27 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
           times <- c(0, as.numeric(x$Last.time[i, 2]), x$Pred[[i]][, 1])
           probmean <- c(1, 1, x$Pred[[i]][, 2])
           probmedian <- c(1, 1, x$Pred[[i]][, 3])
+          if (is.null(xlim)) xlim <- c(0, max(x$Pred[[i]][, 1]))
           if (estimator == "both") {
             if (!include.y) {
-              plot(times, probmean, xlab = xlab, ylab = ylab, 
-                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim)
+              if (is.null(ylab)) ylab <- expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
+                                                          ", ", y[i]^(s), ", ",  Psi,")", sep = " "))
+              plot(times, probmean, xlab = xlab, ylab = ylab, xlim = xlim,
+                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim.surv)
               lines(times, probmedian, col = "green", type = "l")
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
             } else {
-              if (is.null(xlim)) xlim <- c(0, max(x$Pred[[i]][, 1]))
-              plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = xlim, ylim = c(110, 170), axes = TRUE, xlab = xlab, 
-                   ylab = "", type = "p", pch = 8)
+              if (is.null(ylab)) ylab = "Longitudinal outcome"
+              plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = xlim, axes = TRUE, xlab = xlab, 
+                   ylab = "", type = "p", pch = 8, ylim = ylim.long)
               title(ylab = ylab, line=2.5)
               par(new = TRUE)    
               plot(times, probmean, xlab = "", ylab = "", 
-                   main = paste("Subject", x$Last.time[i, 1], sep = " "), xlim = xlim, col = "red", type = "l", ylim = ylim, axes = FALSE)
-              axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
+                   main = paste("Subject", x$Last.time[i, 1], sep = " "), xlim = xlim, col = "red", type = "l", 
+                   ylim = ylim.surv, axes = FALSE)
+              axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
               mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
                                      ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
               lines(times, probmedian, col = "green", type = "l")
@@ -102,44 +108,50 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
             }
           } else if (estimator == "median") {
             if (!include.y) {
-              plot(times, probmedian, xlab = "Time", ylab = expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
-                                                                             ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "green", type = "l", ylim = ylim)
-              abline(v = as.numeric(x$Last.time[i, 2]))
+              if (is.null(ylab)) ylab <- expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
+                                                          ", ", y[i]^(s), ", ",  Psi,")", sep = " "))
+              plot(times, probmedian, xlab = xlab, ylab = ylab, xlim = xlim,
+                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim.surv)
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
             } else {
-              plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][, 1])), axes = TRUE, xlab = "Time", 
-                   ylab = "", type = "p", pch = 8)
-              title(ylab = "Longitudinal outcome", line=2.5)
+              if (is.null(ylab)) ylab = "Longitudinal outcome"
+              plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = xlim, axes = TRUE, xlab = xlab, 
+                   ylab = "", type = "p", pch = 8, ylim = ylim.long)
+              title(ylab = ylab, line=2.5)
               par(new = TRUE)    
               plot(times, probmedian, xlab = "", ylab = "", 
-                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "green", type = "l", ylim = ylim, axes = FALSE)
-              axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
-              mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
+                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", 
+                   ylim = ylim.surv, axes = FALSE, xlim = xlim)
+              axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
+              mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
+                                     ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
             }
           } else if (estimator == "mean") {
             if (!include.y) {
-              plot(times, probmean, xlab = "Time", ylab = expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
-                                                                           ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim)
-              abline(v = as.numeric(x$Last.time[i, 2]))
+              if (is.null(ylab)) ylab <- expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
+                                                          ", ", y[i]^(s), ", ",  Psi,")", sep = " "))
+              plot(times, probmean, xlab = xlab, ylab = ylab, xlim = xlim,
+                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim.surv)
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
             } else {
-              plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][, 1])), axes = TRUE, xlab = "Time", 
-                   ylab = "", type = "p", pch = 8)
-              title(ylab = "Longitudinal outcome", line=2.5)
+              if (is.null(ylab)) ylab = "Longitudinal outcome"
+              plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], axes = TRUE, xlab = xlab, 
+                   ylab = "", type = "p", pch = 8, ylim = ylim.long, xlim = xlim)
+              title(ylab = ylab, line=2.5)
               par(new = TRUE)    
               plot(times, probmean, xlab = "", ylab = "", 
-                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
-              axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
-              mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
+                   main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", 
+                   ylim = ylim.surv, axes = FALSE, xlim = xlim)
+              axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
+              mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
+                                     ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
               segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                        y1 = 1,
                        lwd = 1)
@@ -177,28 +189,34 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
       
       for (i in 1:nrow(x$Last.time)) {
         for (j in 1:2) {
+          if (is.null(xlim)) xlim <- c(0, max(x$Pred[[i]][[j]][, 1]))
           if (show[(i-1)*2+j] && !return) {
             times <- c(0, as.numeric(x$Last.time[i, 2]), x$Pred[[i]][[j]][, 1])
             probmean <- c(0, 0, x$Pred[[i]][[j]][, 2])
             probmedian <- c(0, 0, x$Pred[[i]][[j]][, 3])
             if (estimator == "both") {
               if (!include.y) {
-                plot(times, probmean, xlab = "Time", ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
+                plot(times, probmean, xlab = xlab, ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
                                                                              ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim)
+                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), 
+                     col = "red", type = "l", ylim = ylim.surv, xlim = xlim)
                 lines(times, probmedian, col = "green", type = "l")
                 segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                          y1 = 1,
                          lwd = 1)
               } else {
-                plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][[j]][, 1])), axes = TRUE, xlab = "Time", 
-                     ylab = "", type = "p", pch = 8)
-                title(ylab = "Longitudinal outcome", line=2.5)
+                if (is.null(ylab)) ylab = "Longitudinal outcome"
+                plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = xlim, axes = TRUE, 
+                     xlab = xlab, ylab = "", type = "p", pch = 8, ylim = ylim.long)
+                title(ylab = ylab, line=2.5)
                 par(new = TRUE)    
                 plot(times, probmean, xlab = "", ylab = "", 
-                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
-                axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
-                mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
+                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), 
+                     col = "red", type = "l", ylim = ylim.surv, axes = FALSE, xlim = xlim)
+                axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
+                mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", 
+                                       T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
+                      side = 4, line = 2.5)
                 lines(times, probmedian, col = "green", type = "l")
                 segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                          y1 = 1,
@@ -206,44 +224,52 @@ plot.survfitjmcs <- function (x, estimator = c("both", "mean", "median"),
               }
             } else if (estimator == "median") {
               if (!include.y) {
-                plot(times, probmedian, xlab = "Time", ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
-                                                                               ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "green", type = "l", ylim = ylim)
-                abline(v = as.numeric(x$Last.time[i, 2]))
+                plot(times, probmedian, xlab = xlab, ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
+                                                                           ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
+                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), 
+                     col = "red", type = "l", ylim = ylim.surv, xlim = xlim)
                 segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                          y1 = 1,
                          lwd = 1)
               } else {
-                plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][[j]][, 1])), axes = TRUE, xlab = "Time", 
-                     ylab = "", type = "p", pch = 8)
-                title(ylab = "Longitudinal outcome", line=2.5)
+                if (is.null(ylab)) ylab = "Longitudinal outcome"
+                plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], axes = TRUE, 
+                     xlab = xlab, ylab = "", type = "p", pch = 8, ylim = ylim.long, xlim = xlim)
+                title(ylab = ylab, line=2.5)
                 par(new = TRUE)    
                 plot(times, probmedian, xlab = "", ylab = "", 
-                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "green", type = "l", ylim = ylim, axes = FALSE)
-                axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
-                mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
+                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), 
+                     col = "red", type = "l", ylim = ylim.surv, axes = FALSE, xlim = xlim)
+                axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
+                mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", 
+                                       T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
+                      side = 4, line = 2.5)
                 segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                          y1 = 1,
                          lwd = 1)
               }
             } else if (estimator == "mean") {
               if (!include.y) {
-                plot(times, probmean, xlab = "Time", ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
-                                                                             ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
-                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim)
-                abline(v = as.numeric(x$Last.time[i, 2]))
+                plot(times, probmean, xlab = xlab, ylab = expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, 
+                                                                           ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
+                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), 
+                     col = "red", type = "l", ylim = ylim.surv, xlim = xlim)
                 segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                          y1 = 1,
                          lwd = 1)
               } else {
-                plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = c(0, max(x$Pred[[i]][[j]][, 1])), axes = TRUE, xlab = "Time", 
-                     ylab = "", type = "p", pch = 8)
-                title(ylab = "Longitudinal outcome", line=2.5)
+                if (is.null(ylab)) ylab = "Longitudinal outcome"
+                plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = xlim, axes = TRUE, 
+                     xlab = xlab, ylab = "", type = "p", pch = 8, ylim = ylim.long)
+                title(ylab = ylab, line=2.5)
                 par(new = TRUE)    
                 plot(times, probmean, xlab = "", ylab = "", 
-                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), col = "red", type = "l", ylim = ylim, axes = FALSE)
-                axis(side = 4, at = pretty(range(c(0, 1))), line = 0) 
-                mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), side = 4, line = 2.5)
+                     main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "), 
+                     col = "red", type = "l", ylim = ylim.surv, axes = FALSE, xlim = xlim)
+                axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
+                mtext(expression(paste("Pr(", T[i] <= u, ",", D[i] == k, " | ", 
+                                       T[i] > s, ", ", y[i]^(s), ", ",  Psi,")", sep = " ")), 
+                      side = 4, line = 2.5)
                 segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                          y1 = 1,
                          lwd = 1)
