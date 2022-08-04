@@ -45,8 +45,8 @@ NDc <- cdata[cdata$ID  %in% ID, ]
 survfit <- survfitjmcs(fit, 
                        ynewdata = ND, 
                        cnewdata = NDc, 
-                       u = seq(3, 4.8, by = 0.2), 
-                       M = 100,
+                       u = seq(3, 4.5, by = 0.3), 
+                       M = 50,
                        seed = 100)
 survfit
 ```

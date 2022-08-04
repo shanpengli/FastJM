@@ -13,6 +13,7 @@ survfitjmcs(
   M = 500,
   simulate = TRUE,
   quadpoint = 6,
+  print.progress = FALSE,
   ...
 )
 }
@@ -35,6 +36,8 @@ for which prediction of survival probabilities is required.}
 Otherwise, a first order estimator is used instead. Default is \code{TRUE}.}
 
 \item{quadpoint}{number of quadrature points used for estimating conditional probabilities. Default is 6.}
+
+\item{print.progress}{Progress of Monte Carlo simulation printed with a percentage. Default is FALSE.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
