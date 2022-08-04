@@ -10,9 +10,9 @@ survfitjmcs(
   ynewdata = NULL,
   cnewdata = NULL,
   u = NULL,
-  M = 200,
+  M = 500,
   simulate = TRUE,
-  quadpoint = NULL,
+  quadpoint = 6,
   ...
 )
 }
@@ -29,13 +29,12 @@ for which prediction of survival probabilities is required.}
 
 \item{u}{a numeric vector of times for which prediction survival probabilities are to be computed.}
 
-\item{M}{the number of Monte Carlo samples to be generated. Default is 200.}
+\item{M}{the number of Monte Carlo samples to be generated. Default is 500.}
 
 \item{simulate}{logical; if \code{TRUE}, a Monte Carlo approach is used to estimate conditional probabilities. 
-Otherwise, Gauss-Hermite quadrature rule is used for numerical integration to estimate instead. 
-Default is \code{TRUE}.}
+Otherwise, a first order estimator is used instead. Default is \code{TRUE}.}
 
-\item{quadpoint}{number of quadrature points used for estimating conditional probabilities when \code{simulate = FALSE}. Default is 20.}
+\item{quadpoint}{number of quadrature points used for estimating conditional probabilities. Default is 6.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

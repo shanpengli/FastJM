@@ -7,5 +7,6 @@
 #' @importFrom mvtnorm rmvt
 #' @importFrom graphics abline axis lines mtext panel.smooth par segments title
 #' @importFrom MASS mvrnorm
+#' @importFrom Hmisc hdquantile
 #' @importFrom stats as.formula median optim pnorm qqline qqnorm quantile vcov model.matrix model.frame runif pchisq
 NULL

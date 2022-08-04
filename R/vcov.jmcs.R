@@ -13,11 +13,10 @@
 vcov.jmcs <- function(object, ...) {
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
-  
   getdum <- getdummy(long.formula = object$LongitudinalSubmodel, 
                      surv.formula = object$SurvivalSubmodel, 
                      random = object$random, ydata = object$ydata, cdata = object$cdata)
-  
+
   surv.formula <- getdum$surv.formula
   random <- all.vars(object$random)
   vcov <- as.data.frame(object$vcov)

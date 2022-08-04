@@ -176,8 +176,6 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
   
   longfmla <- long.formula
   survfmla <- surv.formula
-  rawydata <- ydata
-  rawcdata <- cdata
 
   getinit <- Getinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
                      surv.formula = surv.formula,
@@ -185,6 +183,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      REML = REML, random = random, opt = opt)
   
   cdata <- getinit$cdata
+  ydata <- getinit$ydata
   
   survival <- all.vars(surv.formula)
   status <- as.vector(cdata[, survival[2]])
@@ -228,74 +227,14 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
     CompetingRisk <- FALSE
   }
   
-  gq_vals <- statmod::gauss.quad(n = quadpoint, kind = "hermite")
-  xs <- gq_vals$nodes
-  ws <- gq_vals$weights
-  
   if (p1a > 3 | p1a < 1) {
     stop("The current package cannot handle this dimension of random effects. Please re-consider your model.")
   }
   
-  if (p1a == 3) {
-    xsmatrix <- matrix(0, nrow = 3, ncol = quadpoint^3)
-    wsmatrix <- xsmatrix
-    xsmatrix[3, ] <- rep(xs, quadpoint^2)
-    Total <- NULL
-    for (i in 1:quadpoint) {
-      sub <- rep(xs[i], quadpoint)
-      Total <- c(Total, sub)
-    }
-    xsmatrix[2, ] <- rep(Total, quadpoint)
-    Total <- NULL
-    for (i in 1:quadpoint) {
-      sub <- rep(xs[i], quadpoint^2)
-      Total <- c(Total, sub)
-    }
-    xsmatrix[1, ] <- Total
-    xsmatrix <- t(xsmatrix)
-    
-    wsmatrix[3, ] <- rep(ws, quadpoint^2)
-    Total <- NULL
-    for (i in 1:quadpoint) {
-      sub <- rep(ws[i], quadpoint)
-      Total <- c(Total, sub)
-    }
-    wsmatrix[2, ] <- rep(Total, quadpoint)
-    Total <- NULL
-    for (i in 1:quadpoint) {
-      sub <- rep(ws[i], quadpoint^2)
-      Total <- c(Total, sub)
-    }
-    wsmatrix[1, ] <- Total
-    wsmatrix <- t(wsmatrix)
-  } else if (p1a == 2) {
-    xsmatrix <- matrix(0, nrow = 2, ncol = quadpoint^2)
-    wsmatrix <- xsmatrix
-    xsmatrix[2, ] <- rep(xs, quadpoint)
-    Total <- NULL
-    for (i in 1:quadpoint) {
-      sub <- rep(xs[i], quadpoint)
-      Total <- c(Total, sub)
-    }
-    xsmatrix[1, ] <- Total
-    xsmatrix <- t(xsmatrix)
-    
-    wsmatrix[2, ] <- rep(ws, quadpoint)
-    Total <- NULL
-    for (i in 1:quadpoint) {
-      sub <- rep(ws[i], quadpoint)
-      Total <- c(Total, sub)
-    }
-    wsmatrix[1, ] <- Total
-    wsmatrix <- t(wsmatrix)
-  } else {
-    xsmatrix <- matrix(0, nrow = 1, ncol = quadpoint)
-    wsmatrix <- xsmatrix
-    xsmatrix[1, ] <- xs
-    xsmatrix <- t(xsmatrix)
-    wsmatrix[1, ] <- ws
-    wsmatrix <- t(wsmatrix)
-  }
+  getGH <- GetGHmatrix(quadpoint = quadpoint, Sig = Sig)
+  
+  xsmatrix <- getGH$xsmatrix
+  wsmatrix <- getGH$wsmatrix
   
   iter=0
   
@@ -498,7 +437,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      H02, Sig, sigma, iter, convergence, vcov, sebeta, segamma1,
                      segamma2, sealpha1, sealpha2, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
-                     quadpoint, rawydata, rawcdata, PropComp, FunCall_long,
+                     quadpoint, ydata, cdata, PropComp, FunCall_long,
                      FunCall_survival, random, mycall, method, id)
       
       names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", "H01", "H02", "Sig", 
@@ -653,7 +592,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
       result <- list(beta, gamma1, alpha1, H01, Sig, sigma, iter, convergence, 
                      vcov, sebeta, segamma1, sealpha1, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
-                     quadpoint, rawydata, rawcdata, PropComp, FunCall_long, FunCall_survival, 
+                     quadpoint, ydata, cdata, PropComp, FunCall_long, FunCall_survival, 
                      random, mycall, method, id)
       
       names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma",

@@ -41,9 +41,14 @@ print.survfitjmcs <- function (x, ...) {
       print(mapply(f.CR, x$Pred, x$Last.time[, 2], SIMPLIFY = FALSE))
     }
   } else {
-    cat("\nPrediction of Conditional Probabilities of Event\nbased on the Guass-Hermite quadrature rule with", x$quadpoint,
-        "quadrature points\n(Confidence interval not available)\n")
-    print(x$Pred)
+    if (!x$CompetingRisk) {
+      cat("\nPrediction of Conditional Survival Probabilities\n", "(Confidence interval not available)\n")
+      print(x$Pred)
+    } else {
+      cat("\nPrediction of Conditional Cumulative Incidence Rate\n", "(Confidence interval not available)\n")
+      print(x$Pred)
+    }
+
   }
   invisible(x)
   }

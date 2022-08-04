@@ -25,8 +25,6 @@ Rcpp::List getECpseudo(const Eigen::VectorXd & beta,
   int k=mdata.size();
   int p1a=Z.cols();
   
-  // auto start = std::chrono::high_resolution_clock::now();
-  
   double dem,cuh01,cuh02,haz01,haz02,xgamma1,xgamma2,temp,mu,zb;
   Eigen::VectorXd bi(p1a);
   Eigen::VectorXd bii(p1a);
@@ -168,10 +166,6 @@ Rcpp::List getECpseudo(const Eigen::VectorXd & beta,
 
   }
 
-  // auto end = std::chrono::high_resolution_clock::now();
-  // std::chrono::duration<double> elapsed = end - start;
-  // Rprintf("Elapsed time for E step: %f\n", elapsed.count());
-  
   return Rcpp::List::create(Rcpp::Named("FUNB")=FUNB,
                             Rcpp::Named("FUNBS")=FUNBS,
                             Rcpp::Named("FUNEC")=FUNEC,

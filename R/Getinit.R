@@ -120,17 +120,17 @@ Getinit <- function(cdata, ydata, long.formula, surv.formula,
     getdum <- getdummy(long.formula = long.formula, surv.formula = surv.formula, 
                        random = random, ydata = ydata, cdata = cdata)
     
-    ydata <- getdum$ydata
-    cdata <- getdum$cdata
+    ydatanew <- getdum$ydata
+    cdatanew <- getdum$cdata
     
     ## extract covariates
-    X <- ydata[, -c(1:2)]
+    X <- ydatanew[, -c(1:2)]
     X <- as.matrix(cbind(1, X))
     
-    Y <- as.vector(ydata[, 2])
-    X2 <- as.matrix(cdata[, -c(1:3)])
-    survtime <- as.vector(cdata[, survival[1]])
-    cmprsk <- as.vector(cdata[, survival[2]])
+    Y <- as.vector(ydatanew[, 2])
+    X2 <- as.matrix(cdatanew[, -c(1:3)])
+    survtime <- as.vector(cdatanew[, survival[1]])
+    cmprsk <- as.vector(cdatanew[, survival[2]])
     
     if (prod(c(0, 1, 2) %in% unique(cmprsk))) {
       a <- list(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, 

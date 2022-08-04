@@ -4,6 +4,7 @@ getdummy <- function(long.formula, surv.formula, random, ydata, cdata) {
   survival <- all.vars(surv.formula)
   cnames <- colnames(cdata)
   ynames <- colnames(ydata)
+
   ID <- all.vars(random)[length(all.vars(random))]
   
   random.var <- all.vars(random)
@@ -13,7 +14,6 @@ getdummy <- function(long.formula, surv.formula, random, ydata, cdata) {
   ynames <- colnames(ydata2)
   ydata2 <- data.frame(ydata[, random.var[length(random.var)]], m[[1]], ydata2[, -1])
   colnames(ydata2) <- c(random.var[length(random.var)], names(m)[1], ynames[-1])
-  
   surv.formula <- surv.formula[-2]
   m <- model.frame(surv.formula, cdata)
   cdata2 <- model.matrix(surv.formula, m)
