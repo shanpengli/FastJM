@@ -15,7 +15,6 @@
 ##' @param simulate logical; if \code{TRUE}, a Monte Carlo approach is used to estimate conditional probabilities. 
 ##' Otherwise, a first order estimator is used instead. Default is \code{TRUE}.
 ##' @param quadpoint number of quadrature points used for estimating conditional probabilities. Default is 6.
-##' @param print.progress Progress of Monte Carlo simulation printed with a percentage. Default is FALSE.
 ##' @param ... further arguments passed to or from other methods. 
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
@@ -23,7 +22,7 @@
 ##' @export
 ##' 
 survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL, 
-                        u = NULL, M = 500, simulate = TRUE, quadpoint = 6, print.progress = FALSE, ...) {
+                        u = NULL, M = 500, simulate = TRUE, quadpoint = 6, ...) {
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
   if (is.null(ynewdata))
@@ -245,9 +244,7 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       names(allPi1) <- ID
       names(allPi2) <- ID
       
-      if (print.progress) {
-        pb = txtProgressBar(min = 1, max = M, initial = 1, style = 3)  
-      }
+      pb = txtProgressBar(min = 1, max = M, initial = 1, style = 3)  
       
       for (i in 1:M) {
         ### 0. Set the initial estimator
@@ -400,11 +397,9 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         H01.init <- H01l
         H02.init <- H02l
         
-        if (print.progress) {
-          setTxtProgressBar(pb,i) 
-        }
+        setTxtProgressBar(pb,i) 
       }
-      if (print.progress) close(pb)
+      close(pb)
       
       for (j in 1:N.ID) {
         
