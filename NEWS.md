@@ -1,3 +1,7 @@
+# FastJM 1.2.0
+
+* Correct the implementation of dynamic prediction in ```surviftjmcs()``` for the competing risk.
+
 # FastJM 1.1.3
 
 * Correct syntax error on ```jmcs()```.
