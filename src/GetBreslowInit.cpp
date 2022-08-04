@@ -88,7 +88,7 @@ Rcpp::List GetBreslowInit(const Eigen::MatrixXd & cdata,
   
   if(a==0)
   {
-    printf("No failure time information for risk 1; Program exits\n");
+    Rprintf("No failure time information for risk 1; Program exits\n");
     return ( -1.0 );
   } 
   
@@ -181,7 +181,7 @@ Rcpp::List GetBreslowInit(const Eigen::MatrixXd & cdata,
   
   if(b==0)
   {
-    printf("No failure time information for risk 2; Program exits\n");
+    Rprintf("No failure time information for risk 2; Program exits\n");
     return ( -1.0 );
   } 
   
