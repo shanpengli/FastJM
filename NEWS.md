@@ -1,6 +1,6 @@
 # FastJM 1.2.0
 
-* Correct the implementation of dynamic prediction in ```surviftjmcs()``` for the competing risk.
+* Correct the implementation of dynamic prediction in ```surviftjmcs()``` for the competing risk and add ```summary()``` for providing parameter estimates and SE for both sub-models.
 
 # FastJM 1.1.3
 

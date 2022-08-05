@@ -132,6 +132,9 @@ fixef(fit, process = "Event")
 head(ranef(fit))
 # Obtain the variance-covariance matrix of all parameter estimates 
 vcov(fit)
+# Obtain the result summaries of the joint model fit
+summary(fit, process = "longitudinal")
+summary(fit, process = "survival")
 # Prediction of cumulative incidence for competing risks data
 # Predict the conditional probabilities for two patients who are alive (censored)
 ND <- ydata[ydata$ID \%in\% c(419, 218), ]

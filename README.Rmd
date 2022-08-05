@@ -46,7 +46,7 @@ survfit <- survfitjmcs(fit,
                        ynewdata = ND, 
                        cnewdata = NDc, 
                        u = seq(3, 4.5, by = 0.3), 
-                       M = 100,
+                       M = 50,
                        seed = 100)
 survfit
 ```

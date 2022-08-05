@@ -42,10 +42,10 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   } else {
     H01 <- object$H01
     H02 <- object$H02
-    if (max(u) > H01[nrow(H01), 1] | max(u) > H02[nrow(H02), 1])
-      stop(paste("The current joint model cannot predict the conditional 
-         survival probabilities later than the last observed time of the object. 
-               The last observed time for risk 1 and 2 is", max(H01[, 1]), "and", max(H02[, 1])))
+    # if (max(u) > H01[nrow(H01), 1] | max(u) > H02[nrow(H02), 1])
+    #   stop(paste("The current joint model cannot predict the conditional 
+    #      survival probabilities later than the last observed time of the object. 
+    #            The last observed time for risk 1 and 2 is", max(H01[, 1]), "and", max(H02[, 1])))
   }
   
   bvar <- all.vars(object$random)
@@ -373,7 +373,7 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
           }
           for (jj in 1:lengthu) {
             ## calculate the CIF
-            CIF1 <- CIF1.CR(data, H01, H02, s, u[jj], bl)
+            CIF1 <- CIF1.CR(data, H01l, H02l, s, u[jj], bl)
             P1us <- Pk.us(CIF1, data, bl)
             if (P1us > 1) {
               allPi1[[j]][i, jj] <- NA
@@ -381,7 +381,7 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
               allPi1[[j]][i, jj] <- P1us
             }
             
-            CIF2 <- CIF2.CR(data, H01, H02, s, u[jj], bl)
+            CIF2 <- CIF2.CR(data, H01l, H02l, s, u[jj], bl)
             P2us <- Pk.us(CIF2, data, bl)
             if (P2us > 1) {
               allPi2[[j]][i, jj] <- NA
