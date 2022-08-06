@@ -54,6 +54,9 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   if (!(bvar[length(bvar)] %in% colnames(cnewdata)))
     stop(paste("The ID variable", bvar[length(bvar)], "is not found in cnewdata."))
   
+  ynewdata <- ynewdata[, colnames(object$ydata)]
+  cnewdata <- cnewdata[, colnames(object$cdata)]
+  
   ydata2 <- rbind(object$ydata, ynewdata)
   cdata2 <- rbind(object$cdata, cnewdata)
   
