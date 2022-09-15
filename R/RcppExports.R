@@ -49,6 +49,14 @@ MultMM <- function(x, y) {
     .Call(`_FastJM_MultMM`, x, y)
 }
 
+GetCIF1CR <- function(gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, u, bi) {
+    .Call(`_FastJM_GetCIF1CR`, gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, u, bi)
+}
+
+GetCIF2CR <- function(gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, u, bi) {
+    .Call(`_FastJM_GetCIF2CR`, gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, u, bi)
+}
+
 getBayes <- function(beta, Sig, sigma, Z, X1, Y, mdata, mdataS) {
     .Call(`_FastJM_getBayes`, beta, Sig, sigma, Z, X1, Y, mdata, mdataS)
 }
@@ -59,6 +67,10 @@ getCov <- function(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z
 
 getCovSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
     .Call(`_FastJM_getCovSF`, beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+}
+
+getECIF <- function(beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posbi, Poscov) {
+    .Call(`_FastJM_getECIF`, beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posbi, Poscov)
 }
 
 getECpseudo <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov) {
