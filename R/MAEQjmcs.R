@@ -1,0 +1,177 @@
+##' @export
+##' 
+
+MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL, 
+                       obs.time = NULL, method = c("Laplace", "GH"), 
+                       quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+                       quintile.width = 0.25, ...) {
+  
+  if (!inherits(object, "jmcs"))
+    stop("Use only with 'jmcs' xs.\n")
+  if (is.null(landmark.time)) 
+    stop("Please specify the landmark.time for dynamic prediction.")   
+  if (!method %in% c("Laplace", "GH"))
+    stop("Please specify a method for probability approximation: Laplace or GH.")
+  if (!is.vector(horizon.time)) 
+    stop("horizon.time must be vector typed.")
+  if (is.null(quadpoint)) {
+    quadpoint <- object$quadpoint
+  }
+  if (is.null(obs.time)) {
+    stop("Please specify a vector that represents the time variable from ydatanew.")
+  } else {
+    if (!obs.time %in% colnames(object$ydata)) {
+      stop(paste0(obs.time, " is not found in ynewdata."))
+    }
+  }
+  groups <- 1/quintile.width
+  if (floor(groups) != groups)
+    stop("The reciprocal of quintile.width must be an integer.")
+  
+  set.seed(seed)
+  cdata <- object$cdata
+  ydata <- object$ydata
+  long.formula <- object$LongitudinalSubmodel
+  surv.formula <- object$SurvivalSubmodel
+  surv.var <- all.vars(surv.formula)
+  random <- all.vars(object$random) 
+  ID <- random[length(random)]
+  
+  folds <- caret::groupKFold(c(1:nrow(cdata)), k = n.cv)
+  MAEQ.cv <- list()
+  for (t in 1:n.cv) {
+    
+    train.cdata <- cdata[folds[[t]], ]
+    train.ydata <- ydata[ydata[, ID] %in% train.cdata[, ID], ]
+    
+    fit <- try(jmcs(cdata = train.cdata, ydata = train.ydata, 
+                      long.formula = long.formula,
+                      surv.formula = surv.formula,
+                      quadpoint = quadpoint, random = object$random), silent = TRUE)
+    
+    if ('try-error' %in% class(fit)) {
+      writeLines(paste0("Error occured in the ", t, " th training!"))
+      MAEQ.cv[[t]] <- NULL
+    } else if (fit$iter == maxiter) {
+      MAEQ.cv[[t]] <- NULL
+    } else {
+      
+      val.cdata <- cdata[-folds[[t]], ]
+      val.ydata <- ydata[ydata[, ID] %in% val.cdata[, ID], ]
+      
+      val.cdata <- val.cdata[val.cdata[, surv.var[1]] > landmark.time, ]
+      val.ydata <- val.ydata[val.ydata[, ID] %in% val.cdata[, ID], ]
+      val.ydata <- val.ydata[val.ydata[, obs.time] <= landmark.time, ]
+      NewyID <- unique(val.ydata[, ID])
+      val.cdata <- val.cdata[val.cdata[, ID] %in% NewyID, ]
+      
+      survfit <- try(survfitjmcs(fit, ynewdata = val.ydata, cnewdata = val.cdata, 
+                                   u = horizon.time, method = method, 
+                                   Last.time = rep(landmark.time, nrow(val.cdata)),
+                                   obs.time = obs.time, quadpoint = quadpoint), silent = TRUE)
+      
+      if ('try-error' %in% class(survfit)) {
+        writeLines(paste0("Error occured in the ", t, " th validation!"))
+        MAEQ.cv[[t]] <- NULL
+      } else { 
+        AllCIF1 <- list()
+        AllCIF2 <- list()
+        for (j in 1:length(horizon.time)) {
+          CIF <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 3))
+          colnames(CIF) <- c("ID", "CIF1", "CIF2")
+          CIF$ID <- val.cdata[, ID]
+          ## extract estimated CIF
+          for (k in 1:nrow(CIF)) {
+            CIF[k, 2] <- survfit$Pred[[k]][j, 2]
+            CIF[k, 3] <- survfit$Pred[[k]][j, 3]
+          }
+          ## group subjects based on CIF
+          quant1 <- quantile(CIF$CIF1, probs = seq(0, 1, by = quintile.width))
+          EmpiricalCIF1 <- rep(NA, groups)
+          PredictedCIF1 <- rep(NA, groups)
+          
+          for (i in 1:groups) {
+            subquant <- CIF[CIF$CIF1 > quant1[i] &
+                              CIF$CIF1 <= quant1[i+1], 1:2]
+            quantsubdata <- val.cdata[val.cdata[, ID] %in% subquant$ID, surv.var]
+            
+            quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
+                                           time = surv.var[1],
+                                           status = surv.var[2])
+            
+            quantsubRisk1 <- quantsubCIF$H1
+            ii <- 1
+            while (ii <= nrow(quantsubRisk1)) {
+              if (quantsubRisk1[ii, 1] > horizon.time[j]) {
+                if (ii >= 2) {
+                  EmpiricalCIF1[i] <- quantsubRisk1[ii-1, 4]
+                } else {
+                  EmpiricalCIF1[i] <- 0
+                }
+                break
+              } else {
+                ii <- ii + 1
+              }
+            }
+            if (is.na(EmpiricalCIF1[i])) {
+              if (nrow(quantsubRisk1) == 0) {
+                EmpiricalCIF1[i] <- 0
+              } else {
+                EmpiricalCIF1[i] <- quantsubRisk1[nrow(quantsubRisk1), 4] 
+              }
+            }
+            PredictedCIF1[i] <- mean(subquant$CIF1)
+          }
+          AllCIF1[[j]] <- data.frame(EmpiricalCIF1, PredictedCIF1)
+          
+          quant2 <- quantile(CIF$CIF2, probs = seq(0, 1, by = quintile.width))
+          EmpiricalCIF2 <- rep(NA, groups)
+          PredictedCIF2 <- rep(NA, groups)
+          for (i in 1:(1/quintile.width)) {
+            subquant <- CIF[CIF$CIF2 > quant2[i] &
+                              CIF$CIF2 <= quant2[i+1], c(1, 3)]
+            quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
+            
+            quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
+                                           time = surv.var[1],
+                                           status = surv.var[2])
+            
+            quantsubRisk2 <- quantsubCIF$H2
+            ii <- 1
+            while (ii <= nrow(quantsubRisk2)) {
+              if (quantsubRisk2[ii, 1] > horizon.time[j]) {
+                if (ii >= 2) {
+                  EmpiricalCIF2[i] <- quantsubRisk2[ii-1, 4]
+                } else {
+                  EmpiricalCIF2[i] <- 0
+                }
+                break
+              } else {
+                ii <- ii + 1
+              }
+            }
+            if (is.na(EmpiricalCIF2[i])) {
+              if (nrow(quantsubRisk2) == 0) {
+                EmpiricalCIF2[i] <- 0
+              } else {
+                EmpiricalCIF2[i] <- quantsubRisk2[nrow(quantsubRisk2), 4] 
+              }
+            }
+            PredictedCIF2[i] <- mean(subquant$CIF2)
+          }
+          AllCIF2[[j]] <- data.frame(EmpiricalCIF2, PredictedCIF2)
+          
+        }
+        names(AllCIF1) <- names(AllCIF2) <- horizon.time
+        writeLines(paste0("The ", t, " th validation is done!"))
+        
+      }
+      result <- list(AllCIF1 = AllCIF1, AllCIF2 = AllCIF2)
+    }
+    MAEQ.cv[[t]] <- result
+  }
+  result <- list(MAEQ.cv = MAEQ.cv, n.cv = n.cv, landmark.time = landmark.time,
+                 horizon.time = horizon.time, method = method, quadpoint = quadpoint)
+  class(result) <- "MAEQjmcs"
+  return(result)
+}
