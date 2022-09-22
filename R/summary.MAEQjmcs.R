@@ -22,14 +22,14 @@ summary.MAEQjmcs <- function (x, ...) {
       colnames(sum) <- c("Horizon Time", "CIF1", "CIF2")
       for (i in 1:length(x$horizon.time)) {
         for (j in 1:x$n.cv) {
-          sum[i, 2] <- sum[i, 2] + mean(abs(x$MAEQ.cv[[j]]$AllCIF1[[i]][, 1] - 
+          sum[i, 2] <- sum[i, 2] + sum(abs(x$MAEQ.cv[[j]]$AllCIF1[[i]][, 1] - 
                                               x$MAEQ.cv[[j]]$AllCIF1[[i]][, 2])) 
-          sum[i, 3] <- sum[i, 3] + mean(abs(x$MAEQ.cv[[j]]$AllCIF2[[i]][, 1] - 
+          sum[i, 3] <- sum[i, 3] + sum(abs(x$MAEQ.cv[[j]]$AllCIF2[[i]][, 1] - 
                                               x$MAEQ.cv[[j]]$AllCIF2[[i]][, 2])) 
         }
       }
       sum[, -1] <- sum[, -1]/x$n.cv
-      cat("\nExpected mean absolute error across quintiles of predicted risk scores at the landmark time of", x$landmark.time, "\nbased on", x$n.cv, "fold cross validation\n")
+      cat("\nSum of absolute error across quintiles of predicted risk scores at the landmark time of", x$landmark.time, "\nbased on", x$n.cv, "fold cross validation\n")
       print(sum)
       invisible(x)
     } else {

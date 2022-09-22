@@ -122,36 +122,6 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   y.obs <- list()
   CompetingRisk <- object$CompetingRisk
   
-  # if (method == "Laplace") {
-  # 
-  #   if (nsig == 1) {
-  #     Z <- matrix(1, ncol = 1, nrow = length(Y))
-  #   } else {
-  #     Z <- data.frame(1, ynewdata[, bvar1])
-  #     Z <- as.matrix(Z)
-  #   }
-  #   X <- data.frame(1, ynewdata[, Yvar[2:length(Yvar)]])
-  #   X <- as.matrix(X)
-  #   Y <- ynewdata[, Yvar[1]]
-  #   mnewdata <- as.data.frame(table(ynewdata[, ID]))
-  #   colnames(mnewdata)[1] <- ID
-  #   n <- nrow(cnewdata)
-  #   mnewdataS <- rep(0, n)
-  #   mnewdataS[1] <- 1
-  #   mdataCum <- cumsum(mnewdata[, 2])
-  #   mdata2 <- mnewdata[, 2] - 1
-  #   mnewdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
-  #   beta <- object$beta
-  #   sigma <- object$sigma
-  #   Sig <- object$Sig
-  #   getBayesEst <- getBayes(beta, Sig, sigma, Z, X, Y, mnewdata[, 2], mnewdataS)
-  #   Posbi <- getBayesEst$Posbi
-  #   Poscov <- getBayesEst$Poscov
-  #   print(Posbi)
-  #   print(Poscov)
-  # 
-  # }
-  
   if (CompetingRisk) {
 
     beta <- object$beta
