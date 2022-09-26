@@ -233,20 +233,26 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         Z <- as.matrix(Z)
       }
       X2 <- as.matrix(subNDc[, Cvar[3:length(Cvar)]])
+      
+      ## find out E(bi)
+      data <- list(Y, X, Z, X2, CH0, beta, gamma, nu, sigma, Sig)
+      names(data) <- c("Y", "X", "Z", "X2", "CH0", "beta", "gamma", "nu", "sigma", "Sig")
+      opt <- optim(rep(0, nsig), logLik, data = data, method = "BFGS", hessian = TRUE)
+      meanb <- opt$par
+      Poscov <- solve(opt$hessian)
 
       if (method == "Laplace") {
-        ## find out E(bi)
-        data <- list(Y, X, Z, X2, CH0, beta, gamma, nu, sigma, Sig)
-        names(data) <- c("Y", "X", "Z", "X2", "CH0", "beta", "gamma", "nu", "sigma", "Sig")
-        opt <- optim(rep(0, nsig), logLik, data = data, method = "BFGS", hessian = TRUE)
-        meanb <- opt$par
         for (jj in 1:lengthu) {
           Pi <- P.us(data, CH0u[jj], meanb)
           Predraw[j, jj] <- 1 - Pi
         }
         quadpoint = NULL
       } else {
-        stop("GH TBD.")
+        for (jj in 1:lengthu) {
+          Predraw[j, jj] <- getES(beta, sigma, gamma, nu, Sig, Z, X, Y, 
+                                  as.vector(X2), xsmatrix, wsmatrix, CH0, CH0u[jj],
+                                  meanb, Poscov)
+        }
       }
 
     }

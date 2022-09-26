@@ -89,6 +89,10 @@ getECstandardSF <- function(beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, surv
     .Call(`_FastJM_getECstandardSF`, beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
 }
 
+getES <- function(beta, sigma, gamma1, alpha1, Sig, Z, X1, Y, X2, xsmatrix, wsmatrix, CH0s, CH0u, Posbi, Poscov) {
+    .Call(`_FastJM_getES`, beta, sigma, gamma1, alpha1, Sig, Z, X1, Y, X2, xsmatrix, wsmatrix, CH0s, CH0u, Posbi, Poscov)
+}
+
 getEWsik <- function(beta, gamma1, gamma2, alpha1, alpha2, sigma, Sig, Z, X, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov) {
     .Call(`_FastJM_getEWsik`, beta, gamma1, gamma2, alpha1, alpha2, sigma, Sig, Z, X, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov)
 }
