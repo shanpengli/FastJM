@@ -27,11 +27,17 @@ summary.PEjmcs <- function (x, error = c("MAE", "Brier"), ...) {
           sum <- sum + x$Brier.cv[[j]]
         }
         sum <- sum/x$n.cv
-        mean.Brier1 <- sum[, 1]
-        mean.Brier2 <- sum[, 2]
         
-        ExpectedBrier <- data.frame(x$horizon.time, mean.Brier1, mean.Brier2)
-        colnames(ExpectedBrier) <- c("Horizon Time", "Failure 1", "Failure 2")
+        if (x$CompetingRisk) {
+          mean.Brier1 <- sum[, 1]
+          mean.Brier2 <- sum[, 2]
+          ExpectedBrier <- data.frame(x$horizon.time, mean.Brier1, mean.Brier2)
+          colnames(ExpectedBrier) <- c("Horizon Time", "Brier Score 1", "Brier Score 2")
+        } else {
+          mean.Brier1 <- sum[, 1]
+          ExpectedBrier <- data.frame(x$horizon.time, mean.Brier1)
+          colnames(ExpectedBrier) <- c("Horizon Time", "Brier Score")
+        }
         cat("\nExpected Brier Score at the landmark time of", x$landmark.time, "\nbased on", x$n.cv, "fold cross validation\n")
         print(ExpectedBrier)
         invisible(x)
@@ -51,11 +57,18 @@ summary.PEjmcs <- function (x, error = c("MAE", "Brier"), ...) {
           sum <- sum + x$MAE.cv[[j]]
         }
         sum <- sum/x$n.cv
-        mean.MAE1 <- sum[, 1]
-        mean.MAE2 <- sum[, 2]
-        
-        ExpectedAE <- data.frame(x$horizon.time, mean.MAE1, mean.MAE2)
-        colnames(ExpectedAE) <- c("Horizon Time", "Failure 1", "Failure 2")
+        if (x$CompetingRisk) {
+          mean.MAE1 <- sum[, 1]
+          mean.MAE2 <- sum[, 2]
+          
+          ExpectedAE <- data.frame(x$horizon.time, mean.MAE1, mean.MAE2)
+          colnames(ExpectedAE) <- c("Horizon Time", "MAE 1", "MAE 2")
+        } else {
+          mean.MAE1 <- sum[, 1]
+          
+          ExpectedAE <- data.frame(x$horizon.time, mean.MAE1)
+          colnames(ExpectedAE) <- c("Horizon Time", "MAE")
+        }
         cat("\nExpected mean absolute error at the landmark time of", x$landmark.time, "\nbased on", x$n.cv, "fold cross validation\n")
         print(ExpectedAE)
         invisible(x)
