@@ -23,6 +23,7 @@ PEjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL
       stop(paste0(obs.time, " is not found in ynewdata."))
     }
   }
+  CompetingRisk <- object$CompetingRisk
   set.seed(seed)
   cdata <- object$cdata
   ydata <- object$ydata
@@ -51,8 +52,10 @@ PEjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL
     if ('try-error' %in% class(fit)) {
       writeLines(paste0("Error occured in the ", t, " th training!"))
       Brier.cv[[t]] <- NULL
+      MAE.cv[[t]] <- NULL
     } else if (fit$iter == maxiter) {
       Brier.cv[[t]] <- NULL
+      MAE.cv[[t]] <- NULL
     } else {
       
       val.cdata <- cdata[-folds[[t]], ]
@@ -74,85 +77,147 @@ PEjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL
       if ('try-error' %in% class(survfit)) {
         writeLines(paste0("Error occured in the ", t, " th validation!"))
         Brier.cv[[t]] <- NULL
-      } else { 
-        CIF <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 3))
-        colnames(CIF) <- c("ID", "CIF1", "CIF2")
-        CIF$ID <- val.cdata[, ID]
-        Gs <- summary(fitKM, times = landmark.time)$surv
-        mean.Brier <- matrix(NA, nrow = length(horizon.time), ncol = 2)
-        mean.MAE <- matrix(NA, nrow = length(horizon.time), ncol = 2)
-        for (j in 1:length(horizon.time)) {
-          fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
-          if ('try-error' %in% class(fitKM.horizon)) {
-            mean.Brier[j, 1] <- NA
-            mean.Brier[j, 2] <- NA
-            mean.MAE[j, 1] <- NA
-            mean.MAE[j, 2] <- NA
-          } else {
-            Gu <- fitKM.horizon$surv
-            ## true counting process
-            N1 <- vector()
-            N2 <- vector()
-            Gt <- vector()
-            W.IPCW <- vector()
-            for (i in 1:nrow(CIF)) {
-              if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] == 1) {
-                N1[i] <- 1
-              } else {
-                N1[i] <- 0
+        MAE.cv[[t]] <- NULL
+      } else {
+        if (CompetingRisk) {
+          
+          CIF <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 3))
+          colnames(CIF) <- c("ID", "CIF1", "CIF2")
+          CIF$ID <- val.cdata[, ID]
+          Gs <- summary(fitKM, times = landmark.time)$surv
+          mean.Brier <- matrix(NA, nrow = length(horizon.time), ncol = 2)
+          mean.MAE <- matrix(NA, nrow = length(horizon.time), ncol = 2)
+          for (j in 1:length(horizon.time)) {
+            fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
+            if ('try-error' %in% class(fitKM.horizon)) {
+              mean.Brier[j, 1] <- NA
+              mean.Brier[j, 2] <- NA
+              mean.MAE[j, 1] <- NA
+              mean.MAE[j, 2] <- NA
+            } else {
+              Gu <- fitKM.horizon$surv
+              ## true counting process
+              N1 <- vector()
+              N2 <- vector()
+              Gt <- vector()
+              W.IPCW <- vector()
+              for (i in 1:nrow(CIF)) {
+                if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] == 1) {
+                  N1[i] <- 1
+                } else {
+                  N1[i] <- 0
+                }
+                
+                if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] == 2) {
+                  N2[i] <- 1
+                } else {
+                  N2[i] <- 0
+                }
+                
+                if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] != 0) {
+                  Gt[i] <- summary(fitKM, times = val.cdata[i, surv.var[1]])$surv
+                } else {
+                  Gt[i] <- NA
+                }
+                
+                if (val.cdata[i, surv.var[1]] > horizon.time[j]) {
+                  W.IPCW[i] <- 1/(Gu/Gs)
+                } else if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] != 0) {
+                  W.IPCW[i] <- 1/(Gt[i]/Gs)
+                } else {
+                  W.IPCW[i] <- NA
+                }
+              }
+              ## extract estimated CIF
+              for (k in 1:nrow(CIF)) {
+                CIF[k, 2] <- survfit$Pred[[k]][j, 2]
+                CIF[k, 3] <- survfit$Pred[[k]][j, 3]
               }
               
-              if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] == 2) {
-                N2[i] <- 1
-              } else {
-                N2[i] <- 0
-              }
-              
-              if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] != 0) {
-                Gt[i] <- summary(fitKM, times = val.cdata[i, surv.var[1]])$surv
-              } else {
-                Gt[i] <- NA
-              }
-              
-              if (val.cdata[i, surv.var[1]] > horizon.time[j]) {
-                W.IPCW[i] <- 1/(Gu/Gs)
-              } else if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] != 0) {
-                W.IPCW[i] <- 1/(Gt[i]/Gs)
-              } else {
-                W.IPCW[i] <- NA
-              }
-            }
-            ## extract estimated CIF
-            for (k in 1:nrow(CIF)) {
-              CIF[k, 2] <- survfit$Pred[[k]][j, 2]
-              CIF[k, 3] <- survfit$Pred[[k]][j, 3]
+              RAWData.Brier <- data.frame(CIF, N1, N2, W.IPCW)
+              colnames(RAWData.Brier)[1:3] <- c("ID", "CIF1", "CIF2")
+              RAWData.Brier$Brier1 <- RAWData.Brier$W.IPCW*
+                abs(RAWData.Brier$CIF1 - RAWData.Brier$N1)^2
+              RAWData.Brier$Brier2 <- RAWData.Brier$W.IPCW*
+                abs(RAWData.Brier$CIF2 - RAWData.Brier$N2)^2
+              RAWData.Brier$MAE1 <- RAWData.Brier$W.IPCW*
+                abs(RAWData.Brier$CIF1 - RAWData.Brier$N1)^1
+              RAWData.Brier$MAE2 <- RAWData.Brier$W.IPCW*
+                abs(RAWData.Brier$CIF2 - RAWData.Brier$N2)^1
+              mean.MAE1  <- sum(RAWData.Brier$MAE1, na.rm = TRUE)/nrow(RAWData.Brier)
+              mean.MAE2  <- sum(RAWData.Brier$MAE2, na.rm = TRUE)/nrow(RAWData.Brier)
+              mean.Brier1 <- sum(RAWData.Brier$Brier1, na.rm = TRUE)/nrow(RAWData.Brier)
+              mean.Brier2 <- sum(RAWData.Brier$Brier2, na.rm = TRUE)/nrow(RAWData.Brier)
+              mean.Brier[j, 1] <- mean.Brier1
+              mean.Brier[j, 2] <- mean.Brier2
+              mean.MAE[j, 1] <- mean.MAE1
+              mean.MAE[j, 2] <- mean.MAE2
             }
             
-            RAWData.Brier <- data.frame(CIF, N1, N2, W.IPCW)
-            colnames(RAWData.Brier)[1:3] <- c("ID", "CIF1", "CIF2")
-            RAWData.Brier$Brier1 <- RAWData.Brier$W.IPCW*
-              abs(RAWData.Brier$CIF1 - RAWData.Brier$N1)^2
-            RAWData.Brier$Brier2 <- RAWData.Brier$W.IPCW*
-              abs(RAWData.Brier$CIF2 - RAWData.Brier$N2)^2
-            RAWData.Brier$MAE1 <- RAWData.Brier$W.IPCW*
-              abs(RAWData.Brier$CIF1 - RAWData.Brier$N1)^1
-            RAWData.Brier$MAE2 <- RAWData.Brier$W.IPCW*
-              abs(RAWData.Brier$CIF2 - RAWData.Brier$N2)^1
-            mean.MAE1  <- sum(RAWData.Brier$MAE1, na.rm = TRUE)/nrow(RAWData.Brier)
-            mean.MAE2  <- sum(RAWData.Brier$MAE2, na.rm = TRUE)/nrow(RAWData.Brier)
-            mean.Brier1 <- sum(RAWData.Brier$Brier1, na.rm = TRUE)/nrow(RAWData.Brier)
-            mean.Brier2 <- sum(RAWData.Brier$Brier2, na.rm = TRUE)/nrow(RAWData.Brier)
-            mean.Brier[j, 1] <- mean.Brier1
-            mean.Brier[j, 2] <- mean.Brier2
-            mean.MAE[j, 1] <- mean.MAE1
-            mean.MAE[j, 2] <- mean.MAE2
+            
           }
           
+          Brier.cv[[t]] <- mean.Brier
+          MAE.cv[[t]] <- mean.MAE
+          
+        } else {
+          
+          Surv <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 2))
+          colnames(Surv) <- c("ID", "Surv")
+          Surv$ID <- val.cdata[, ID]
+          Gs <- summary(fitKM, times = landmark.time)$surv
+          mean.Brier <- matrix(NA, nrow = length(horizon.time), ncol = 1)
+          mean.MAE <- matrix(NA, nrow = length(horizon.time), ncol = 1)
+          for (j in 1:length(horizon.time)) {
+            fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
+            if ('try-error' %in% class(fitKM.horizon)) {
+              mean.Brier[j, 1] <- NA
+              mean.MAE[j, 1] <- NA
+            } else {
+              Gu <- fitKM.horizon$surv
+              ## true counting process
+              N1 <- vector()
+              Gt <- vector()
+              W.IPCW <- vector()
+              for (i in 1:nrow(Surv)) {
+                if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] == 1) {
+                  N1[i] <- 1
+                  Gt[i] <- summary(fitKM, times = val.cdata[i, surv.var[1]])$surv
+                } else {
+                  N1[i] <- 0
+                  Gt[i] <- NA
+                }
+                
+                if (val.cdata[i, surv.var[1]] > horizon.time[j]) {
+                  W.IPCW[i] <- 1/(Gu/Gs)
+                } else if (val.cdata[i, surv.var[1]] <= horizon.time[j] && val.cdata[i, surv.var[2]] == 1) {
+                  W.IPCW[i] <- 1/(Gt[i]/Gs)
+                } else {
+                  W.IPCW[i] <- NA
+                }
+              }
+              ## extract estimated Survival probability
+              for (k in 1:nrow(Surv)) {
+                Surv[k, 2] <- survfit$Pred[[k]][j, 2]
+              }
+              
+              RAWData.Brier <- data.frame(Surv, N1, W.IPCW)
+              colnames(RAWData.Brier)[1:2] <- c("ID", "Surv")
+              RAWData.Brier$Brier <- RAWData.Brier$W.IPCW*
+                abs(1 - RAWData.Brier$Surv - RAWData.Brier$N1)^2
+              RAWData.Brier$MAE <- RAWData.Brier$W.IPCW*
+                abs(1 - RAWData.Brier$Surv - RAWData.Brier$N1)^1
+              mean.MAE[j, 1]  <- sum(RAWData.Brier$MAE, na.rm = TRUE)/nrow(RAWData.Brier)
+              mean.Brier[j, 1] <- sum(RAWData.Brier$Brier, na.rm = TRUE)/nrow(RAWData.Brier)
+            }
+            
+            
+          }
+          Brier.cv[[t]] <- mean.Brier
+          MAE.cv[[t]] <- mean.MAE
           
         }
         
-        Brier.cv[[t]] <- mean.Brier
-        MAE.cv[[t]] <- mean.MAE
       }
       
     }
