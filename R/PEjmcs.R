@@ -225,7 +225,8 @@ PEjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL
     
   }
   result <- list(n.cv = n.cv, Brier.cv = Brier.cv, MAE.cv = MAE.cv, landmark.time = landmark.time,
-                 horizon.time = horizon.time, method = method, quadpoint = quadpoint)
+                 horizon.time = horizon.time, method = method, quadpoint = quadpoint, 
+                 CompetingRisk = CompetingRisk)
   class(result) <- "PEjmcs"
   
   return(result)
