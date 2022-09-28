@@ -27,7 +27,7 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
   groups <- 1/quintile.width
   if (floor(groups) != groups)
     stop("The reciprocal of quintile.width must be an integer.")
-  
+  CompetingRisk <- object$CompetingRisk
   set.seed(seed)
   cdata <- object$cdata
   ydata <- object$ydata
@@ -73,102 +73,135 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
       if ('try-error' %in% class(survfit)) {
         writeLines(paste0("Error occured in the ", t, " th validation!"))
         MAEQ.cv[[t]] <- NULL
-      } else { 
-        AllCIF1 <- list()
-        AllCIF2 <- list()
-        for (j in 1:length(horizon.time)) {
-          CIF <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 3))
-          colnames(CIF) <- c("ID", "CIF1", "CIF2")
-          CIF$ID <- val.cdata[, ID]
-          ## extract estimated CIF
-          for (k in 1:nrow(CIF)) {
-            CIF[k, 2] <- survfit$Pred[[k]][j, 2]
-            CIF[k, 3] <- survfit$Pred[[k]][j, 3]
-          }
-          ## group subjects based on CIF
-          quant1 <- quantile(CIF$CIF1, probs = seq(0, 1, by = quintile.width))
-          EmpiricalCIF1 <- rep(NA, groups)
-          PredictedCIF1 <- rep(NA, groups)
-          
-          for (i in 1:groups) {
-            subquant <- CIF[CIF$CIF1 > quant1[i] &
-                              CIF$CIF1 <= quant1[i+1], 1:2]
-            quantsubdata <- val.cdata[val.cdata[, ID] %in% subquant$ID, surv.var]
+      } else {
+        if (CompetingRisk) {
+          AllCIF1 <- list()
+          AllCIF2 <- list()
+          for (j in 1:length(horizon.time)) {
+            CIF <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 3))
+            colnames(CIF) <- c("ID", "CIF1", "CIF2")
+            CIF$ID <- val.cdata[, ID]
+            ## extract estimated CIF
+            for (k in 1:nrow(CIF)) {
+              CIF[k, 2] <- survfit$Pred[[k]][j, 2]
+              CIF[k, 3] <- survfit$Pred[[k]][j, 3]
+            }
+            ## group subjects based on CIF
+            quant1 <- quantile(CIF$CIF1, probs = seq(0, 1, by = quintile.width))
+            EmpiricalCIF1 <- rep(NA, groups)
+            PredictedCIF1 <- rep(NA, groups)
             
-            quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
-                                           time = surv.var[1],
-                                           status = surv.var[2])
-            
-            quantsubRisk1 <- quantsubCIF$H1
-            ii <- 1
-            while (ii <= nrow(quantsubRisk1)) {
-              if (quantsubRisk1[ii, 1] > horizon.time[j]) {
-                if (ii >= 2) {
-                  EmpiricalCIF1[i] <- quantsubRisk1[ii-1, 4]
+            for (i in 1:groups) {
+              subquant <- CIF[CIF$CIF1 > quant1[i] &
+                                CIF$CIF1 <= quant1[i+1], 1:2]
+              quantsubdata <- val.cdata[val.cdata[, ID] %in% subquant$ID, surv.var]
+              
+              quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
+                                             time = surv.var[1],
+                                             status = surv.var[2])
+              
+              quantsubRisk1 <- quantsubCIF$H1
+              ii <- 1
+              while (ii <= nrow(quantsubRisk1)) {
+                if (quantsubRisk1[ii, 1] > horizon.time[j]) {
+                  if (ii >= 2) {
+                    EmpiricalCIF1[i] <- quantsubRisk1[ii-1, 4]
+                  } else {
+                    EmpiricalCIF1[i] <- 0
+                  }
+                  break
                 } else {
+                  ii <- ii + 1
+                }
+              }
+              if (is.na(EmpiricalCIF1[i])) {
+                if (nrow(quantsubRisk1) == 0) {
                   EmpiricalCIF1[i] <- 0
-                }
-                break
-              } else {
-                ii <- ii + 1
-              }
-            }
-            if (is.na(EmpiricalCIF1[i])) {
-              if (nrow(quantsubRisk1) == 0) {
-                EmpiricalCIF1[i] <- 0
-              } else {
-                EmpiricalCIF1[i] <- quantsubRisk1[nrow(quantsubRisk1), 4] 
-              }
-            }
-            PredictedCIF1[i] <- mean(subquant$CIF1)
-          }
-          AllCIF1[[j]] <- data.frame(EmpiricalCIF1, PredictedCIF1)
-          
-          quant2 <- quantile(CIF$CIF2, probs = seq(0, 1, by = quintile.width))
-          EmpiricalCIF2 <- rep(NA, groups)
-          PredictedCIF2 <- rep(NA, groups)
-          for (i in 1:(1/quintile.width)) {
-            subquant <- CIF[CIF$CIF2 > quant2[i] &
-                              CIF$CIF2 <= quant2[i+1], c(1, 3)]
-            quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
-            
-            quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
-                                           time = surv.var[1],
-                                           status = surv.var[2])
-            
-            quantsubRisk2 <- quantsubCIF$H2
-            ii <- 1
-            while (ii <= nrow(quantsubRisk2)) {
-              if (quantsubRisk2[ii, 1] > horizon.time[j]) {
-                if (ii >= 2) {
-                  EmpiricalCIF2[i] <- quantsubRisk2[ii-1, 4]
                 } else {
-                  EmpiricalCIF2[i] <- 0
+                  EmpiricalCIF1[i] <- quantsubRisk1[nrow(quantsubRisk1), 4] 
                 }
-                break
-              } else {
-                ii <- ii + 1
               }
+              PredictedCIF1[i] <- mean(subquant$CIF1)
             }
-            if (is.na(EmpiricalCIF2[i])) {
-              if (nrow(quantsubRisk2) == 0) {
-                EmpiricalCIF2[i] <- 0
-              } else {
-                EmpiricalCIF2[i] <- quantsubRisk2[nrow(quantsubRisk2), 4] 
+            AllCIF1[[j]] <- data.frame(EmpiricalCIF1, PredictedCIF1)
+            
+            quant2 <- quantile(CIF$CIF2, probs = seq(0, 1, by = quintile.width))
+            EmpiricalCIF2 <- rep(NA, groups)
+            PredictedCIF2 <- rep(NA, groups)
+            for (i in 1:groups) {
+              subquant <- CIF[CIF$CIF2 > quant2[i] &
+                                CIF$CIF2 <= quant2[i+1], c(1, 3)]
+              quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
+              
+              quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
+                                             time = surv.var[1],
+                                             status = surv.var[2])
+              
+              quantsubRisk2 <- quantsubCIF$H2
+              ii <- 1
+              while (ii <= nrow(quantsubRisk2)) {
+                if (quantsubRisk2[ii, 1] > horizon.time[j]) {
+                  if (ii >= 2) {
+                    EmpiricalCIF2[i] <- quantsubRisk2[ii-1, 4]
+                  } else {
+                    EmpiricalCIF2[i] <- 0
+                  }
+                  break
+                } else {
+                  ii <- ii + 1
+                }
               }
+              if (is.na(EmpiricalCIF2[i])) {
+                if (nrow(quantsubRisk2) == 0) {
+                  EmpiricalCIF2[i] <- 0
+                } else {
+                  EmpiricalCIF2[i] <- quantsubRisk2[nrow(quantsubRisk2), 4] 
+                }
+              }
+              PredictedCIF2[i] <- mean(subquant$CIF2)
             }
-            PredictedCIF2[i] <- mean(subquant$CIF2)
+            AllCIF2[[j]] <- data.frame(EmpiricalCIF2, PredictedCIF2)
+            
           }
-          AllCIF2[[j]] <- data.frame(EmpiricalCIF2, PredictedCIF2)
-          
+          names(AllCIF1) <- names(AllCIF2) <- horizon.time
+          result <- list(AllCIF1 = AllCIF1, AllCIF2 = AllCIF2)
+        } else {
+          AllSurv <- list()
+          for (j in 1:length(horizon.time)) {
+            Surv <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 2))
+            colnames(Surv) <- c("ID", "Surv")
+            Surv$ID <- val.cdata[, ID]
+            ## extract estimated survival prob
+            for (k in 1:nrow(Surv)) {
+              Surv[k, 2] <- survfit$Pred[[k]][j, 2]
+            }
+            ## group subjects based on survival prob
+            quant <- quantile(Surv$Surv, probs = seq(0, 1, by = quintile.width))
+            EmpiricalSurv <- rep(NA, groups)
+            PredictedSurv <- rep(NA, groups)
+            for (i in 1:groups) {
+              subquant <- Surv[Surv$Surv > quant[i] &
+                                 Surv$Surv <= quant[i+1], c(1, 2)]
+              quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
+              colnames(quantsubdata) <- c("time", "status")
+              fitKM <- survfit(Surv(time, status) ~ 1, data = quantsubdata)
+              fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
+              if ('try-error' %in% class(fitKM.horizon)) {
+                EmpiricalSurv[i] <- summary(fitKM, times = max(quantsubdata$time))$surv
+              } else {
+                EmpiricalSurv[i] <- summary(fitKM, times = horizon.time[j])$surv
+              }
+              PredictedSurv[i] <-mean(subquant$Surv)
+            }
+            AllSurv[[j]] <- data.frame(EmpiricalSurv, PredictedSurv)
+          }
+          names(AllSurv) <- horizon.time
+          result <- list(AllSurv = AllSurv)
         }
-        names(AllCIF1) <- names(AllCIF2) <- horizon.time
+        MAEQ.cv[[t]] <- result
         writeLines(paste0("The ", t, " th validation is done!"))
-        
       }
-      result <- list(AllCIF1 = AllCIF1, AllCIF2 = AllCIF2)
     }
-    MAEQ.cv[[t]] <- result
   }
   result <- list(MAEQ.cv = MAEQ.cv, n.cv = n.cv, landmark.time = landmark.time,
                  horizon.time = horizon.time, method = method, quadpoint = quadpoint)
