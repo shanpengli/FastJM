@@ -17,7 +17,7 @@ summary.MAEQjmcs <- function (x, ...) {
     stop("The cross validation fails. Please try using a different seed number.")
   } else {
     if(length(x$MAEQ.cv) == x$n.cv && sum(mapply(is.null, x$MAEQ.cv)) == 0) {
-      if (x$ComeptingRisk) {
+      if (x$CompetingRisk) {
         sum <- as.data.frame(matrix(0, nrow = length(x$horizon.time), ncol = 3))
         sum[, 1] <- x$horizon.time
         colnames(sum) <- c("Horizon Time", "CIF1", "CIF2")

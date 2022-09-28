@@ -204,7 +204,8 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
     }
   }
   result <- list(MAEQ.cv = MAEQ.cv, n.cv = n.cv, landmark.time = landmark.time,
-                 horizon.time = horizon.time, method = method, quadpoint = quadpoint)
+                 horizon.time = horizon.time, method = method, quadpoint = quadpoint, 
+                 CompetingRisk = CompetingRisk)
   class(result) <- "MAEQjmcs"
   return(result)
 }
