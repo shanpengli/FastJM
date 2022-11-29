@@ -3,7 +3,8 @@
 
 MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL, 
                        obs.time = NULL, method = c("Laplace", "GH"), 
-                       quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+                       quadpoint = NULL, maxiter = 1000, 
+                       survinitial = TRUE, n.cv = 3, 
                        quintile.width = 0.25, ...) {
   
   if (!inherits(object, "jmcs"))
@@ -47,7 +48,10 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
     fit <- try(jmcs(cdata = train.cdata, ydata = train.ydata, 
                       long.formula = long.formula,
                       surv.formula = surv.formula,
-                      quadpoint = quadpoint, random = object$random), silent = TRUE)
+                      quadpoint = quadpoint, random = object$random,
+                      maxiter = maxiter, 
+                      survinitial = survinitial,
+                    ), silent = TRUE)
     
     if ('try-error' %in% class(fit)) {
       writeLines(paste0("Error occured in the ", t, " th training!"))
