@@ -2,6 +2,7 @@
 ##' @name summary.MAEQjmcs
 ##' @aliases summary.MAEQjmcs
 ##' @param x x of class 'MAEQjmcs'.
+##' @param digits number of decimal points to be rounded.
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
@@ -9,7 +10,7 @@
 ##' @export
 ##' 
 
-summary.MAEQjmcs <- function (x, ...) {
+summary.MAEQjmcs <- function (x, digits = 3, ...) {
   if (!inherits(x, "MAEQjmcs"))
     stop("Use only with 'MAEQjmcs' xs.\n") 
   
@@ -42,6 +43,7 @@ summary.MAEQjmcs <- function (x, ...) {
         }
         sum[, -1] <- sum[, -1]/x$n.cv
       }
+      sum[, -1] <- round(sum[, -1], digits)
       cat("\nSum of absolute error across quintiles of predicted risk scores at the landmark time of", x$landmark.time, "\nbased on", x$n.cv, "fold cross validation\n")
       print(sum)
       invisible(x)
