@@ -65,7 +65,8 @@ summary.jmcs <- function(object, process = c("longitudinal", "survival"), digits
     rownames(out2) <- NULL
     colnames(out2)[1] <- "Parameter"
     outgamma <- rbind(out, out2)
-    names(outgamma) <- c("Survival", "coef", "exp(coef)", "SE(coef)", "95%Lower", "95%Upper", "p-values")
+    names(outgamma) <- c("Survival", "coef", "exp(coef)", "SE(coef)", "95%Lower", "95%Upper", 
+                         "95%exp(Lower)", "95%exp(Upper)", "p-values")
     
     ##nu
     Estimate <- object$nu1
