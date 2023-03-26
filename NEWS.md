@@ -1,3 +1,9 @@
+# FastJM 1.3.0
+
+* Correct the implementation of dynamic prediction in ```surviftjmcs()```.
+* Remove ```plot.surviftjmcs()``` due to theoretical problem.
+* Provide two metrics of prediction accuracy of joint model by adding ```PEjmcs()``` and ```MAEQjmcs()```.
+
 # FastJM 1.2.0
 
 * Correct the implementation of dynamic prediction in ```surviftjmcs()``` for the competing risk and add ```summary()``` for providing parameter estimates and SE for both sub-models.
