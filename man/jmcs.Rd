@@ -38,7 +38,7 @@ to be included in the survival sub-model.}
 
 \item{REML}{a logic object that indicates the use of REML estimator. Default is TRUE.}
 
-\item{quadpoint}{the number of pseudo-adaptive Gauss-Hermite quadrature points
+\item{quadpoint}{the number of pseudo-adaptive Gauss-Hermite quadrature points.
 to be chosen for numerical integration. Default is 6 which produces stable estimates in most dataframes.}
 
 \item{maxiter}{the maximum number of iterations of the EM algorithm that the function will perform. Default is 10000.}
@@ -133,8 +133,8 @@ head(ranef(fit))
 # Obtain the variance-covariance matrix of all parameter estimates 
 vcov(fit)
 # Obtain the result summaries of the joint model fit
-summary(fit, process = "longitudinal")
-summary(fit, process = "survival")
+summary(fit, process = "Longitudinal")
+summary(fit, process = "Event")
 # Prediction of cumulative incidence for competing risks data
 # Predict the conditional probabilities for two patients who are alive (censored)
 ND <- ydata[ydata$ID \%in\% c(419, 218), ]
@@ -144,19 +144,28 @@ survfit <- survfitjmcs(fit,
                        ynewdata = ND, 
                        cnewdata = NDc, 
                        u = seq(3, 4.8, by = 0.2), 
-                       M = 100,
-                       seed = 100)
+                       method = "GH",
+                       obs.time = "time")
 survfit
+PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+             obs.time = "time", method = "GH", 
+             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+             survinitial = TRUE)
+Brier <- summary(PE, error = "Brier")
+Brier
 
-oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
-plot(survfit, estimator = "both", include.y = TRUE)
-par(oldpar)
+MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+                 obs.time = "time", method = "GH", 
+                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+                 survinitial = TRUE)
+APE <- summary(MAEQ, digits = 3)
+APE
 }
 
 }
 \seealso{
 \code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, 
-\link{residuals.jmcs}, \link{survfitjmcs}, \link{plot.jmcs}, \link{plot.survfitjmcs},
+\link{residuals.jmcs}, \link{survfitjmcs}, \link{plot.jmcs},
 \link{vcov.jmcs}}
 }
 \author{

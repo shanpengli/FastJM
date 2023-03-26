@@ -45,17 +45,28 @@ NDc <- cdata[cdata$ID  %in% ID, ]
 survfit <- survfitjmcs(fit, 
                        ynewdata = ND, 
                        cnewdata = NDc, 
-                       u = seq(3, 4.5, by = 0.3), 
-                       M = 50,
-                       seed = 100)
+                       u = seq(3, 4.8, by = 0.2), 
+                       method = "GH",
+                       obs.time = "time")
 survfit
 ```
-Plot the cumulative incidence function for each failure with the historical longitudinal observations.
 
-```{r}
-oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
-plot(survfit, estimator = "both", include.y = TRUE)
-par(oldpar)
+To assess the prediction accuracy of the fitted joint model, we may run `PEjmcs` to calculate the Brier score. 
+```{r, eval=TRUE}
+## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
+PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+             obs.time = "time", method = "GH", 
+             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+             survinitial = TRUE)
+summary(PE, error = "Brier")
 ```
 
-
+An alternative to assess the prediction accuracy is to run `MAEQjmcs` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
+```{r, eval=TRUE}
+## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
+MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+                 obs.time = "time", method = "GH", 
+                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+                 survinitial = TRUE)
+summary(MAEQ, digits = 3)
+```

@@ -1,11 +1,32 @@
+##' @title A metric of prediction accuracy of joint model by comparing the predicted risk
+##' with the empirical risks stratified on different predicted risk group.
+##' @name MAEQjmcs
+##' @aliases MAEQjmcs
+##' @param object object of class 'MAEQjmcs'.
+##' @param seed a numeric value of seed to be specified for cross validation.
+##' @param landmark.time a numeric value of time for which dynamic prediction starts..
+##' @param horizon.time a numeric vector of future times for which predicted probabilities are to be computed.
+##' @param obs.time a character string of specifying a longitudinal time variable.
+##' @param method estimation method for predicted probabilities. If \code{Laplace}, then the empirical empirical
+##' estimates of random effects is used. If \code{GH}, then the pseudo-adaptive Gauss-Hermite quadrature is used.
+##' @param quadpoint the number of pseudo-adaptive Gauss-Hermite quadrature points if \code{method = "GH"}.
+##' @param maxiter the maximum number of iterations of the EM algorithm that the 
+##' function will perform. Default is 10000.
+##' @param n.cv number of folds for cross validation. Default is 3.
+##' @param survinitial Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.
+##' @param quantile.width a numeric value of width of quantile to be specified. Default is 0.25.
+##' @param ... Further arguments passed to or from other methods.
+##' @return a list of matrices with conditional probabilities for subjects.
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
+##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
 ##' @export
 ##' 
 
 MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL, 
                        obs.time = NULL, method = c("Laplace", "GH"), 
                        quadpoint = NULL, maxiter = 1000, 
-                       survinitial = TRUE, n.cv = 3, 
-                       quintile.width = 0.25, ...) {
+                       n.cv = 3, survinitial = TRUE, 
+                       quantile.width = 0.25, ...) {
   
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' xs.\n")
@@ -25,9 +46,9 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
       stop(paste0(obs.time, " is not found in ynewdata."))
     }
   }
-  groups <- 1/quintile.width
+  groups <- 1/quantile.width
   if (floor(groups) != groups)
-    stop("The reciprocal of quintile.width must be an integer.")
+    stop("The reciprocal of quantile.width must be an integer.")
   CompetingRisk <- object$CompetingRisk
   set.seed(seed)
   cdata <- object$cdata
@@ -91,7 +112,7 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
               CIF[k, 3] <- survfit$Pred[[k]][j, 3]
             }
             ## group subjects based on CIF
-            quant1 <- quantile(CIF$CIF1, probs = seq(0, 1, by = quintile.width))
+            quant1 <- quantile(CIF$CIF1, probs = seq(0, 1, by = quantile.width))
             EmpiricalCIF1 <- rep(NA, groups)
             PredictedCIF1 <- rep(NA, groups)
             
@@ -129,7 +150,7 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
             }
             AllCIF1[[j]] <- data.frame(EmpiricalCIF1, PredictedCIF1)
             
-            quant2 <- quantile(CIF$CIF2, probs = seq(0, 1, by = quintile.width))
+            quant2 <- quantile(CIF$CIF2, probs = seq(0, 1, by = quantile.width))
             EmpiricalCIF2 <- rep(NA, groups)
             PredictedCIF2 <- rep(NA, groups)
             for (i in 1:groups) {
@@ -180,7 +201,7 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
               Surv[k, 2] <- survfit$Pred[[k]][j, 2]
             }
             ## group subjects based on survival prob
-            quant <- quantile(Surv$Surv, probs = seq(0, 1, by = quintile.width))
+            quant <- quantile(Surv$Surv, probs = seq(0, 1, by = quantile.width))
             EmpiricalSurv <- rep(NA, groups)
             PredictedSurv <- rep(NA, groups)
             for (i in 1:groups) {

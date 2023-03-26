@@ -5,7 +5,7 @@
 \alias{summary.jmcs}
 \title{Anova Method for Fitted Joint Models}
 \usage{
-\method{summary}{jmcs}(object, process = c("longitudinal", "survival"), digits = 4, ...)
+\method{summary}{jmcs}(object, process = c("Longitudinal", "Event"), digits = 4, ...)
 }
 \arguments{
 \item{object}{an object inheriting from class \code{jmcs}.}

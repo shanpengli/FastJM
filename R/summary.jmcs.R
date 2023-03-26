@@ -11,12 +11,12 @@
 ##' @export
 ##' 
 
-summary.jmcs <- function(object, process = c("longitudinal", "survival"), digits = 4, ...) {
+summary.jmcs <- function(object, process = c("Longitudinal", "Event"), digits = 4, ...) {
   
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
   
-  if (process == "longitudinal") {
+  if (process == "Longitudinal") {
     ##Estimates of betas
     Estimate <- object$beta
     SE <- object$sebeta
@@ -35,7 +35,7 @@ summary.jmcs <- function(object, process = c("longitudinal", "survival"), digits
     
     return(out)
     
-  } else if (process == "survival") {
+  } else if (process == "Event") {
     ##gamma
     Estimate <- object$gamma1
     SE <- object$segamma1
