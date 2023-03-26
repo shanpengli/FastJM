@@ -38,7 +38,7 @@ estimates of random effects is used. If \code{GH}, then the pseudo-adaptive Gaus
 \item{maxiter}{the maximum number of iterations of the EM algorithm that the 
 function will perform. Default is 10000.}
 
-\item{n.cv}{number of folds for cross validation. Deafult is 3.}
+\item{n.cv}{number of folds for cross validation. Default is 3.}
 
 \item{survinitial}{Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.}
 

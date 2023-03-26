@@ -147,7 +147,7 @@ double GetCIF1CR(const Eigen::VectorXd & gamma1, const Eigen::VectorXd & gamma2,
   }
   
   double CIF1=0;
-
+  
   for (i=0;i<a;i++) {
     if (s < H01(i, 0) && u >= H01(i, 0)) {
       if (i >= 1) {
