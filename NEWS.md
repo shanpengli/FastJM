@@ -1,3 +1,7 @@
+# FastJM 1.4.0
+
+* Add the function ```AUCjmcs()``` area under the ROC curve (AUC) to assess the prediction performance of joint models.
+
 # FastJM 1.3.0
 
 * Correct the implementation of dynamic prediction in ```surviftjmcs()```.

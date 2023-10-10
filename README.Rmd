@@ -27,6 +27,7 @@ The `FastJM` package comes with several simulated datasets. To fit a joint model
 
 ```{r, eval=TRUE}
 require(FastJM)
+require(survival)
 data(ydata)
 data(cdata)
 fit <- jmcs(ydata = ydata, cdata = cdata, 
@@ -63,10 +64,19 @@ summary(PE, error = "Brier")
 
 An alternative to assess the prediction accuracy is to run `MAEQjmcs` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
 ```{r, eval=TRUE}
-## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
+## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
 MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
                  obs.time = "time", method = "GH", 
                  quadpoint = NULL, maxiter = 1000, n.cv = 3, 
                  survinitial = TRUE)
 summary(MAEQ, digits = 3)
+```
+
+We may also calculate the area under the ROC curve (AUC) to assess the discrimination measure of joint models.
+```{r, eval=TRUE}
+## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
+AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               quadpoint = NULL, maxiter = 1000, n.cv = 3)
+summary(AUC, digits = 3)
 ```

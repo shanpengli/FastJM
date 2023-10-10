@@ -79,6 +79,7 @@
 ##' @examples 
 ##' 
 ##' require(FastJM)
+##' require(survival)
 ##' # Load a simulated longitudinal dataset
 ##' data(ydata)
 ##' # Load a simulated survival dataset with two competing events
@@ -126,6 +127,13 @@
 ##'                  survinitial = TRUE)
 ##' APE <- summary(MAEQ, digits = 3)
 ##' APE
+##' 
+##' ## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
+##' AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+##'                obs.time = "time", method = "GH",
+##'                quadpoint = NULL, maxiter = 1000, n.cv = 3)
+##' summary(AUC, digits = 3)
+##' 
 ##' }
 ##' 
 ##' @export
@@ -450,7 +458,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      segamma2, sealpha1, sealpha2, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
                      quadpoint, ydata, cdata, PropComp, FunCall_long,
-                     FunCall_survival, random, mycall, method, id)
+                     FunCall_survival, random, mycall, method, id, opt)
       
       names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", "H01", "H02", "Sig", 
                          "sigma", "iter", "convergence", "vcov",
@@ -458,7 +466,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                           "seSig", "sesigma", "loglike", "fitted", "fittedSurv", 
                          "FUNB", "CompetingRisk", "quadpoint",
                          "ydata", "cdata", "PropEventType", "LongitudinalSubmodel",
-                          "SurvivalSubmodel", "random", "call", "Quad.method", "id")
+                          "SurvivalSubmodel", "random", "call", "Quad.method", "id", "opt")
       
       class(result) <- "jmcs"
       
@@ -605,14 +613,14 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      vcov, sebeta, segamma1, sealpha1, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
                      quadpoint, ydata, cdata, PropComp, FunCall_long, FunCall_survival, 
-                     random, mycall, method, id)
+                     random, mycall, method, id, opt)
       
       names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma",
                          "iter", "convergence", "vcov", "sebeta", "segamma1", 
                          "senu1", "seSig", "sesigma", "loglike", "fitted", "fittedSurv", 
                          "FUNB", "CompetingRisk", "quadpoint",
                          "ydata", "cdata", "PropEventType", "LongitudinalSubmodel",
-                         "SurvivalSubmodel", "random", "call", "Quad.method", "id")
+                         "SurvivalSubmodel", "random", "call", "Quad.method", "id", "opt")
       
       class(result) <- "jmcs"
       

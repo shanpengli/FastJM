@@ -2,8 +2,8 @@
 ##' with the empirical risks stratified on different predicted risk group.
 ##' @name MAEQjmcs
 ##' @aliases MAEQjmcs
-##' @param object object of class 'MAEQjmcs'.
 ##' @param seed a numeric value of seed to be specified for cross validation.
+##' @param object object of class 'jmcs'.
 ##' @param landmark.time a numeric value of time for which dynamic prediction starts..
 ##' @param horizon.time a numeric vector of future times for which predicted probabilities are to be computed.
 ##' @param obs.time a character string of specifying a longitudinal time variable.
@@ -22,7 +22,7 @@
 ##' @export
 ##' 
 
-MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NULL, 
+MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL, 
                        obs.time = NULL, method = c("Laplace", "GH"), 
                        quadpoint = NULL, maxiter = 1000, 
                        n.cv = 3, survinitial = TRUE, 
@@ -72,6 +72,7 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
                       quadpoint = quadpoint, random = object$random,
                       maxiter = maxiter, 
                       survinitial = survinitial,
+                      opt = object$opt,
                     ), silent = TRUE)
     
     if ('try-error' %in% class(fit)) {
@@ -230,7 +231,7 @@ MAEQjmcs <- function(object, seed = 100, landmark.time = NULL, horizon.time = NU
   }
   result <- list(MAEQ.cv = MAEQ.cv, n.cv = n.cv, landmark.time = landmark.time,
                  horizon.time = horizon.time, method = method, quadpoint = quadpoint, 
-                 CompetingRisk = CompetingRisk, seed = seed)
+                 CompetingRisk = CompetingRisk, opt = object$opt, seed = seed)
   class(result) <- "MAEQjmcs"
   return(result)
 }

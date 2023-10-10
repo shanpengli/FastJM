@@ -2,7 +2,7 @@
 ##' with the counting process.
 ##' @name PEjmcs
 ##' @aliases PEjmcs
-##' @param object object of class 'PEjmcs'.
+##' @param object object of class 'jmcs'.
 ##' @param seed a numeric value of seed to be specified for cross validation.
 ##' @param landmark.time a numeric value of time for which dynamic prediction starts..
 ##' @param horizon.time a numeric vector of future times for which predicted probabilities are to be computed.

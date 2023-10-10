@@ -113,6 +113,7 @@ Joint modeling of longitudinal continuous data and competing risks
 \examples{
 
 require(FastJM)
+require(survival)
 # Load a simulated longitudinal dataset
 data(ydata)
 # Load a simulated survival dataset with two competing events
@@ -160,6 +161,13 @@ MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.
                  survinitial = TRUE)
 APE <- summary(MAEQ, digits = 3)
 APE
+
+## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
+AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               quadpoint = NULL, maxiter = 1000, n.cv = 3)
+summary(AUC, digits = 3)
+
 }
 
 }

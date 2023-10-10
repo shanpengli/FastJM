@@ -20,7 +20,7 @@ PEjmcs(
 )
 }
 \arguments{
-\item{object}{object of class 'PEjmcs'.}
+\item{object}{object of class 'jmcs'.}
 
 \item{seed}{a numeric value of seed to be specified for cross validation.}
 

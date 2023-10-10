@@ -81,61 +81,98 @@ Rcpp::List getECpseudoSF(const Eigen::VectorXd & beta,
       bii = Posbi.row(j);
       ri = bii + sqrt(2)*Hi2*bi;
       rii = SigSQRT*ri;
-      temp=exp(10);
-      
+      // temp=exp(10+q/10);
+      temp=10+q/10;
       for (i=0;i<p1a;i++) bi(i)=ri(i);
       
       for (i=0;i<q;i++) {
         mu=MultVV(X1.row(mdataS(j)-1+i),beta);
         zb=MultVV(Z.row(mdataS(j)-1+i),bi);
-        temp*=exp(-1/(2*sigma)*pow((Y(mdataS(j)-1+i) - mu - zb), 2)); 
+        // temp*=exp(-1/(2*sigma)*pow((Y(mdataS(j)-1+i) - mu - zb), 2)); 
+        temp+=-1/(2*sigma)*pow((Y(mdataS(j)-1+i) - mu - zb), 2);
       }
       
-      if(cmprsk(j)==1)  temp*=haz01*exp(xgamma1+MultVV(alpha1,bi));
+      // if(cmprsk(j)==1)  temp*=haz01*exp(xgamma1+MultVV(alpha1,bi));
+      if(cmprsk(j)==1)  temp+=log(haz01) + xgamma1+MultVV(alpha1,bi);
       
-      temp*=exp(0-cuh01*exp(xgamma1+MultVV(alpha1,bi)));
-      for (i=0;i<p1a;i++) temp*=weightbi(i);
+      // temp*=exp(0-cuh01*exp(xgamma1+MultVV(alpha1,bi)));
+      temp-=cuh01*exp(xgamma1+MultVV(alpha1,bi));
+      // for (i=0;i<p1a;i++) temp*=weightbi(i);
+      for (i=0;i<p1a;i++) temp+=log(weightbi(i));
       bi2 = xsmatrix.row(db);
-      temp*=exp(-pow(rii.norm(), 2)/2)*exp(pow(bi2.norm(), 2));
-      
-      dem+=temp;
+      // temp*=exp(-pow(rii.norm(), 2)/2)*exp(pow(bi2.norm(), 2));
+      temp+= -pow(rii.norm(), 2)/2 + pow(bi2.norm(), 2);
+      // dem+=temp;
+      dem+=exp(temp);
       
       //calculate h(bi)
-      FUNB.col(j)+=temp*bi;
-      
+      FUNB.col(j)+=exp(temp)*bi;
       for (i=0;i<p1a;i++) {
-        FUNBS(i,j)+=temp*pow(bi(i),2);
+        FUNBS(i,j)+=exp(temp)*pow(bi(i),2);
       }
-      
       if (p1a >= 2) {
         for(i=1;i<p1a;i++)
         {
           for(t=0;t<p1a-i;t++) {
-            FUNBS(p1a+t+(i-1)*(p1a-1),j) += temp*bi(t)*bi(t+i);
-          }   
+            FUNBS(p1a+t+(i-1)*(p1a-1),j) += exp(temp)*bi(t)*bi(t+i);
+          }
         }
-        
       }
-      
-      FUNEC(0,j)+=temp*exp(MultVV(alpha1,bi));
-      
+      FUNEC(0,j)+=exp(temp)*exp(MultVV(alpha1,bi));
+
       for (i=0;i<p1a;i++) {
-        FUNBEC(i,j)+=temp*bi(i)*exp(MultVV(alpha1,bi));
+        FUNBEC(i,j)+=exp(temp)*bi(i)*exp(MultVV(alpha1,bi));
       }
-      
+
       for (i=0;i<p1a;i++) {
-        FUNBSEC(i,j)+=temp*exp(MultVV(alpha1,bi))*pow(bi(i),2);
+        FUNBSEC(i,j)+=exp(temp)*exp(MultVV(alpha1,bi))*pow(bi(i),2);
       }
-      
+
       if (p1a >= 2) {
         for(i=1;i<p1a;i++)
         {
           for(t=0;t<p1a-i;t++)
           {
-            FUNBSEC(p1a+t+(i-1)*(p1a-1),j)+=temp*exp(MultVV(alpha1,bi))*bi(t)*bi(t+i);
+            FUNBSEC(p1a+t+(i-1)*(p1a-1),j)+=exp(temp)*exp(MultVV(alpha1,bi))*bi(t)*bi(t+i);
           }
         }
       }
+      
+      // FUNB.col(j)+=temp*bi;
+      // 
+      // for (i=0;i<p1a;i++) {
+      //   FUNBS(i,j)+=temp*pow(bi(i),2);
+      // }
+      // 
+      // if (p1a >= 2) {
+      //   for(i=1;i<p1a;i++)
+      //   {
+      //     for(t=0;t<p1a-i;t++) {
+      //       FUNBS(p1a+t+(i-1)*(p1a-1),j) += temp*bi(t)*bi(t+i);
+      //     }   
+      //   }
+      //   
+      // }
+      // 
+      // FUNEC(0,j)+=temp*exp(MultVV(alpha1,bi));
+      // 
+      // for (i=0;i<p1a;i++) {
+      //   FUNBEC(i,j)+=temp*bi(i)*exp(MultVV(alpha1,bi));
+      // }
+      // 
+      // for (i=0;i<p1a;i++) {
+      //   FUNBSEC(i,j)+=temp*exp(MultVV(alpha1,bi))*pow(bi(i),2);
+      // }
+      // 
+      // if (p1a >= 2) {
+      //   for(i=1;i<p1a;i++)
+      //   {
+      //     for(t=0;t<p1a-i;t++)
+      //     {
+      //       FUNBSEC(p1a+t+(i-1)*(p1a-1),j)+=temp*exp(MultVV(alpha1,bi))*bi(t)*bi(t+i);
+      //     }
+      //   }
+      // }
       
       
     }

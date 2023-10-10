@@ -23,6 +23,8 @@ joint model, we use `jmcs` function.
 require(FastJM)
 #> Loading required package: FastJM
 #> Loading required package: statmod
+#> Loading required package: MASS
+require(survival)
 #> Loading required package: survival
 data(ydata)
 data(cdata)
@@ -171,7 +173,7 @@ risks stratified on different risk groups based on quantile of the
 predicted risks.
 
 ``` r
-## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
+## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
 MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
                  obs.time = "time", method = "GH", 
                  quadpoint = NULL, maxiter = 1000, n.cv = 3, 
@@ -187,4 +189,25 @@ summary(MAEQ, digits = 3)
 #> 1          3.6 0.249 0.079
 #> 2          4.0 0.292 0.106
 #> 3          4.4 0.293 0.147
+```
+
+We may also calculate the area under the ROC curve (AUC) to assess the
+discrimination measure of joint models.
+
+``` r
+## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
+AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               quadpoint = NULL, maxiter = 1000, n.cv = 3)
+#> The 1 th validation is done!
+#> The 2 th validation is done!
+#> The 3 th validation is done!
+summary(AUC, digits = 3)
+#> 
+#> Expected AUC at the landmark time of 3 
+#> based on 3 fold cross validation
+#>   Horizon Time      AUC1      AUC2
+#> 1          3.6 0.7172788 0.6561398
+#> 2          4.0 0.6914785 0.6538589
+#> 3          4.4 0.6966017 0.6933577
 ```
