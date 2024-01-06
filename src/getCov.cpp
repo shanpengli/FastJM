@@ -789,9 +789,9 @@ Rcpp::List getCov(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1,
     }
     
     /*calculate sigma*/
+    for (i=0;i<p1a;i++) bs(i,i) = FUNBS(i, j);
     if(p1a>1)
     {
-      for (i=0;i<p1a;i++) bs(i,i) = FUNBS(i, j);
       for(i=1;i<p1a;i++)
       {
         for(t=0;t<p1a-i;t++) {

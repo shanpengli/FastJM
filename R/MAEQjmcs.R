@@ -72,8 +72,7 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
                       quadpoint = quadpoint, random = object$random,
                       maxiter = maxiter, 
                       survinitial = survinitial,
-                      opt = object$opt,
-                    ), silent = TRUE)
+                      opt = object$opt), silent = TRUE)
     
     if ('try-error' %in% class(fit)) {
       writeLines(paste0("Error occured in the ", t, " th training!"))

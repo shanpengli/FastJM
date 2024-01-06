@@ -196,6 +196,9 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
   
   longfmla <- long.formula
   survfmla <- surv.formula
+  
+  rawydata <- ydata
+  rawcdata <- cdata
 
   getinit <- Getinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
                      surv.formula = surv.formula,
@@ -457,7 +460,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      H02, Sig, sigma, iter, convergence, vcov, sebeta, segamma1,
                      segamma2, sealpha1, sealpha2, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
-                     quadpoint, ydata, cdata, PropComp, FunCall_long,
+                     quadpoint, rawydata, rawcdata, PropComp, FunCall_long,
                      FunCall_survival, random, mycall, method, id, opt)
       
       names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", "H01", "H02", "Sig", 
@@ -612,7 +615,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
       result <- list(beta, gamma1, alpha1, H01, Sig, sigma, iter, convergence, 
                      vcov, sebeta, segamma1, sealpha1, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
-                     quadpoint, ydata, cdata, PropComp, FunCall_long, FunCall_survival, 
+                     quadpoint, rawydata, rawcdata, PropComp, FunCall_long, FunCall_survival, 
                      random, mycall, method, id, opt)
       
       names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma",

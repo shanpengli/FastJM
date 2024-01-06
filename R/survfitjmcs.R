@@ -85,8 +85,8 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   Ny <- nrow(ydata2)
   Nc <- nrow(cdata2)
   
-  ynewdata <- ydata2[c((Ny-ny+1):Ny), ]
-  cnewdata <- cdata2[c((Nc-nc+1):Nc), ]
+  ynewdata2 <- ydata2[c((Ny-ny+1):Ny), ]
+  cnewdata2 <- cdata2[c((Nc-nc+1):Nc), ]
   
   
   nsig <- nrow(object$Sig)
@@ -97,25 +97,25 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   wsmatrix <- getGH$wsmatrix
   
   if (length(bvar) > 1) bvar1 <- bvar[1:(length(bvar) - 1)]
-  yID <- unique(ynewdata[, ID])
+  yID <- unique(ynewdata2[, ID])
   N.ID <- length(yID)
-  cID <- cnewdata[, ID]
+  cID <- cnewdata2[, ID]
   if (prod(yID == cID) == 0) {
     stop("The order of subjects in ydata doesn't match with cnewdata.")
   }
   
   if (!is.null(Last.time)) {
     if (is.character(Last.time)) {
-      if (Last.time %in% colnames(cnewdata)) {
-        Last.time <- cnewdata[, Last.time]
+      if (Last.time %in% colnames(cnewdata2)) {
+        Last.time <- cnewdata2[, Last.time]
       } else {
         stop(paste(Last.time, "is not found in cnewdata."))
       }
     }
-    if (is.numeric(Last.time) && (length(Last.time) != nrow(cnewdata)))
+    if (is.numeric(Last.time) && (length(Last.time) != nrow(cnewdata2)))
       stop("The last.time vector does not match cnewdata.")
   } else {
-    Last.time <- cnewdata[, Cvar[1]]
+    Last.time <- cnewdata2[, Cvar[1]]
   }
   
   Pred <- list()
@@ -134,14 +134,14 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     H02 <- object$H02
     Sig <- object$Sig
 
-    Predraw1 <- matrix(0, nrow = nrow(cnewdata), ncol = length(u))
-    Predraw2 <- matrix(0, nrow = nrow(cnewdata), ncol = length(u))
+    Predraw1 <- matrix(0, nrow = nrow(cnewdata2), ncol = length(u))
+    Predraw2 <- matrix(0, nrow = nrow(cnewdata2), ncol = length(u))
     lengthu <- length(u)
 
     for (j in 1:N.ID) {
-      subNDy <- ynewdata[ynewdata[, ID] == yID[j], ]
-      subNDc <- cnewdata[cnewdata[, ID] == yID[j], ]
-      y.obs[[j]] <- data.frame(subNDy[, c(obs.time, Yvar[1])])
+      subNDy <- ynewdata2[ynewdata2[, ID] == yID[j], ]
+      subNDc <- cnewdata2[cnewdata2[, ID] == yID[j], ]
+      y.obs[[j]] <- data.frame(ynewdata[ynewdata[, ID] == yID[j], c(obs.time, Yvar[1])])
 
       s <-  as.numeric(Last.time[j])
       CH01 <- CH(H01, s)
@@ -213,9 +213,9 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     lengthu <- length(u)
 
     for (j in 1:N.ID) {
-      subNDy <- ynewdata[ynewdata[, ID] == yID[j], ]
-      subNDc <- cnewdata[cnewdata[, ID] == yID[j], ]
-      y.obs[[j]] <- data.frame(subNDy[, c(obs.time, Yvar[1])])
+      subNDy <- ynewdata2[ynewdata2[, ID] == yID[j], ]
+      subNDc <- cnewdata2[cnewdata2[, ID] == yID[j], ]
+      y.obs[[j]] <- data.frame(ynewdata[ynewdata[, ID] == yID[j], c(obs.time, Yvar[1])])
 
       CH0 <- CH(H01, Last.time[j])
 
