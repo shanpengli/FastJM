@@ -8,7 +8,7 @@
 Rcpp::List getfitted(const Eigen::VectorXd & beta, const Eigen::MatrixXd & Z, 
                      const Eigen::MatrixXd & X1, const Eigen::VectorXd & Y, 
                      const Eigen::VectorXd & mdata, 
-                     const Eigen::VectorXd & mdataS,
+                     const Eigen::VectorXi & mdataS,
                      const Eigen::MatrixXd & FUNB) {
   
   int k = mdata.size();

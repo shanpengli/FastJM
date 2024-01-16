@@ -10,7 +10,7 @@ Rcpp::List getBayes(const Eigen::VectorXd & beta,
                   const double sigma, const Eigen::MatrixXd & Z, 
                   const Eigen::MatrixXd & X1, const Eigen::VectorXd & Y, 
                   const Eigen::VectorXd & mdata, 
-                  const Eigen::VectorXd & mdataS) {
+                  const Eigen::VectorXi & mdataS) {
   
   int p1a = Sig.cols();
   int k = mdata.size();
