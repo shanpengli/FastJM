@@ -1,3 +1,7 @@
+# FastJM 1.4.2
+
+* Fix small bugs within C functions.
+
 # FastJM 1.4.1
 
 * Fix small bugs within ```jmcs()```.
