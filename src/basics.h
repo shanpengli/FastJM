@@ -34,5 +34,17 @@ double GetCIF2CR(const Eigen::VectorXd & gamma1, const Eigen::VectorXd & gamma2,
                  const Eigen::MatrixXd & H01, const Eigen::MatrixXd & H02,
                  const double s, const double u, const Eigen::VectorXd & bi);
 
+Eigen::VectorXd GetCIF1CRall(const Eigen::VectorXd & gamma1, const Eigen::VectorXd & gamma2, 
+                             const Eigen::VectorXd & alpha1, const Eigen::VectorXd & alpha2, 
+                             const Eigen::VectorXd & X2,
+                             const Eigen::MatrixXd & H01, const Eigen::MatrixXd & H02,
+                             const double s, const Eigen::VectorXd & timecif, const Eigen::VectorXd & bi);
+
+Eigen::VectorXd GetCIF2CRall(const Eigen::VectorXd & gamma1, const Eigen::VectorXd & gamma2, 
+                             const Eigen::VectorXd & alpha1, const Eigen::VectorXd & alpha2, 
+                             const Eigen::VectorXd & X2,
+                             const Eigen::MatrixXd & H01, const Eigen::MatrixXd & H02,
+                             const double s, const Eigen::VectorXd & timecif, const Eigen::VectorXd & bi);
+
 
   

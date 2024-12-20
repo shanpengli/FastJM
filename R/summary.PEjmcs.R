@@ -40,7 +40,6 @@ summary.PEjmcs <- function (object, error = c("MAE", "Brier"), ...) {
         }
         cat("\nExpected Brier Score at the landmark time of", object$landmark.time, "\nbased on", object$n.cv, "fold cross validation\n")
         print(ExpectedBrier)
-        invisible(object)
       } else {
         stop("The cross validation fails. Please try using a different seed number.")
       }
@@ -71,7 +70,6 @@ summary.PEjmcs <- function (object, error = c("MAE", "Brier"), ...) {
         }
         cat("\nExpected mean absolute error at the landmark time of", object$landmark.time, "\nbased on", object$n.cv, "fold cross validation\n")
         print(ExpectedAE)
-        invisible(object)
       } else {
         stop("The cross validation fails. Please try using a different seed number.")
       }

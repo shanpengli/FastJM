@@ -37,7 +37,7 @@ Rcpp::List getECpseudo(const Eigen::VectorXd & beta,
   
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(Sig.inverse(), Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::VectorXd eigenSQ = svd.singularValues();
-  int i,j,q,t,db;
+  int i,j,q,t,db,u;
   for (i=0;i<eigenSQ.size();i++) {
     eigenSQ(i) = sqrt(eigenSQ(i));
   }
@@ -115,10 +115,12 @@ Rcpp::List getECpseudo(const Eigen::VectorXd & beta,
       }
     
       if (p1a >= 2) {
+        u=0;
         for(i=1;i<p1a;i++)
         {
           for(t=0;t<p1a-i;t++) {
-            FUNBS(p1a+t+(i-1)*(p1a-1),j) += temp*bi(t)*bi(t+i);
+            FUNBS(p1a+u,j) += temp*bi(t)*bi(t+i);
+            u++;
           }
         }
     
@@ -138,12 +140,14 @@ Rcpp::List getECpseudo(const Eigen::VectorXd & beta,
       }
     
       if (p1a >= 2) {
+        u=0;
         for(i=1;i<p1a;i++)
         {
           for(t=0;t<p1a-i;t++)
           {
-            FUNBSEC(p1a+t+(i-1)*(p1a-1),j)+=temp*exp(MultVV(alpha1,bi))*bi(t)*bi(t+i);
-            FUNBSEC(p1a*(p1a+1)/2+p1a+t+(i-1)*(p1a-1),j)+=temp*exp(MultVV(alpha2,bi))*bi(t)*bi(t+i);
+            FUNBSEC(p1a+u,j)+=temp*exp(MultVV(alpha1,bi))*bi(t)*bi(t+i);
+            FUNBSEC(p1a*(p1a+1)/2+p1a+u,j)+=temp*exp(MultVV(alpha2,bi))*bi(t)*bi(t+i);
+            u++;
           }
         }
       }

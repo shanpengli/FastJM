@@ -24,7 +24,7 @@ Rcpp::List getCovSF(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1
   int a = H01.rows();
   int k = mdata.size();
   
-  int i,q,j,t;
+  int i,q,j,t,u;
   
   double temp,temp1;
   
@@ -436,11 +436,13 @@ Rcpp::List getCovSF(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1
     for (i=0;i<p1a;i++) bs(i,i) = FUNBS(i, j);
     if(p1a>1)
     {
+      u=0;
       for(i=1;i<p1a;i++)
       {
         for(t=0;t<p1a-i;t++) {
-          bs(t,i+t) = FUNBS(p1a+t+(i-1)*(p1a-1),j);
+          bs(t,i+t) = FUNBS(p1a+u,j);
           bs(i+t,t) = bs(t,i+t);
+          u++;
         }
       }
     }
@@ -464,11 +466,13 @@ Rcpp::List getCovSF(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1
     
     if(p1a>1)
     {
+      u=0;
       for(i=1;i<p1a;i++)
       {
         for(t=0;t<p1a-i;t++) {
-          bs(t,i+t) = FUNBS(p1a+t+(i-1)*(p1a-1),j);
+          bs(t,i+t) = FUNBS(p1a+u,j);
           bs(i+t,t) = bs(t,i+t);
+          u++;
         }
       }
     }
@@ -476,10 +480,13 @@ Rcpp::List getCovSF(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1
     bs = Sig.inverse()*bs*Sig.inverse() - Sig.inverse();
     
     for (t=0;t<p1a;t++) S(p1+p2+p1a+1+t) = 0.5*bs(t,t);
-    
+    u=0;
     for(q=1;q<p1a;q++)
     {
-      for(t=0;t<(p1a-q);t++) S(p1+p2+p1a+1+p1a+t+(q-1)*(p1a-1)) = bs(t,q+t);
+      for(t=0;t<(p1a-q);t++) {
+        S(p1+p2+p1a+1+p1a+u) = bs(t,q+t);
+        u++;
+      }
     }
     
     SS += MultVVoutprod(S);
@@ -498,11 +505,13 @@ Rcpp::List getCovSF(const Eigen::VectorXd & beta, const Eigen::VectorXd & gamma1
   for (t=0;t<p1a;t++) sealpha1(t) = sqrt(SSinv(p1+p2+t,p1+p2+t));
   sesigma = sqrt(SSinv(p1+p2+p1a,p1+p2+p1a));
   for (t=0;t<p1a;t++) seSig(t,t) = sqrt(SSinv(p1+p2+p1a+1+t,p1+p2+p1a+1+t));
+  u=0;
   for(q=1;q<p1a;q++)
   {
     for(t=0;t<(p1a-q);t++) {
-      seSig(t,q+t) = sqrt(SSinv(p1+p2+p1a+1+p1a+t+(q-1)*(p1a-1),p1+p2+p1a+1+p1a+t+(q-1)*(p1a-1)));
+      seSig(t,q+t) = sqrt(SSinv(p1+p2+p1a+1+p1a+u,p1+p2+p1a+1+p1a+u));
       seSig(q+t,t) = seSig(t,q+t);
+      u++;
     }
   }
   

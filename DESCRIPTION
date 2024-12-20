@@ -24,9 +24,9 @@ Description: Maximum likelihood estimation for the semi-parametric joint modelin
              is estimated using an Expectation Maximization algorithm.
 License: GPL (>= 3)
 NeedsCompilation: yes
-Imports: Rcpp (>= 1.0.7), dplyr, nlme, caret, survival, timeROC
+Imports: Rcpp (>= 1.0.7), dplyr, nlme, caret, timeROC, PAmeasures
 LinkingTo: Rcpp, RcppEigen
-Depends: R (>= 3.5.0), statmod, MASS
+Depends: R (>= 3.5.0), survival, nlme, utils, MASS, statmod, magrittr
 RoxygenNote: 7.2.3
 LazyData: true
 Packaged: 2021-12-19 02:16:44 UTC; shanpengli

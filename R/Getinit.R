@@ -1,5 +1,5 @@
 Getinit <- function(cdata, ydata, long.formula, surv.formula,
-                    model, ID, RE, survinitial, REML, random, opt) {
+                    model, ID, RE, survinitial, REML, random, initial.para, opt) {
   
   cnames <- colnames(cdata)
   ynames <- colnames(ydata)
@@ -52,67 +52,82 @@ Getinit <- function(cdata, ydata, long.formula, surv.formula,
     stop("model should be one of the following options: interslope or intercept.")
   }
   
-  if (REML) method <- "REML"
-  if (!REML) method <- "ML"
-  longfit <- nlme::lme(fixed = long.formula, random = random, data = ydata, method = method, 
-                       control = nlme::lmeControl(opt = opt))
-  beta <- longfit$coefficients$fixed
-  sigma <- longfit$sigma^2
-  D <- as.matrix(nlme::getVarCov(longfit))
+  if (!is.null(initial.para)) {
+    beta <- initial.para$beta
+    sigma <- initial.para$sigma
+    Sig <- initial.para$Sig
+  } else {
+    if (REML) method <- "REML"
+    if (!REML) method <- "ML"
+    longfit <- nlme::lme(fixed = long.formula, random = random, data = ydata, method = method, 
+                         control = nlme::lmeControl(opt = opt))
+    beta <- longfit$coefficients$fixed
+    sigma <- longfit$sigma^2
+    Sig <- as.matrix(nlme::getVarCov(longfit))
+  }
   
   cmprsk <- as.vector(cdata[, survival[2]])
   
   if (sum(unique(cmprsk)) <= 3) {
     if (prod(c(0, 1, 2) %in% unique(cmprsk))) {
-      survfmla.fixed <- surv.formula[3]
-      survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
-      survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
-      fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
       
-      survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
-      survfmla <- as.formula(paste(survfmla.out2, survfmla.fixed, sep = "~"))
-      fitSURV2 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
-      if (survinitial) {
-        gamma1 <- fitSURV1$coefficients
-        gamma2 <- fitSURV2$coefficients 
+      if (!is.null(initial.para)) {
+        gamma1 <- initial.para$gamma1
+        gamma2 <- initial.para$gamma2
+        alpha1 <- initial.para$alpha1
+        alpha2 <- initial.para$alpha2
       } else {
-        gamma1 = rep(0, length(fitSURV1$coefficients))
-        names(gamma1) <- names(fitSURV1$coefficients)
-        gamma2 = rep(0, length(fitSURV2$coefficients))
-        names(gamma2) <- names(fitSURV2$coefficients)
-      }
-      
-      if (model == "intercept") {
-        alpha1 = as.vector(0)
-        alpha2 = as.vector(0)
-        Sig <- D
+        survfmla.fixed <- surv.formula[3]
+        survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
+        survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
+        fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
         
-      } else {
-        alpha1 = as.vector(rep(0, p1a))
-        alpha2 = as.vector(rep(0, p1a))
-        Sig <- D
+        survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
+        survfmla <- as.formula(paste(survfmla.out2, survfmla.fixed, sep = "~"))
+        fitSURV2 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
+        if (survinitial) {
+          gamma1 <- fitSURV1$coefficients
+          gamma2 <- fitSURV2$coefficients 
+        } else {
+          gamma1 = rep(0, length(fitSURV1$coefficients))
+          names(gamma1) <- names(fitSURV1$coefficients)
+          gamma2 = rep(0, length(fitSURV2$coefficients))
+          names(gamma2) <- names(fitSURV2$coefficients)
+        }
+        
+        if (model == "intercept") {
+          alpha1 = as.vector(0)
+          alpha2 = as.vector(0)
+
+        } else {
+          alpha1 = as.vector(rep(0, p1a))
+          alpha2 = as.vector(rep(0, p1a))
+        }
       }
+      
     } else {
       
-      survfmla.fixed <- surv.formula[3]
-      survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
-      
-      survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
-      fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
-      if (survinitial) {
-        gamma1 <- fitSURV1$coefficients
+      if (!is.null(initial.para)) {
+        gamma1 <- initial.para$gamma1
+        alpha1 <- initial.para$alpha1
       } else {
-        gamma1 = rep(0, length(fitSURV1$coefficients))
-        names(gamma1) <- names(fitSURV1$coefficients)
-      }
-      
-      
-      if (model == "intercept") {
-        alpha1 = as.vector(0)
-        Sig <- D
-      } else {
-        alpha1 = as.vector(rep(0, p1a))
-        Sig <- D
+        survfmla.fixed <- surv.formula[3]
+        survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
+        
+        survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
+        fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
+        if (survinitial) {
+          gamma1 <- fitSURV1$coefficients
+        } else {
+          gamma1 = rep(0, length(fitSURV1$coefficients))
+          names(gamma1) <- names(fitSURV1$coefficients)
+        }
+        
+        if (model == "intercept") {
+          alpha1 = as.vector(0)
+        } else {
+          alpha1 = as.vector(rep(0, p1a))
+        }
       }
       
     } 

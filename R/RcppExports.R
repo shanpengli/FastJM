@@ -53,6 +53,14 @@ GetCIF2CR <- function(gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, u, bi) {
     .Call(`_FastJM_GetCIF2CR`, gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, u, bi)
 }
 
+GetCIF1CRall <- function(gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, timecif, bi) {
+    .Call(`_FastJM_GetCIF1CRall`, gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, timecif, bi)
+}
+
+GetCIF2CRall <- function(gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, timecif, bi) {
+    .Call(`_FastJM_GetCIF2CRall`, gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, timecif, bi)
+}
+
 getBayes <- function(beta, Sig, sigma, Z, X1, Y, mdata, mdataS) {
     .Call(`_FastJM_getBayes`, beta, Sig, sigma, Z, X1, Y, mdata, mdataS)
 }
@@ -67,6 +75,10 @@ getCovSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survti
 
 getECIF <- function(beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posbi, Poscov) {
     .Call(`_FastJM_getECIF`, beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posbi, Poscov)
+}
+
+getECIFall <- function(beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, timecif1, timecif2, Posmean, Poscov) {
+    .Call(`_FastJM_getECIFall`, beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, timecif1, timecif2, Posmean, Poscov)
 }
 
 getECpseudo <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov) {
@@ -103,6 +115,14 @@ getMC <- function(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z,
 
 getMCSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
     .Call(`_FastJM_getMCSF`, beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+}
+
+getMNA <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
+    .Call(`_FastJM_getMNA`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
+}
+
+getMaGH <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
+    .Call(`_FastJM_getMaGH`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
 }
 
 getPus <- function(beta, gamma1, alpha1, Sig, sigma, H01, Z, X1, Y, X2, mdata, mdataS, survtime, xsmatrix, wsmatrix, u) {

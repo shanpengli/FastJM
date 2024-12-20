@@ -219,4 +219,121 @@ double GetCIF2CR(const Eigen::VectorXd & gamma1, const Eigen::VectorXd & gamma2,
   return CIF2;
 }
 
+// [[Rcpp::export]]
+Eigen::VectorXd GetCIF1CRall(const Eigen::VectorXd & gamma1, const Eigen::VectorXd & gamma2, 
+                             const Eigen::VectorXd & alpha1, const Eigen::VectorXd & alpha2, 
+                             const Eigen::VectorXd & X2,
+                             const Eigen::MatrixXd & H01, const Eigen::MatrixXd & H02,
+                             const double s, const Eigen::VectorXd & timecif, const Eigen::VectorXd & bi){
+  
+  int a = H01.rows();
+  int b = H02.rows();
+  
+  int i = 0;
+  Eigen::VectorXd CH01 = Eigen::VectorXd::Zero(a);
+  
+  double hazard=0;
+  for (i=0;i<a;i++) {
+    hazard = hazard + H01(i, 2);
+    CH01(i) = hazard;
+  }
+  
+  Eigen::VectorXd FCH02 = Eigen::VectorXd::Zero(a);
+  int count = 0;
+  i = 0;
+  while (count < b && i < a) {
+    if (H02(count, 0) < H01(i, 0)) {
+      FCH02(i) = FCH02(i) + H02(count, 2);
+      count++;
+    } else {
+      i++;
+    }
+  }
+  Eigen::VectorXd CH02 = Eigen::VectorXd::Zero(a);
+  hazard=0;
+  for (i=0;i<a;i++) {
+    hazard = hazard + FCH02(i);
+    CH02(i) = hazard;
+  }
+  
+  Eigen::VectorXd CIF1 = Eigen::VectorXd::Zero(timecif.size());
+  double CIF1temp=0;
+  int countCIF1=0;
+  
+  for (i=0;i<a;i++) {
+    if (s < H01(i, 0)) {
+      if (i >= 1) {
+        CIF1temp = CIF1temp + H01(i, 2)*exp(MultVV(X2,gamma1)+MultVV(alpha1,bi))*
+          exp(-CH01(i-1)*exp(MultVV(X2,gamma1)+MultVV(alpha1,bi))-
+          CH02(i-1)*exp(MultVV(X2,gamma2)+MultVV(alpha2,bi)));
+      } else {
+        CIF1temp = CIF1temp + H01(i, 2)*exp(MultVV(X2,gamma1)+MultVV(alpha1,bi));
+      }
+      CIF1(countCIF1)=CIF1temp;
+      countCIF1++;
+    } else continue;
+  }
+  
+  return CIF1;
+}
+
+// [[Rcpp::export]]
+Eigen::VectorXd GetCIF2CRall(const Eigen::VectorXd & gamma1, const Eigen::VectorXd & gamma2, 
+                             const Eigen::VectorXd & alpha1, const Eigen::VectorXd & alpha2, 
+                             const Eigen::VectorXd & X2,
+                             const Eigen::MatrixXd & H01, const Eigen::MatrixXd & H02,
+                             const double s, const Eigen::VectorXd & timecif, const Eigen::VectorXd & bi){
+  
+  int a = H01.rows();
+  int b = H02.rows();
+  
+  int i = 0;
+  Eigen::VectorXd CH02 = Eigen::VectorXd::Zero(b);
+  
+  double hazard=0;
+  for (i=0;i<b;i++) {
+    hazard = hazard + H02(i, 2);
+    CH02(i) = hazard;
+  }
+  
+  Eigen::VectorXd FCH01 = Eigen::VectorXd::Zero(b);
+  int count = 0;
+  i = 0;
+  while (count < a && i < b) {
+    if (H01(count, 0) < H02(i, 0)) {
+      FCH01(i) = FCH01(i) + H01(count, 2);
+      count++;
+    } else {
+      i++;
+    }
+  }
+  Eigen::VectorXd CH01 = Eigen::VectorXd::Zero(b);
+  hazard=0;
+  for (i=0;i<b;i++) {
+    hazard = hazard + FCH01(i);
+    CH01(i) = hazard;
+  }
+  
+  Eigen::VectorXd CIF2 = Eigen::VectorXd::Zero(timecif.size());
+  double CIF2temp=0;
+  int countCIF2=0;
+  
+  for (i=0;i<b;i++) {
+    if (s < H02(i, 0)) {
+      if (i >= 1) {
+        CIF2temp = CIF2temp + H02(i, 2)*exp(MultVV(X2,gamma2)+MultVV(alpha2,bi))*
+          exp(-CH01(i-1)*exp(MultVV(X2,gamma1)+MultVV(alpha1,bi))-
+          CH02(i-1)*exp(MultVV(X2,gamma2)+MultVV(alpha2,bi)));
+      } else {
+        CIF2temp = CIF2temp + H02(i, 2)*exp(MultVV(X2,gamma2)+MultVV(alpha2,bi));
+      }
+      CIF2(countCIF2)=CIF2temp;
+      countCIF2++;
+    } else continue;
+    
+  }
+  
+  return CIF2;
+}
+
 

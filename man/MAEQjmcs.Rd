@@ -17,6 +17,10 @@ MAEQjmcs(
   n.cv = 3,
   survinitial = TRUE,
   quantile.width = 0.25,
+  initial.para = FALSE,
+  LOCF = FALSE,
+  LOCFcovariate = NULL,
+  clongdata = NULL,
   ...
 )
 }
@@ -44,6 +48,16 @@ function will perform. Default is 10000.}
 \item{survinitial}{Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.}
 
 \item{quantile.width}{a numeric value of width of quantile to be specified. Default is 0.25.}
+
+\item{initial.para}{Initial guess of parameters for cross validation. Default is FALSE.}
+
+\item{LOCF}{a logical value to indicate whether the last-observation-carried-forward approach applies to prediction. 
+If \code{TRUE}, then \code{LOCFcovariate} and \code{clongdata} must be specified to indicate 
+which time-dependent survival covariates are included for dynamic prediction. Default is FALSE.}
+
+\item{LOCFcovariate}{a vector of string with time-dependent survival covariates if \code{LOCF = TRUE}. Default is NULL.}
+
+\item{clongdata}{a long format data frame where time-dependent survival covariates are incorporated. Default is NULL.}
 
 \item{...}{Further arguments passed to or from other methods.}
 }
