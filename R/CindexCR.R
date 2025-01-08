@@ -24,7 +24,7 @@ CindexCR <- function (time, status, predicted, Cause_int = 1, Time = NULL) {
   Time_survival <- time
   Censoring <- ifelse(status == 0, 0, 1)
   Cause <- ifelse(status == 2, 2, 1)
-  Prediction <- -log(predicted)
+  Prediction <- log(predicted)
   if(is.null(Time)) Time <- max(Time_survival) + 1
   n <- length(Prediction)
   A <- matrix(0, nrow = n, ncol = n)

@@ -101,8 +101,8 @@ getbSig <- function(bSig, data){
     alpha1 <- alphaList[[1]] # risk 1
     alpha2 <- alphaList[[2]] # risk 2
     # gets for each biomarker
-    alpha1g <- alpha1[[g]] # risk 1
-    alpha2g <- alpha2[[g]] # risk t
+    alpha1g <- alpha1[[g]] # bio1
+    alpha2g <- alpha2[[g]] # bio2
     
     # calculate zbig
     # need to adjust for repeated measures
@@ -121,8 +121,8 @@ getbSig <- function(bSig, data){
     # double check if it is squared
     
     # sum alpha'b
-    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi
-    sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi
+    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #bio 1
+    sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #bio 2
     
     # get the full re vector
     bfull <- rbind(bfull, bi)
@@ -143,7 +143,7 @@ getbSig <- function(bSig, data){
   
   
   total <- total +CH01 * exp(Wx%*% gamma1 + latent1) + ## part 2 change this part
-    CH02 * exp(Wx %*% gamma2 + latent2) + 
+    CH02 * exp(Wx %*% gamma2 + latent2) +
     0.5 * q *log(2*pi) +
     0.5*log(det(Sig)) + bfull %*% solve(Sig) %*% t(bfull) / 2  # part 3
   # need to update SIG/fix dimension
@@ -153,13 +153,14 @@ getbSig <- function(bSig, data){
     # should be HAZ?, double check though
     # total <- total - log(HAZ01[i]) - (W %*% gamma1 + sum.alpha1i)[1,1]  # adjusts for status == 1
     total <- total - log(HAZ01) - (Wx %*% gamma1 + latent1) # adjusts for status == 1
-    
   }
   
   if (Wcmprsk == 2) {
     # total <- total - log(HAZ02[i]) - (W %*% gamma2 + sum.alpha2i)[1,1]  # adjusts for status == 2
     total <- total - log(HAZ02) - (Wx %*% gamma2 + latent2)  # adjusts for status == 2
   }
+  
+  
   
   
   total <- unname(total)
