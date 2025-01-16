@@ -678,9 +678,9 @@ int p2a = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[1]).cols();
 	for (int i = 0; i < numSubj; i++) {
 
 		scalef = 0;
-    scalel = Eigen::VectorXd::Zero(p1a + p2a);
-	  scalellT = Eigen::MatrixXd::Zero(p1a + p2a, p1a + p2a);
-	  scalewl = Eigen::MatrixXd::Zero(dimW, p1a + p2a);
+		scalel = Eigen::VectorXd::Zero(p1a + p2a);
+		scalellT = Eigen::MatrixXd::Zero(p1a + p2a, p1a + p2a);
+		scalewl = Eigen::MatrixXd::Zero(dimW, p1a + p2a);
 	  
 		Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 
@@ -704,7 +704,7 @@ int p2a = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[1]).cols();
 
     // quadriture part/scale
 		for (int c = 0; c < numWeight; c++) {
-		  scalef += weight(c) * exp(mu1 + tau * absc(c));
+			scalef += weight(c) * exp(mu1 + tau * absc(c));
 			scalel += weight(c) * exp(mu1 + tau * absc(c)) * (latent + BAssociation * alpha1 * absc(c) / tau);
 			scalellT += weight(c) * exp(mu1 + tau * absc(c)) * (MultVVoutprod(latent + BAssociation*alpha1*absc(c)/tau) + (-MultVVoutprod(BAssociation*alpha1)/pow(tau,3)+BAssociation/tau)*absc(c));
 			scalewl += weight(c) * exp(mu1 + tau * absc(c)) * w * (latent + BAssociation*alpha1*absc(c)/tau).transpose();
@@ -783,6 +783,8 @@ int p2a = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[1]).cols();
 	phi1q += info.inverse() * (Sfull_inter - Sfull_new);
 	
 	/////////
+	// PHI2
+	/////////
 
 	dimW = gamma2.size();
 	Sw_new = Eigen::VectorXd::Zero(dimW);
@@ -797,7 +799,7 @@ int p2a = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[1]).cols();
 	llT = Eigen::MatrixXd::Zero(p1a + p2a, p1a + p2a);
 	SwwT = Eigen::MatrixXd::Zero(dimW, dimW);
 	SllT = Eigen::MatrixXd::Zero(p1a + p2a, p1a + p2a);
-  Sw = Eigen::VectorXd::Zero(dimW);
+	Sw = Eigen::VectorXd::Zero(dimW);
 	Sl = Eigen::VectorXd::Zero(p1a + p2a);
 	Swl = Eigen::MatrixXd::Zero(dimW, p1a + p2a);
 
@@ -805,10 +807,9 @@ int p2a = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[1]).cols();
 	for (int i = 0; i < numSubj; i++) {
 
 		scalef = 0;
-	  scalel = Eigen::VectorXd::Zero(p1a + p2a);
-	  scalellT = Eigen::MatrixXd::Zero(p1a + p2a, p1a + p2a);
-	  scalewl = Eigen::MatrixXd::Zero(dimW, p1a + p2a);
-	  
+		scalel = Eigen::VectorXd::Zero(p1a + p2a);
+		scalellT = Eigen::MatrixXd::Zero(p1a + p2a, p1a + p2a);
+		scalewl = Eigen::MatrixXd::Zero(dimW, p1a + p2a);
 	  
 		Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 
@@ -829,10 +830,9 @@ int p2a = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[1]).cols();
 		Eigen::VectorXd w = W.row(i);
 		mu2 = MultVV(w, gamma2) + MultVV(alpha2, latent);
 		wwT = MultVVoutprod(w);
-		scalef = exp(mu2 + 0.5 * tausq);
 
 		for (int c = 0; c < numWeight; c++) {
-		  scalef += weight(c) * exp(mu2 + tau * absc(c)); // Sgamma
+			scalef += weight(c) * exp(mu2 + tau * absc(c)); // Sgamma
 			scalel += weight(c) * exp(mu2 + tau * absc(c)) * (latent + BAssociation * alpha2 * absc(c) / tau); //S_alpha
 			scalellT += weight(c) * exp(mu2 + tau * absc(c)) * (MultVVoutprod(latent + BAssociation*alpha2*absc(c)/tau) + (-MultVVoutprod(BAssociation*alpha2)/pow(tau,3)+BAssociation/tau)*absc(c)); //I_alpha
 			scalewl += weight(c) * exp(mu2 + tau * absc(c)) * w * (latent + BAssociation*alpha2*absc(c)/tau).transpose(); //I_ga
