@@ -1,5 +1,6 @@
 Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
-                      model, ID, RE, survinitial, REML, random, opt, latAsso = "sre") {
+                      model, ID, RE, survinitial, REML, random, opt, initial.para,
+                      latAsso = "sre") {
   
   cnames <- colnames(cdata)
   ynames <- colnames(ydata)
@@ -20,7 +21,18 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
   
   numBio <- length(long.formula)
   
-  beta <- sigma <- D <- bi <- Sig <- mdata <- ydatanew <- list()
+  mdata <- ydatanew <- bi <- list()
+  
+  if (is.null(initial.para)) {
+    beta <- sigma <- D <- Sig <- list()
+  } else {
+    beta <- initial.para$beta
+    sigma <- initial.para$sigma
+    Sig <- initial.para$Sig
+    
+  }
+  
+
   
   
   orderdata <- sortmvdata(cdata, ydata, ID, surv.formula, long.formula)
@@ -68,17 +80,22 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     if (REML) method <- "REML"
     if (!REML) method <- "ML"
     
-    longfit <- try(nlme::lme(fixed = long.formula[[i]], random = random, data = ydata, method = method,
-                             control = nlme::lmeControl(opt = opt), na.action = na.omit), silent = TRUE)
-    
-    if ('try-error' %in% class(longfit)) {
-      return(NULL)
-    } else {
-      beta[[i]] <- longfit$coefficients$fixed
-      sigma[[i]] <- longfit$sigma^2
-      Sig[[i]] <- as.matrix(nlme::getVarCov(longfit))
-      bi[[i]] <- longfit$coefficients$random[[1]]
+    if (is.null(initial.para)) {
+      
+      longfit <- try(nlme::lme(fixed = long.formula[[i]], random = random, data = ydata, method = method,
+                               control = nlme::lmeControl(opt = opt), na.action = na.omit), silent = TRUE)
+      
+      if ('try-error' %in% class(longfit)) {
+        return(NULL)
+      } else {
+        beta[[i]] <- longfit$coefficients$fixed
+        sigma[[i]] <- longfit$sigma^2
+        Sig[[i]] <- as.matrix(nlme::getVarCov(longfit))
+        bi[[i]] <- longfit$coefficients$random[[1]]
+      }
+      
     }
+    
 
     
     getdum <- getmvdummy(long.formula = long.formula[[i]], surv.formula = surv.formula,
@@ -98,63 +115,72 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
   if (sum(unique(cmprsk)) <= 3) {
     if (prod(c(0, 1, 2) %in% unique(cmprsk))) {
       
-      if(latAsso == "sre"){
-        for(i in 1:numBio){
-          mi = bi[[i]]
-          dimmi[i] <- ncol(mi)
-          #if(colnames(mi))
-          colnames(mi)[1] <- "Intercept"
-          colnames(mi) <- paste("random", colnames(mi), i, sep = "_")
-          cdata <- cbind(cdata,mi)
-        }
-      }
-      
-      
-      
-      survfmla.fixed <- surv.formula[3]
-      survfmla.fixed <- gsub("\\(+$", "",survfmla.fixed)
-      
-      
-      mifmla <- paste0(names(cdata)[(ncol(cdata)-ncol(mi)*numBio+1):ncol(cdata)], collapse = "+")
-      survfmla.fixed <- paste0(survfmla.fixed, "+", mifmla)
-      survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
-      survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
-      #survfmla <- survival::Surv(survtime, cmprsk == 1) ~X21 + X22 + random_Intercept +
-      #random_time
-      fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
-      survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
-      survfmla <- as.formula(paste(survfmla.out2, survfmla.fixed, sep = "~"))
-      fitSURV2 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
-      allalphaInd1 <- allalphaInd2 <- c()
-      alpha <- list(alpha1 = list(), alpha2 = list())
-      if (survinitial) {
-        fitSURV1co <- fitSURV1$coefficients
-        fitSURV2co <- fitSURV2$coefficients
+      if (is.null(initial.para)) {
         
-        
-        for (i in 1:numBio) {
-          alphaInd1 <- (length(fitSURV1co)-sum(dimmi[1:i])+1):(length(fitSURV1co)-sum(dimmi[1:i])+dimmi[i])
-          alphaInd2 <- (length(fitSURV1co)-sum(dimmi[1:i])+1):(length(fitSURV1co)-sum(dimmi[1:i])+dimmi[i])
-          alpha[[1]][[numBio-i+1]] <- fitSURV1co[alphaInd1]
-          alpha[[2]][[numBio-i+1]] <- fitSURV2co[alphaInd2]
-          allalphaInd1 <- c(allalphaInd1, alphaInd1)
-          allalphaInd2 <- c(allalphaInd2, alphaInd2)
+        if(latAsso == "sre"){
+          for(i in 1:numBio){
+            mi = bi[[i]]
+            dimmi[i] <- ncol(mi)
+            #if(colnames(mi))
+            colnames(mi)[1] <- "Intercept"
+            colnames(mi) <- paste("random", colnames(mi), i, sep = "_")
+            cdata <- cbind(cdata,mi)
+          }
         }
         
-        gamma1 <- fitSURV1co[-allalphaInd1]
-        gamma2 <- fitSURV2co[-allalphaInd2]
+        survfmla.fixed <- surv.formula[3]
+        survfmla.fixed <- gsub("\\(+$", "",survfmla.fixed)
+        
+        
+        mifmla <- paste0(names(cdata)[(ncol(cdata)-ncol(mi)*numBio+1):ncol(cdata)], collapse = "+")
+        survfmla.fixed <- paste0(survfmla.fixed, "+", mifmla)
+        survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
+        survfmla <- as.formula(paste(survfmla.out1, survfmla.fixed, sep = "~"))
+        #survfmla <- survival::Surv(survtime, cmprsk == 1) ~X21 + X22 + random_Intercept +
+        #random_time
+        fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
+        survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
+        survfmla <- as.formula(paste(survfmla.out2, survfmla.fixed, sep = "~"))
+        fitSURV2 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
+        allalphaInd1 <- allalphaInd2 <- c()
+        alpha <- list(alpha1 = list(), alpha2 = list())
+        if (survinitial) {
+          fitSURV1co <- fitSURV1$coefficients
+          fitSURV2co <- fitSURV2$coefficients
+          
+          
+          for (i in 1:numBio) {
+            alphaInd1 <- (length(fitSURV1co)-sum(dimmi[1:i])+1):(length(fitSURV1co)-sum(dimmi[1:i])+dimmi[i])
+            alphaInd2 <- (length(fitSURV1co)-sum(dimmi[1:i])+1):(length(fitSURV1co)-sum(dimmi[1:i])+dimmi[i])
+            alpha[[1]][[numBio-i+1]] <- fitSURV1co[alphaInd1]
+            alpha[[2]][[numBio-i+1]] <- fitSURV2co[alphaInd2]
+            allalphaInd1 <- c(allalphaInd1, alphaInd1)
+            allalphaInd2 <- c(allalphaInd2, alphaInd2)
+          }
+          
+          gamma1 <- fitSURV1co[-allalphaInd1]
+          gamma2 <- fitSURV2co[-allalphaInd2]
+        } else {
+          gamma1 = rep(0, length(fitSURV1co[-allalphaInd1]))
+          names(gamma1) <- names(fitSURV1co)
+          gamma2 = rep(0, length(fitSURV2co[-allalphaInd2]))
+          names(gamma2) <- names(fitSURV2co)
+          
+          for(i in 1:numBio){
+            alpha[[1]][[i]] <- rep(0, dimmi[i])
+            alpha[[2]][[i]] <- rep(0, dimmi[i])
+          }
+          
+        }
+        
       } else {
-        gamma1 = rep(0, length(fitSURV1co[-allalphaInd1]))
-        names(gamma1) <- names(fitSURV1co)
-        gamma2 = rep(0, length(fitSURV2co[-allalphaInd2]))
-        names(gamma2) <- names(fitSURV2co)
-        
-        for(i in 1:numBio){
-          alpha[[1]][[i]] <- rep(0, dimmi[i])
-          alpha[[2]][[i]] <- rep(0, dimmi[i])
-        }
+        gamma1 <- initial.para$gamma1
+        gamma2 <- initial.para$gamma2
+        alpha <- initial.para$alpha
         
       }
+      
+
       
       
       

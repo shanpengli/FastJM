@@ -45,8 +45,7 @@ summary.MAEQjmcs <- function (object, digits = 3, ...) {
       }
       sum[, -1] <- round(sum[, -1], digits)
       cat("\nSum of absolute error across quintiles of predicted risk scores at the landmark time of", object$landmark.time, "\nbased on", object$n.cv, "fold cross validation\n")
-      print(sum)
-      invisible(object)
+      return(sum)
     } else {
       stop("The cross validation fails. Please try using a different seed number.")
     }

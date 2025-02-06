@@ -898,8 +898,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // getQuadMix
-Rcpp::List getQuadMix(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Rcpp::List sigmaList, Rcpp::List sigmaiList, Eigen::VectorXd weight, Eigen::VectorXd absc, Eigen::MatrixXd H01, Eigen::MatrixXd H02, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk, Eigen::VectorXd& gamma1, Eigen::VectorXd& gamma2, Rcpp::List alphaList, const Eigen::MatrixXd& xsmatrix, const Eigen::MatrixXd& wsmatrix, const Eigen::VectorXd& CUH01, const Eigen::VectorXd& CUH02, const Eigen::VectorXd& HAZ01, const Eigen::VectorXd& HAZ02, const Eigen::MatrixXd& Sig, Rcpp::List betaList);
-RcppExport SEXP _FastJM_getQuadMix(SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP sigmaListSEXP, SEXP sigmaiListSEXP, SEXP weightSEXP, SEXP abscSEXP, SEXP H01SEXP, SEXP H02SEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP alphaListSEXP, SEXP xsmatrixSEXP, SEXP wsmatrixSEXP, SEXP CUH01SEXP, SEXP CUH02SEXP, SEXP HAZ01SEXP, SEXP HAZ02SEXP, SEXP SigSEXP, SEXP betaListSEXP) {
+Rcpp::List getQuadMix(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Rcpp::List sigmaList, Rcpp::List sigmaiList, Eigen::VectorXd weight, Eigen::VectorXd absc, Eigen::MatrixXd H01, Eigen::MatrixXd H02, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk, Eigen::VectorXd& gamma1, Eigen::VectorXd& gamma2, Rcpp::List alphaList, const Eigen::VectorXd& CUH01, const Eigen::VectorXd& CUH02, const Eigen::VectorXd& HAZ01, const Eigen::VectorXd& HAZ02, const Eigen::MatrixXd& Sig, Rcpp::List betaList);
+RcppExport SEXP _FastJM_getQuadMix(SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP sigmaListSEXP, SEXP sigmaiListSEXP, SEXP weightSEXP, SEXP abscSEXP, SEXP H01SEXP, SEXP H02SEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP alphaListSEXP, SEXP CUH01SEXP, SEXP CUH02SEXP, SEXP HAZ01SEXP, SEXP HAZ02SEXP, SEXP SigSEXP, SEXP betaListSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -921,21 +921,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Eigen::VectorXd& >::type gamma1(gamma1SEXP);
     Rcpp::traits::input_parameter< Eigen::VectorXd& >::type gamma2(gamma2SEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type alphaList(alphaListSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type xsmatrix(xsmatrixSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type wsmatrix(wsmatrixSEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type CUH01(CUH01SEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type CUH02(CUH02SEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type HAZ01(HAZ01SEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type HAZ02(HAZ02SEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Sig(SigSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type betaList(betaListSEXP);
-    rcpp_result_gen = Rcpp::wrap(getQuadMix(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList));
+    rcpp_result_gen = Rcpp::wrap(getQuadMix(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList));
     return rcpp_result_gen;
 END_RCPP
 }
 // getNoQuad
-Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Rcpp::List sigmaList, Rcpp::List sigmaiList, Eigen::VectorXd weight, Eigen::VectorXd absc, Eigen::MatrixXd H01, Eigen::MatrixXd H02, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk, Eigen::VectorXd& gamma1, Eigen::VectorXd& gamma2, Rcpp::List alphaList, const Eigen::MatrixXd& xsmatrix, const Eigen::MatrixXd& wsmatrix, const Eigen::VectorXd& CUH01, const Eigen::VectorXd& CUH02, const Eigen::VectorXd& HAZ01, const Eigen::VectorXd& HAZ02, const Eigen::MatrixXd& Sig, Rcpp::List betaList);
-RcppExport SEXP _FastJM_getNoQuad(SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP sigmaListSEXP, SEXP sigmaiListSEXP, SEXP weightSEXP, SEXP abscSEXP, SEXP H01SEXP, SEXP H02SEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP alphaListSEXP, SEXP xsmatrixSEXP, SEXP wsmatrixSEXP, SEXP CUH01SEXP, SEXP CUH02SEXP, SEXP HAZ01SEXP, SEXP HAZ02SEXP, SEXP SigSEXP, SEXP betaListSEXP) {
+Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Rcpp::List sigmaList, Rcpp::List sigmaiList, Eigen::VectorXd weight, Eigen::VectorXd absc, Eigen::MatrixXd H01, Eigen::MatrixXd H02, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk, Eigen::VectorXd& gamma1, Eigen::VectorXd& gamma2, Rcpp::List alphaList, const Eigen::VectorXd& CUH01, const Eigen::VectorXd& CUH02, const Eigen::VectorXd& HAZ01, const Eigen::VectorXd& HAZ02, const Eigen::MatrixXd& Sig, Rcpp::List betaList);
+RcppExport SEXP _FastJM_getNoQuad(SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP sigmaListSEXP, SEXP sigmaiListSEXP, SEXP weightSEXP, SEXP abscSEXP, SEXP H01SEXP, SEXP H02SEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP alphaListSEXP, SEXP CUH01SEXP, SEXP CUH02SEXP, SEXP HAZ01SEXP, SEXP HAZ02SEXP, SEXP SigSEXP, SEXP betaListSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -957,15 +955,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Eigen::VectorXd& >::type gamma1(gamma1SEXP);
     Rcpp::traits::input_parameter< Eigen::VectorXd& >::type gamma2(gamma2SEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type alphaList(alphaListSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type xsmatrix(xsmatrixSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type wsmatrix(wsmatrixSEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type CUH01(CUH01SEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type CUH02(CUH02SEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type HAZ01(HAZ01SEXP);
     Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type HAZ02(HAZ02SEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Sig(SigSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type betaList(betaListSEXP);
-    rcpp_result_gen = Rcpp::wrap(getNoQuad(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList));
+    rcpp_result_gen = Rcpp::wrap(getNoQuad(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1011,8 +1007,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_FastJM_getloglikeCpseudoSF", (DL_FUNC) &_FastJM_getloglikeCpseudoSF, 19},
     {"_FastJM_getloglikeCstandard", (DL_FUNC) &_FastJM_getloglikeCstandard, 21},
     {"_FastJM_getloglikeCstandardSF", (DL_FUNC) &_FastJM_getloglikeCstandardSF, 17},
-    {"_FastJM_getQuadMix", (DL_FUNC) &_FastJM_getQuadMix, 26},
-    {"_FastJM_getNoQuad", (DL_FUNC) &_FastJM_getNoQuad, 26},
+    {"_FastJM_getQuadMix", (DL_FUNC) &_FastJM_getQuadMix, 24},
+    {"_FastJM_getNoQuad", (DL_FUNC) &_FastJM_getNoQuad, 24},
     {NULL, NULL, 0}
 };
 

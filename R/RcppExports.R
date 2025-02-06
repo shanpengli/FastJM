@@ -161,11 +161,11 @@ getloglikeCstandardSF <- function(beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2
     .Call(`_FastJM_getloglikeCstandardSF`, beta, gamma1, alpha1, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
 }
 
-getQuadMix <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
-    .Call(`_FastJM_getQuadMix`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
+getQuadMix <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
+    .Call(`_FastJM_getQuadMix`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
 }
 
-getNoQuad <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
-    .Call(`_FastJM_getNoQuad`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
+getNoQuad <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
+    .Call(`_FastJM_getNoQuad`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
 }
 

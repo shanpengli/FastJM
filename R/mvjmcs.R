@@ -4,7 +4,9 @@
 mvjmcs <- function(ydata, cdata, long.formula,
                          random = NULL, surv.formula,
                          maxiter = 10000, opt = "nlminb", tol = 0.0001, method = c("quad", "noquad"), 
-                         model, print.para = TRUE, quadpoint = 6){
+                         model, print.para = TRUE, 
+                   initial.para = NULL,
+                   quadpoint = 6){
   # "aGH", "normApprox", 
   
   random.form <- all.vars(random)
@@ -47,7 +49,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
   getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
                        surv.formula = surv.formula,
                        model = "interslope", ID = ID, RE = RE, survinitial = TRUE,
-                       REML = TRUE, random = random, opt = "nlminb")
+                       REML = TRUE, random = random, opt = "nlminb", initial.para)
+  
+  if (is.null(getinit)) {
+    stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
+  }
   
   ydata <- getinit$ydata # need to rearrange this part
   cdata <- getinit$cdata
@@ -95,70 +101,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
   }
   
-  # get weights - could make this into a function
-  GH.val  <- gauss.quad.prob(10)
-  weight.c <- GH.val$weights # ws matrix
-  abscissas.c <- GH.val$nodes # xs matrix
-  
-  
-  gq_vals <- statmod::gauss.quad(n = quadpoint, kind = "hermite")
-  xs <- gq_vals$nodes
-  ws <- gq_vals$weights
-  
-  
-  xsmatrix <- matrix(0, nrow = 4, ncol = quadpoint^4)
-  wsmatrix <- xsmatrix
-  
-  xsmatrix[4, ] <- rep(xs, quadpoint^3)
-  
-  
-  
-  Total <- NULL
-  for (i in 1:quadpoint) {
-    sub <- rep(xs[i], quadpoint)
-    Total <- c(Total, sub)
-  }
-  xsmatrix[3, ] <- rep(Total, quadpoint^2)
-  
-  Total <- NULL
-  for (i in 1:quadpoint) {
-    sub <- rep(xs[i], quadpoint^2)
-    Total <- c(Total, sub)
-  }
-  xsmatrix[2, ] <- rep(Total, quadpoint)
-  
-  Total <- NULL
-  for (i in 1:quadpoint) {
-    sub <- rep(xs[i], quadpoint^3)
-    Total <- c(Total, sub)
-  }
-  xsmatrix[1, ] <- Total
-  
-  xsmatrix <- t(xsmatrix)
-  
-  
-  wsmatrix[4, ] <- rep(ws, quadpoint^3)
-  
-  Total <- NULL
-  for (i in 1:quadpoint) {
-    sub <- rep(ws[i], quadpoint)
-    Total <- c(Total, sub)
-  }
-  wsmatrix[3, ] <- rep(Total, quadpoint^2)
-  
-  Total <- NULL
-  for (i in 1:quadpoint) {
-    sub <- rep(ws[i], quadpoint^2)
-    Total <- c(Total, sub)
-  }
-  wsmatrix[2, ] <- rep(Total, quadpoint)
-  Total <- NULL
-  for (i in 1:quadpoint) {
-    sub <- rep(ws[i], quadpoint^3)
-    Total <- c(Total, sub)
-  }
-  wsmatrix[1, ] <- Total
-  wsmatrix <- t(wsmatrix)
+  GH.val  <- gauss.quad.prob(quadpoint)
+  weight.c <- GH.val$weights # weights
+  abscissas.c <- GH.val$nodes # abscissas
   
   survtime <- getinit$survtime
   cmprsk <- getinit$cmprsk
@@ -183,16 +128,24 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   getHazard(CumuH01, CumuH02, getinit$survtime, getinit$cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
   
-  SigList <- getinit$Sig # need to be 4x4
-  Sig11 <- SigList[[1]]
-  Sig22<- SigList[[2]] # first biomarker/ #second biomarker
   HAZ0 <- list(HAZ01, HAZ02)
   
   p1a <- ncol(getinit$Z[[1]]) # dim of random effect
   p2a <- ncol(getinit$Z[[2]])
-  Sig <- matrix(rep(0, p1a + p2a), nrow = p1a + p2a, ncol = p1a + p2a)
-  Sig[1:p1a,1:p1a] <- Sig11
-  Sig[(p1a+1):(p1a + p2a),(p1a+1):(p1a+p2a)] <- Sig22
+  
+  if (is.null(initial.para)) {
+    
+    SigList <- getinit$Sig # need to be 4x4
+    Sig11 <- SigList[[1]]
+    Sig22<- SigList[[2]] # first biomarker/ #second biomarker
+    Sig <- matrix(rep(0, p1a + p2a), nrow = p1a + p2a, ncol = p1a + p2a)
+    Sig[1:p1a,1:p1a] <- Sig11
+    Sig[(p1a+1):(p1a + p2a),(p1a+1):(p1a+p2a)] <- Sig22
+    
+  } else {
+    Sig <- getinit$Sig
+  }
+
   
   
   # -----------------------
@@ -333,14 +286,14 @@ mvjmcs <- function(ydata, cdata, long.formula,
                          mdataM, mdataSM,
                          pos.mode, getinit$sigma, pos.var, weight.c, abscissas.c,
                          H01, H02, getinit$survtime, getinit$cmprsk,
-                         getinit$gamma1, getinit$gamma2, getinit$alpha, xsmatrix, wsmatrix,
+                         getinit$gamma1, getinit$gamma2, getinit$alpha,
                          CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
   }else{
     output <- getNoQuad(subX1,subY, subZ, getinit$W,
                         mdataM, mdataSM,
                         pos.mode, getinit$sigma, pos.var, weight.c, abscissas.c,
                         H01, H02, getinit$survtime, getinit$cmprsk,
-                        getinit$gamma1, getinit$gamma2, getinit$alpha, xsmatrix, wsmatrix,
+                        getinit$gamma1, getinit$gamma2, getinit$alpha,
                         CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
   }
   
@@ -532,14 +485,15 @@ mvjmcs <- function(ydata, cdata, long.formula,
                            mdataM, mdataSM,
                            pos.mode, presigmaList, pos.var, weight.c, abscissas.c,
                            H01, H02, getinit$survtime, getinit$cmprsk,
-                           data$gamma1, data$gamma2, data$alpha, xsmatrix, wsmatrix,
+                           data$gamma1, data$gamma2, data$alpha,
                            CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
+      
     }else{
       output <- getNoQuad(subX1,subY, subZ, getinit$W,
                           mdataM, mdataSM,
                           pos.mode, presigmaList, pos.var, weight.c, abscissas.c,
                           H01, H02, getinit$survtime, getinit$cmprsk,
-                          data$gamma1, data$gamma2, data$alpha, xsmatrix, wsmatrix,
+                          data$gamma1, data$gamma2, data$alpha,
                           CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
     }
     
