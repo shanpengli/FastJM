@@ -38,6 +38,7 @@ anova.jmcs <- function(object, object2, digits = 4, ...) {
   if (object$CompetingRisk != object2$CompetingRisk)
     stop("The survival submodels of these two objects are differently structured and thus not available for anova.")
   
+  ### data log likelihood
   L0 <- object$loglike
   L1 <- object2$loglike
   
