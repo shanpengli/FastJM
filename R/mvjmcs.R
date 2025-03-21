@@ -9,6 +9,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    quadpoint = 6){
   # "aGH", "normApprox", 
   
+  start_time <- Sys.time()
+  
   random.form <- all.vars(random)
   RE <- random.form[-length(random.form)]
   ID <- random.form[length(random.form)]
@@ -322,7 +324,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   iter=0
   beta <- output$beta
   
-  start_time <- Sys.time()
+
   
   repeat{
     
@@ -536,13 +538,23 @@ mvjmcs <- function(ydata, cdata, long.formula,
   if (iter == maxiter) {
     writeLines("program stops because of nonconvergence")
     convergence = 0
+    SEest = 0
+    
+  } else{
+    SEest <- getmvCov(beta, gamma1, gamma2, 
+                    c(alpha1b1, alpha1b2), c(alpha2b1, alpha2b2), 
+                    H01, H02, pos.var, Sig, sigma, 
+                    subX1, subY, subZ, getinit$W, 
+                    getinit$survtime,getinit$cmprsk,
+                    mdata, mdataSM, pos.mode)
   }
   
   end_time <- Sys.time()
   (runtime <- end_time - start_time)
+  
   return(list(output = output, re = pos.mode, sigi = pos.var, 
               betaout = tempbeta, sigmaout = tempsigma, 
-              phi1out = tempphi1, phi2out = tempphi2,
+              phi1out = tempphi1, phi2out = tempphi2, SEest,
               runtime = runtime))
   
 }
