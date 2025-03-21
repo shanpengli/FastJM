@@ -7,13 +7,16 @@ sortmvdata <- function(cdata, ydata, ID, surv.formula, long.formula) {
   
   Truelong <- long <- c()
   
-  for(i in 1:length(long.formula)){
-    Truelong <- c(Truelong,all.vars(long.formula[[i]])) # get variable names from the long formula
+  numBio <- length(long.formula)
+  
+  for(g in 1:numBio){
+    Truelong <- c(Truelong,all.vars(long.formula[[g]])) # get variable names from the long formula
     
     
-    long <- c(long, all.vars(long.formula[[i]])) # prepare column names for long data
+    long <- c(long, all.vars(long.formula[[g]])) # prepare column names for long data
     
   }
+  
   Truelong <- unique(Truelong)
   long <- unique(long)
   long <- paste0(long, ".long")
@@ -33,16 +36,39 @@ sortmvdata <- function(cdata, ydata, ID, surv.formula, long.formula) {
   colnames(cdata)[-1] <- Truesurvival # rename cdata columns to original survival variable names
   colnames(ydata)[-1] <- Truelong # rename ydata columns to original long variable names
   
-  mdata <- as.data.frame(table(ydata[, ID])) # create a count of occurrences of each ID in ydata
-  colnames(mdata)[1] <- ID
-  mdata[, ID] <- as.character(mdata[, ID])
-  cdata[, ID] <- as.character(cdata[, ID])
-  ydata[, ID] <- as.character(ydata[, ID])
-  cmdata <- dplyr::left_join(cdata, mdata, by = ID) # merge cdata and count data by ID
-  mdata <- cmdata[, c(1, ncol(cmdata))]
-  colnames(mdata) <- c(ID, "ni") # rename count column to "ni"
   
-  a <- list(ydata, cdata, mdata) # return a list with ydata, cdata, and mdata
+  cdata[, ID] <- as.character(cdata[, ID])
+  
+  ydataList <- mdataList <- vector("list",numBio)
+  for(g in 1:numBio){
+    ydatatemp <- na.omit(ydata[, c(ID, all.vars(long.formula[[g]]))])
+    mdatatemp <- as.data.frame(table(ydatatemp[, ID])) # create a count of occurrences of each ID in ydata
+    colnames(mdatatemp)[1] <- ID
+    mdatatemp[,ID] <- as.character(mdatatemp[, ID])
+    ydatatemp[, ID] <- as.character(ydatatemp[, ID])
+    
+    cmdata <- dplyr::left_join(cdata, mdatatemp, by = ID)
+    mdatatemp <- cmdata[, c(1, ncol(cmdata))]
+    colnames(mdatatemp) <- c(ID, "ni") # rename count column to "ni"
+    
+    
+    ydataList[[g]] <- ydatatemp
+    mdataList[[g]] <- mdatatemp
+    
+    
+  }
+  
+  
+  # mdata <- as.data.frame(table(ydata[, ID])) # create a count of occurrences of each ID in ydata
+  # colnames(mdata)[1] <- ID
+  # mdata[, ID] <- as.character(mdata[, ID])
+  # cdata[, ID] <- as.character(cdata[, ID])
+  # ydata[, ID] <- as.character(ydata[, ID])
+  # cmdata <- dplyr::left_join(cdata, mdata, by = ID) # merge cdata and count data by ID
+  # mdata <- cmdata[, c(1, ncol(cmdata))]
+  # colnames(mdata) <- c(ID, "ni") # rename count column to "ni"
+  
+  a <- list(ydataList, cdata, mdataList) # return a list with ydata, cdata, and mdata
   names(a) <- c("ydata", "cdata", "mdata")
   
   return(a)
