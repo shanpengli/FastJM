@@ -32,21 +32,17 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     
   }
   
-
-  
-  
   orderdata <- sortmvdata(cdata, ydata, ID, surv.formula, long.formula)
-  ydata <- orderdata$ydata
+  ydataAll <- orderdata$ydata
   cdata <- orderdata$cdata
-  # need to change this
-  for(i in 1:numBio){
-    mdata[[i]] <- orderdata$mdata
-  }
+  mdata <- orderdata$mdata
   
   Zlist <- list()
   
-  for(i in 1:numBio){
-    long <- all.vars(long.formula[[i]])
+  for(g in 1:numBio){
+    
+    ydata <- ydataAll[[g]]
+    long <- all.vars(long.formula[[g]])
     
     ##random effect covariates
     if (model == "interslope") {
@@ -61,7 +57,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         p1a <- 1 + length(RE)
         Z <- ydata[, RE]
         Z <- cbind(1, Z)
-        Zlist[[i]] <- as.matrix(Z)
+        Zlist[[g]] <- as.matrix(Z)
       }
     } else if (model == "intercept") {
       if (!is.null(RE)) {
@@ -71,7 +67,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
       p1a <- 1
       Z <- rep(1, ydim[1])
       Z <- as.data.frame(Z)
-      Zlist[[i]]<- as.matrix(Z)
+      Zlist[[g]]<- as.matrix(Z)
       
     } else {
       stop("model should be one of the following options: interslope or intercept.")
@@ -82,30 +78,27 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     
     if (is.null(initial.para)) {
       
-      longfit <- try(nlme::lme(fixed = long.formula[[i]], random = random, data = ydata, method = method,
+      longfit <- try(nlme::lme(fixed = long.formula[[g]], random = random, data = ydata, method = method,
                                control = nlme::lmeControl(opt = opt), na.action = na.omit), silent = TRUE)
       
       if ('try-error' %in% class(longfit)) {
         return(NULL)
       } else {
-        beta[[i]] <- longfit$coefficients$fixed
-        sigma[[i]] <- longfit$sigma^2
-        Sig[[i]] <- as.matrix(nlme::getVarCov(longfit))
-        bi[[i]] <- longfit$coefficients$random[[1]]
+        beta[[g]] <- longfit$coefficients$fixed
+        sigma[[g]] <- longfit$sigma^2
+        Sig[[g]] <- as.matrix(nlme::getVarCov(longfit))
+        bi[[g]] <- longfit$coefficients$random[[1]]
       }
       
     }
     
-
+    getdum <- getmvdummy(long.formula = long.formula[[g]], surv.formula = surv.formula,
+                         random = random, ydata = ydata, cdata = cdata)
     
-    getdum <- getmvdummy(long.formula = long.formula[[i]], surv.formula = surv.formula,
-                       random = random, ydata = ydata, cdata = cdata)
-    
-    ydatanew[[i]] <- getdum$ydata
+    ydatanew[[g]] <- getdum$ydata
     cdatanew <- getdum$cdata
     
   }
-  
   
   
   cmprsk <- as.vector(cdata[, survival[2]])
@@ -118,12 +111,12 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
       if (is.null(initial.para)) {
         
         if(latAsso == "sre"){
-          for(i in 1:numBio){
-            mi = bi[[i]]
-            dimmi[i] <- ncol(mi)
+          for(g in 1:numBio){
+            mi = bi[[g]]
+            dimmi[g] <- ncol(mi)
             #if(colnames(mi))
             colnames(mi)[1] <- "Intercept"
-            colnames(mi) <- paste("random", colnames(mi), i, sep = "_")
+            colnames(mi) <- paste("random", colnames(mi), g, sep = "_")
             cdata <- cbind(cdata,mi)
           }
         }
@@ -149,11 +142,11 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
           fitSURV2co <- fitSURV2$coefficients
           
           
-          for (i in 1:numBio) {
-            alphaInd1 <- (length(fitSURV1co)-sum(dimmi[1:i])+1):(length(fitSURV1co)-sum(dimmi[1:i])+dimmi[i])
-            alphaInd2 <- (length(fitSURV1co)-sum(dimmi[1:i])+1):(length(fitSURV1co)-sum(dimmi[1:i])+dimmi[i])
-            alpha[[1]][[numBio-i+1]] <- fitSURV1co[alphaInd1]
-            alpha[[2]][[numBio-i+1]] <- fitSURV2co[alphaInd2]
+          for (g in 1:numBio) {
+            alphaInd1 <- (length(fitSURV1co)-sum(dimmi[1:g])+1):(length(fitSURV1co)-sum(dimmi[1:g])+dimmi[g])
+            alphaInd2 <- (length(fitSURV1co)-sum(dimmi[1:g])+1):(length(fitSURV1co)-sum(dimmi[1:g])+dimmi[g])
+            alpha[[1]][[numBio-g+1]] <- fitSURV1co[alphaInd1]
+            alpha[[2]][[numBio-g+1]] <- fitSURV2co[alphaInd2]
             allalphaInd1 <- c(allalphaInd1, alphaInd1)
             allalphaInd2 <- c(allalphaInd2, alphaInd2)
           }
@@ -166,9 +159,9 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
           gamma2 = rep(0, length(fitSURV2co[-allalphaInd2]))
           names(gamma2) <- names(fitSURV2co)
           
-          for(i in 1:numBio){
-            alpha[[1]][[i]] <- rep(0, dimmi[i])
-            alpha[[2]][[i]] <- rep(0, dimmi[i])
+          for(g in 1:numBio){
+            alpha[[1]][[g]] <- rep(0, dimmi[g])
+            alpha[[2]][[g]] <- rep(0, dimmi[g])
           }
           
         }
@@ -180,7 +173,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         
       }
       
-
+      
       
       
       
@@ -207,7 +200,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         # Sig <- D
       }
       
-      alpha[[i]] <- list(alpha1)
+      alpha[[g]] <- list(alpha1)
       
     }
     
@@ -218,14 +211,14 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     X <- Y <- list()
     
     ## will need to fix this later
-    for(i in 1:numBio){
-      Xtemp <- ydatanew[[i]][, -c(1,2)] # reorder later
-      X[[i]] <- as.matrix(cbind(1, Xtemp))
-      Y[[i]] <- as.vector(ydatanew[[i]][, 2])
+    for(g in 1:numBio){
+      Xtemp <- ydatanew[[g]][, -c(1,2)] # reorder later
+      X[[g]] <- as.matrix(cbind(1, Xtemp))
+      Y[[g]] <- as.vector(ydatanew[[g]][, 2])
     }
     
     
-    X2 <- as.matrix(cdatanew[, -c(1:3)])
+    X2 <- as.matrix(cdatanew[, -c(1:3)]) # prob want to check this part again
     survtime <- as.vector(cdatanew[, survival[1]])
     cmprsk <- as.vector(cdatanew[, survival[2]])
     
