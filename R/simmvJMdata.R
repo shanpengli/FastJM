@@ -74,7 +74,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
     for (i in 1:N) {
       
       ni <- floor(cdata[i, 2]/increment)
-      Visit <- sample(c(0, 1), ni, replace = TRUE, prob = c(0, 1))#prob = c(0.2, 0.8))
+      Visit <- sample(c(0, 1), ni, replace = TRUE, prob = c(0.2, 0.8))
       suby <- matrix(0, nrow = ni+1, ncol = 3)
       suby[, 1] <- i
       
