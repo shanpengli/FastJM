@@ -57,31 +57,21 @@ mvjmcs <- function(ydata, cdata, long.formula,
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
   }
   
-  ydata <- getinit$ydata # need to rearrange this part
+   # need to rearrange this part
+  mdataM <- mdataSM <- vector("list", numBio)
+  
+  for(g in 1:numBio){
+    ydata <- getinit$ydata[[g]]
+    mdata <- getinit$mdata[[g]]
+    n <- nrow(mdata)
+    mdata <- as.data.frame(mdata)
+    mdata <- as.vector(mdata$ni)
+    mdataS[1] <- 1
+    mdataCum <- cumsum(mdata)
+    mdata2 <- mdata - 1
+    mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
+  }
   cdata <- getinit$cdata
-  
-  mdataS1 <- mdataS2 <- c()
-  mdata1 <- getinit$mdata[[1]]
-  n1 <- nrow(mdata1)
-  mdata1 <- as.data.frame(mdata1)
-  mdata1 <- as.vector(mdata1$ni)
-  mdataS1[1] <- 1
-  mdataCum1 <- cumsum(mdata1)
-  mdata21 <- mdata1 - 1
-  mdataS1[2:n1] <- mdataCum1[2:n1] - mdata21[2:n1]
-  
-  mdata2 <- getinit$mdata[[2]]
-  n2 <- nrow(mdata2)
-  mdata2 <- as.data.frame(mdata2)
-  mdata2 <- as.vector(mdata2$ni)
-  mdataS2[1] <- 1
-  mdataCum2 <- cumsum(mdata2)
-  mdata22 <- mdata1 - 1
-  mdataS2[2:n2] <- mdataCum2[2:n2] - mdata21[2:n2]
-  
-  mdataM <- list(mdata1, mdata2)
-  mdataSM <- list(mdataS1, mdataS2)
-  
   
   survival <- all.vars(surv.formula)
   status <- as.vector(cdata[, survival[2]])
@@ -257,32 +247,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
   survtime <- getinit$survtime
   cmprsk <- getinit$cmprsk
   
-  
-  # output <- testC(subX1,subY, subZ, data$W,
-  #                 mdataM, mdataSM,
-  #                 pos.mode, sigma, pos.var, weight.c, abscissas.c,
-  #                 H01, H02,getinit$survtime, getinit$cmprsk,
-  #                 gamma1, gamma2, alpha, xsmatrix, wsmatrix,
-  #                 CUH01, CUH02,HAZ01,HAZ02,Sig, getinit$beta)
-  
-  # PAR UPDATE HERE
-  
-  # if(method == "aGH"){
-  #   output <- getMaGH(subX1,subY, subZ, getinit$W,
-  #                     mdataM, mdataSM,
-  #                     pos.mode, getinit$sigma, pos.var, weight.c, abscissas.c,
-  #                     H01, H02, getinit$survtime, getinit$cmprsk,
-  #                     getinit$gamma1, getinit$gamma2, getinit$alpha, xsmatrix, wsmatrix,
-  #                     CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-  # }else{
-  #   output <- getMNA(subX1,subY, subZ, getinit$W,
-  #                    mdataM, mdataSM,
-  #                    pos.mode, getinit$sigma, pos.var, weight.c, abscissas.c,
-  #                    H01, H02, getinit$survtime, getinit$cmprsk,
-  #                    getinit$gamma1, getinit$gamma2, getinit$alpha, xsmatrix, wsmatrix,
-  #                    CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-  # }
-  
   if(method == "quad"){
     output <- getQuadMix(subX1,subY, subZ, getinit$W,
                          mdataM, mdataSM,
@@ -407,25 +371,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
       subcmprsk <- data$cmprsk[j]
       subW <- data$W[j, ]
       
-      # subdata <- list(
-      #   beta = list(output$beta1, output$beta2),
-      #   gamma1 = pregamma1,
-      #   gamma2 = pregamma2,
-      #   alpha = prealphaList,
-      #   sigma = presigmaList,
-      #   Z = subZ[[j]],
-      #   X1 = subX1[[j]],
-      #   Y = subY[[j]],
-      #   Sig = preSig,
-      #   CUH01 = subCUH01,
-      #   CUH02 = subCUH02,
-      #   HAZ01 = subHAZ01,
-      #   HAZ02 = subHAZ02,
-      #   mdataM = submdataM,
-      #   mdataSM = submdataSM,
-      #   cmprsk = subcmprsk,
-      #   W = subW
-      # )
       
       subdata <- list(
         #beta = output$beta,
@@ -464,23 +409,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
     }
     
-    
-    
-    # if(method == "aGH"){
-    #   output <- getMaGH(subX1,subY, subZ, getinit$W,
-    #                     mdataM, mdataSM,
-    #                     pos.mode, presigmaList, pos.var, weight.c, abscissas.c,
-    #                     H01, H02, getinit$survtime, getinit$cmprsk,
-    #                     data$gamma1, data$gamma2, data$alpha, xsmatrix, wsmatrix,
-    #                     CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
-    # }else{
-    #   output <- getMNA(subX1,subY, subZ, getinit$W,
-    #                    mdataM, mdataSM,
-    #                    pos.mode, presigmaList, pos.var, weight.c, abscissas.c,
-    #                    H01, H02, getinit$survtime, getinit$cmprsk,
-    #                    data$gamma1, data$gamma2, data$alpha, xsmatrix, wsmatrix,
-    #                    CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
-    # }
     
     if(method == "quad"){
       output <- getQuadMix(subX1,subY, subZ, getinit$W,

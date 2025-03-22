@@ -224,7 +224,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     
     if (prod(c(0, 1, 2) %in% unique(cmprsk))) {
       a <- list(beta, gamma1, gamma2, alpha, Sig, sigma,
-                Zlist, X, Y, X2, survtime, cmprsk, bi, ydata, cdata, mdata,
+                Zlist, X, Y, X2, survtime, cmprsk, bi, ydatanew, cdata, mdata,
                 long.formula, surv.formula)
       
       names(a) <- c("beta", "gamma1", "gamma2", "alpha", "Sig", "sigma",
@@ -234,7 +234,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
       return(a)
     } else {
       a <- list(beta, gamma1, alpha1, Sig, sigma,
-                Zlist, X, Y, X2, survtime, cmprsk, bi, ydata, cdata, mdata,
+                Zlist, X, Y, X2, survtime, cmprsk, bi, ydatanew, cdata, mdata,
                 long.formula, surv.formula)
       
       names(a) <- c("beta", "gamma1", "alpha1", "Sig", "sigma",
