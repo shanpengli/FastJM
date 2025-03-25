@@ -266,7 +266,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   # PAR UPDATE HERE
   
   tempbeta <- output$beta
-  tempsigma <- c(output$sigma1, output$sigma2)
+  # tempsigma <- c(output$sigma1, output$sigma2)
   tempphi1 <- output$phi1
   tempphi2 <- output$phi2
   
@@ -283,7 +283,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
   gamma1 <- output$phi1[1:2]
   gamma2 <- output$phi2[1:2]
   alphaList <- list(list(output$phi1[3:4], output$phi1[5:6]),list(output$phi2[3:4], output$phi2[5:6]))
-  sigmaList <- list(output$sigma1, output$sigma2)
   
   iter=0
   beta <- output$beta
@@ -311,15 +310,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
     prealpha2b1 <- prealphaList[[2]][[1]]
     prealpha2b2 <- prealphaList[[2]][[2]]
     
-    # prealpha1b1 <- prealphaList[[1]][(1:2)]
-    # prealpha1b2 <- prealphaList[[1]][(3:4)]
-    # prealpha2b1 <- prealphaList[[2]][(1:2)]
-    # prealpha2b2 <- prealphaList[[2]][(3:4)]
+
     preH01 <- output$H01
     preH02 <- output$H02
     preSig <- output$Sig
-    presigmaList <-  list(output$sigma1, output$sigma2)
-    presigma <- c(output$sigma1, output$sigma2) # for checking
+    presigma <- output$sigmaVec # for checking
     
     if (print.para) {
       writeLines("iter is:")
@@ -338,10 +333,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
       print(c(prealpha1b1, prealpha1b2))
       writeLines("alpha2 is:")
       print(c(prealpha2b1, prealpha2b2))
-      # writeLines("Sig is:")
-      # print(Sig)
-      # writeLines("Error variance is:")
-      # print(sigma)
+      writeLines("Sig is:")
+      print(Sig)
+      writeLines("Error variance is:")
+      print(sigma)
     }
     
     
@@ -356,7 +351,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     getHazard(CumuH01, CumuH02, survtime, cmprsk, preH01, preH02, CUH01, CUH02, HAZ01, HAZ02)
     
     data <- list(beta = prebeta, gamma1 = pregamma1, gamma2 = pregamma2,
-                 alpha = prealphaList, sigma = presigmaList,
+                 alpha = prealphaList, sigma = presigma,
                  Z = getinit$Z, X1 = getinit$X1, Y = getinit$Y, Sig = preSig,
                  CUH01 = CUH01, CUH02 = CUH02, HAZ01 = HAZ01, HAZ02 = HAZ02,
                  mdataM = mdataM, mdataSM = mdataSM,
@@ -374,7 +369,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
       subdata <- list(
         #beta = output$beta,
-        beta = list(output$beta1, output$beta2),
+        beta = output$betaList,
         gamma1 = data$gamma1,
         gamma2 = data$gamma2,
         alpha = data$alpha,
@@ -431,11 +426,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     tempbeta <- cbind(tempbeta, output$beta)
     beta <- output$beta
-    sigma <- c(output$sigma1, output$sigma2)
+    sigma <- output$sigmaVec
     Sig <- output$Sig
     tempphi1 <- c(tempphi1, output$phi1)
     tempphi2 <- c(tempphi2, output$phi2)
-    tempsigma <- rbind(tempsigma, sigma)
+    # tempsigma <- rbind(tempsigma, sigma)
     gamma1 <- output$phi1[1:2]
     gamma2 <- output$phi2[1:2]
     alphaList <- list(list(output$phi1[3:4], output$phi1[5:6]),list(output$phi2[3:4], output$phi2[5:6]))
@@ -448,8 +443,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     H01 <- output$H01
     H02 <- output$H02
     
-    
-    sigmaList <- list(output$sigma1, output$sigma2)
     
     
     # leave condition
