@@ -202,9 +202,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     
     FUNB.col(i) = bifull;
     
-    
-    std::cout << "FUNB.col " << FUNB.col(i) << std::endl;
-    
     bVeci = bifull;
     // latent 
     Eigen::VectorXd latent = bVeci;
@@ -217,8 +214,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     Eigen::VectorXd FUNBSvec =  Eigen::VectorXd::Zero(pREtotal*(pREtotal+1)/2-FUNBSmat.diagonal().size()); // 6
     
     int FUNBSind= 0;
-    
-    // std::cout << "FUNBSmat " << FUNBSmat << std::endl;
     
     for (int row = 1; row < pREtotal; row++) {
       for (int col = 0; col < pREtotal-row; col++) {
