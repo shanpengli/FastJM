@@ -853,7 +853,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     else
     {
       
-      std::cout << " " << std::endl;
       risk1_index_vtttemp--;
       if (risk1_index_vtttemp>=0)
       {
@@ -1016,13 +1015,10 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       {
         TN = FUNB.col(i) - TNN22.col(b-1-risk2_index_vtttemp);
         TN += TRN;
-        // for (q=0;q<pRE;q++) S(p1+2*p2+pRE+q) = TN(q);
         for (q=0;q<pREtotal;q++) S(index + q) = TN(q);
-        // std::cout << "TN " << TN << std::endl;
       }
       else
       {
-        // for (q=0;q<pRE;q++) S(p1+2*p2+pRE+q) = TRN(q);
         for (q=0;q<pREtotal;q++) S(index + q) = TRN(q);
       }
     }
@@ -1071,8 +1067,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     
     
     for(t=0;t<pREtotal;t++) bs(t,t) = FUNBS(t,i);// needs to therefore be in loop
-    
-    // std::cout << "bs " <<  bs << std::endl;
     
     if(pREtotal>1)
     {
