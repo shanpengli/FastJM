@@ -12,8 +12,7 @@ getbSig <- function(bSig, data){
                    "CH01", "CH02",
                    "HAZ01", "HAZ02", "mdata", "mdataS", "Wcmprsk", "Wx")
   
-  
-  
+  # don't need mdata
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for
   Z <- data$Z
@@ -40,44 +39,33 @@ getbSig <- function(bSig, data){
   mdata <- data$mdata
   mdataS <- data$mdataS
   Wcmprsk <- data$Wcmprsk
-  Wx <- t(as.matrix(data$Wx))
-  gamma1 <- as.matrix(data$gamma1) # vector
-  gamma2 <- as.matrix(data$gamma2)
+  Wx <- as.matrix(data$Wx)
+  gamma1 <- data$gamma1 # vector
+  gamma2 <- data$gamma2
   
   # p12 <- nrow(Z[[1]])
   # p22<- nrow(Z[[2]])
   
   
   # turn into list/loop
-  p1a <- ncol(Z[[1]]) # dim of random effect
-  p2a <- ncol(Z[[2]])
-  
-  
-  # for(i in length(Z))P{}
-  # numSub <- length(mdata[[1]])
-  
-  q = 0
-  
-  for(i in 1:length(Z)){
-    q = q + ncol(Z[[i]])
+  pREvec <- c()
+  if(is.list(Z)){
+    for(g in 1:length(Z)){
+      pREvec[g] <- ncol(Z[[g]])
+    }
+  }else{
+    pREvec[g] <- ncol(Z)
   }
   
-  
-  # b <- list(
-  #   b1 = matrix(bSig[1:(2*p12)], nrow = p12, ncol = p1a),
-  #   b2 = matrix(bSig[(2*p12+1):(2*p12+2*p22)], nrow = p22, ncol = p1a)
-  # )
-  #
-  # Sig <- matrix(bSig[(2*p12+2*p22+1):length(bSig)], nrow = p1a, ncol = p1a
-  
-  b <- list(
-    b1 = matrix(bSig[1:p1a], nrow = p1a, ncol = 1),
-    b2 = matrix(bSig[(p1a+1):(p1a+p2a)], nrow = p2a, ncol = 1)
-  )
+  q = sum(pREvec)
   
   
-  
-  #Sig <- matrix(bSig[(2*q+2*q+1):length(bSig)], nrow = p1a, ncol = p1a)
+  index = 0
+  b <- vector("list", length(pREvec))
+  for(p in 1:length(pREvec)){
+    b[[p]] <- matrix(bSig[(index + 1):pREvec[p]], nrow = pREvec[p], ncol = 1)
+    index = index + pREvec[p]
+  }
   
   total <- 0
   sum.alpha1i <- 0
@@ -92,7 +80,11 @@ getbSig <- function(bSig, data){
     
     Yi <- as.matrix(Y[[g]])
     Xi <- as.matrix(X[[g]])
-    betai <- as.matrix(beta[[g]])
+    if(is.list(beta)){
+      betai <- as.matrix(beta[[g]])
+    }else{
+      betai <- as.matrix(beta)
+    }
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[[g]]
@@ -101,8 +93,20 @@ getbSig <- function(bSig, data){
     alpha1 <- alphaList[[1]] # risk 1
     alpha2 <- alphaList[[2]] # risk 2
     # gets for each biomarker
-    alpha1g <- alpha1[[g]] # bio1
-    alpha2g <- alpha2[[g]] # bio2
+    
+    if(is.list(alpha1)){
+      alpha1g <- alpha1[[g]] # alpha1
+    }else{
+      alpha1g <- alpha1
+    }
+  
+    if(is.list(alpha2)){
+      alpha2g <- alpha2[[g]] # alpha2
+    }else{
+      alpha2g <- alpha2
+    }
+    
+    
     
     # calculate zbig
     # need to adjust for repeated measures
@@ -121,8 +125,8 @@ getbSig <- function(bSig, data){
     # double check if it is squared
     
     # sum alpha'b
-    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #bio 1
-    sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #bio 2
+    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
+    sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
     
     # get the full re vector
     bfull <- rbind(bfull, bi)
@@ -132,44 +136,39 @@ getbSig <- function(bSig, data){
   bfull<- t(bfull[-1,])
   
   # latent structure for each loop
-  latent1 <- as.matrix(rep(sum.alpha1i, nrow(Wx)), nrow = 1, ncol = nrow(Wx))
-  latent2 <- as.matrix(rep(sum.alpha2i, nrow(Wx)), nrow = 1, ncol = nrow(Wx))
+  latent1 <- as.matrix(sum.alpha1i, nrow = 1)
+  latent2 <- as.matrix(sum.alpha2i, nrow = 1)
   CH01 <- as.matrix(CH01)
-  CH02 <- as.matrix(CH02)
-  
   
   
   # CH01 Might be wrong here
   
-  
-  total <- total +CH01 * exp(Wx%*% gamma1 + latent1) + ## part 2 change this part
+  total <- total + CH01 * exp(Wx%*% gamma1 + latent1) + ## part 2 change this part
     CH02 * exp(Wx %*% gamma2 + latent2) +
     0.5 * q *log(2*pi) +
     0.5*log(det(Sig)) + bfull %*% solve(Sig) %*% t(bfull) / 2  # part 3
   # need to update SIG/fix dimension
   # need to account for
   
+
+  
   if (Wcmprsk == 1) {
     # should be HAZ?, double check though
     # total <- total - log(HAZ01[i]) - (W %*% gamma1 + sum.alpha1i)[1,1]  # adjusts for status == 1
     total <- total - log(HAZ01) - (Wx %*% gamma1 + latent1) # adjusts for status == 1
-  }
+    }
+  
   
   if (Wcmprsk == 2) {
     # total <- total - log(HAZ02[i]) - (W %*% gamma2 + sum.alpha2i)[1,1]  # adjusts for status == 2
     total <- total - log(HAZ02) - (Wx %*% gamma2 + latent2)  # adjusts for status == 2
-  }
+    
+     }
   
-  
-  
+
   
   total <- unname(total)
+
   return(total)
-  
-  # for(k in 1:2){
-  #   if (data$status == k) {
-  #     total <- total - log(data$HAZ0[k]) - (W %*% gammag + alphag %*% b)  # adjusts for status == 1
-  #   }
-  # }
   
 }
