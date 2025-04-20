@@ -40,8 +40,8 @@ getbSig <- function(bSig, data){
   mdataS <- data$mdataS
   Wcmprsk <- data$Wcmprsk
   Wx <- as.matrix(data$Wx)
-  gamma1 <- data$gamma1 # vector
-  gamma2 <- data$gamma2
+  gamma1 <- as.matrix(data$gamma1) # vector
+  gamma2 <- as.matrix(data$gamma2)
   
   # p12 <- nrow(Z[[1]])
   # p22<- nrow(Z[[2]])

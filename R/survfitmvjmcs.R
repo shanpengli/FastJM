@@ -91,6 +91,13 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     }
   }
   
+  # if(is.null(stime)){
+  #   stime = 0
+  # }
+  
+  
+  
+  
     
   if (LOCF) {
     clongdata <- clongdata[clongdata[, obs.time] <= Last.time, ]
@@ -109,7 +116,12 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   cdata2 <- rbind(object$cdata, cnewdata)
   
   # if statement for checking numbio matchess
-  numBio <- length(object$LongitudinalSubmodel)
+  if(is.list(object$LongitudinalSubmodel)){
+    numBio <- length(object$LongitudinalSubmodel)
+  }else{
+    numBio <- 1
+  }
+  
   
   ### CHECK IF NOT LIST/IF BIO = 1
   
@@ -117,7 +129,7 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   ydata2List <- ynewdata2 <- ynewdatasplit <- vector("list", numBio)
   ny <- Ny <- c()
   
-  # Yvar <-  vector("list", numBio)
+  Yvar <-  vector("list", numBio)
   
   # Yvar <- colnames(ydata2)[-1]
   # Cvar <- colnames(cdata2)[-1]
@@ -127,12 +139,40 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   
   nc <- nrow(cnewdata)
   
+  if(numBio == 1){
+    getdum <- getdummy(long.formula = object$LongitudinalSubmodel,
+                       surv.formula = object$SurvivalSubmodel,
+                       random = object$random, ydata = ydata2, cdata = cdata2)
+    
+    g = 1
+  
+    ydata2List[[g]] <- getdum$ydata
+    ydata2temp <- getdum$ydata
+    cdata2temp <- getdum$cdata
+    ynewdatasplit[[g]] <- na.omit(ynewdata[,all.vars(object$LongitudinalSubmodel)])
+    
+    
+    Yvar[[g]] <- colnames(ydata2temp)[-1]
+    Cvar <- colnames(cdata2temp)[-1]
+    bvar <- all.vars(object$random) # CHANGE THIS PART TO ACCOUNT FOR MULTIPLE BIOMARKERS
+    
+    ny[g] <- nrow(ynewdatasplit[[g]])
+    Ny[g] <- nrow(ydata2temp)
+    
+    ynewdata2[[g]] <- ydata2temp[c((Ny[g]-ny[g]+1):Ny[g]), ]
+    
+    }else{
+  
   for(g in 1:numBio){
 
     # object$random needs to be list too
+    
+
     getdum <- getmvdummy(long.formula = object$LongitudinalSubmodel[[g]],
-                         surv.formula = object$SurvivalSubmodel,
-                         random = object$random, ydata = ydata2, cdata = cdata2)
+                           surv.formula = object$SurvivalSubmodel,
+                           random = object$random, ydata = ydata2, cdata = cdata2)
+    
+    
     
     ydata2List[[g]] <- getdum$ydata
     ydata2temp <- getdum$ydata
@@ -140,17 +180,24 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     ynewdatasplit[[g]] <- na.omit(ynewdata[,all.vars(object$LongitudinalSubmodel[[g]])])
     
     
-    Yvar <- colnames(ydata2)[-1]
-    Cvar <- colnames(cdata2)[-1]
+    Yvar[[g]] <- colnames(ydata2temp)[-1]
+    Cvar <- colnames(cdata2temp)[-1]
     bvar <- all.vars(object$random) # CHANGE THIS PART TO ACCOUNT FOR MULTIPLE BIOMARKERS
     
     ny[g] <- nrow(ynewdatasplit[[g]])
     Ny[g] <- nrow(ydata2temp)
-    Nc <- nrow(cdata2temp)
+    
     
     ynewdata2[[g]] <- ydata2temp[c((Ny[g]-ny[g]+1):Ny[g]), ]
-    cnewdata2 <- cdata2temp[c((Nc-nc+1):Nc), ]
+    
+    }
   }
+  
+  Nc <- nrow(cdata2temp)
+  cnewdata2 <- cdata2temp[c((Nc-nc+1):Nc), ]
+  
+  survival <- all.vars(object$SurvivalSubmodel)
+  cmprsk <- as.vector(cnewdata2[, survival[2]])
   
   nsig <- nrow(object$Sig)
   
@@ -186,62 +233,6 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   } else {
     Last.time <- cnewdata[, Cvar[1]]
   }
-  
-  
-  
-  
-  # ydataList <- mdataList <- vector("list",numBio)
-  # mdataM <- mdataSM <- vector("list", numBio)
-  # 
-  # for(g in 1:numBio){
-  #   ydatatemp <- na.omit(ydata[, c(ID, all.vars(long.formula[[g]]))])
-  #   mdatatemp <- as.data.frame(table(ydatatemp[, ID])) # create a count of occurrences of each ID in ydata
-  #   colnames(mdatatemp)[1] <- ID
-  #   mdatatemp[,ID] <- as.character(mdatatemp[, ID])
-  #   ydatatemp[, ID] <- as.character(ydatatemp[, ID])
-  #   
-  #   cmdata <- dplyr::left_join(cdata, mdatatemp, by = ID)
-  #   mdatatemp <- cmdata[, c(1, ncol(cmdata))]
-  #   colnames(mdatatemp) <- c(ID, "ni") # rename count column to "ni"
-  #   
-  #   ydataList[[g]] <- ydatatemp
-  #   mdataList[[g]] <- mdatatemp
-  # }
-  # 
-  # for(g in 1:numBio){
-  #   ydata <- ydataList[[g]]
-  #   mdata <- mdataList[[g]]
-  #   n <- nrow(mdata)
-  #   mdata <- as.data.frame(mdata)
-  #   mdata <- as.vector(mdata$ni)
-  #   mdataSM[1] <- 1
-  #   mdataCum <- cumsum(mdata)
-  #   mdata2 <- mdata - 1
-  #   mdataSM[2:n] <- mdataCum[2:n] - mdata2[2:n]
-  # }
-  # 
-  # # get var names sans ID
-  # Yvar <- colnames(ydata2)[-1]
-  # Cvar <- colnames(cdata2)[-1]
-  # bvar <- all.vars(object$random)
-  # 
-  # # number subjs
-  # ny <- nrow(ynewdata)
-  # nc <- nrow(cnewdata)
-  # Ny <- nrow(ydata2)
-  # Nc <- nrow(cdata2)
-  # 
-  # # get new subjs data from dummy
-  # ynewdata2 <- ydata2[c((Ny-ny+1):Ny), ]
-  # cnewdata2 <- cdata2[c((Nc-nc+1):Nc), ]
-  # 
-  # nsig <- nrow(object$Sig)
-  
-  # getGH <- GetGHmatrix(quadpoint = quadpoint, Sig = object$Sig)
-  # 
-  # xsmatrix <- getGH$xsmatrix
-  # wsmatrix <- getGH$wsmatrix
-  
  
   Pred <- list()
   y.obs <- list()
@@ -249,12 +240,15 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   
   if (CompetingRisk) {
     
+
     beta <- object$beta
     sigma <- object$sigma
     gamma1 <- object$gamma1
     gamma2 <- object$gamma2
-    alpha1 <- object$alpha1 # alpha1
-    alpha2 <- object$alpha2 # alpha2
+    
+    # NEED TO CHANGE THIS LATER BACK TO ALPHA
+    alpha1 <- object$nu1 # alpha1
+    alpha2 <- object$nu2 # alpha2
     H01 <- object$H01
     H02 <- object$H02
     Sig <- object$Sig
@@ -263,35 +257,47 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     Predraw2 <- matrix(0, nrow = nrow(cnewdata2), ncol = length(u))
     lengthu <- length(u)
    
-    subNDy <- YList <- vector("list", numBio)
+    subNDy <- YList <- XList <- y.obs <-  ZList<- vector("list", numBio)
     # YList <- vector("list")
+    submdataM <- vector("list", numBio)
+    submdataSM <- vector("list", numBio)
     
+    n <- nrow(cnewdata2)
+
+    CUH01 <- rep(0, n)
+    CUH02 <- rep(0, n)
+    HAZ01 <- rep(0, n)
+    HAZ02 <- rep(0, n)
+    
+    CumuH01 <- cumsum(H01[, 3])
+    CumuH02 <- cumsum(H02[, 3])
+    # 
+    # 
+    getHazard(CumuH01, CumuH02, cnewdata2[ ,survival[1]], as.vector(cnewdata2[ ,survival[2]]), H01, H02, CUH01, CUH02, HAZ01, HAZ02)
+    # 
     for (j in 1:N.ID) {
       for(g in 1:numBio){
         subNDy[[g]] <- ynewdata2[[g]][ynewdata2[[g]][, ID] == yID[j], ]
+        y.obs[[g]][[j]] <- data.frame(ynewdata[ynewdata[, ID] == yID[j], c(obs.time, Yvar[[g]][1])])
+        YList[[g]] <- subNDy[[g]][, Yvar[[g]][1]]
+        XList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, Yvar[[g]][-1]]))
+        if (nsig == 1) {
+          ZList[[g]] <- matrix(1, ncol = 1, nrow = length(YList[[g]]))
+        } else {
+          ZList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, bvar1]))
+        }
+        
+        submdataM[[g]] = nrow(y.obs[[g]][[j]])
+        submdataSM[[g]] = nrow(y.obs[[g]][[j]]) # don't need this
       }
-     
+      
       subNDc <- cnewdata2[cnewdata2[, ID] == yID[j], ]
-      y.obs[[j]] <- data.frame(ynewdata[ynewdata[, ID] == yID[j], c(obs.time, Yvar[1])])
       
-      s <-  as.numeric(Last.time[j])
-      CH01 <- CH(H01, s)
-      CH02 <- CH(H02, s)
+      stime <-  as.numeric(Last.time[j])
       
-      
-      
-      for(g in 1:numBio){
-        YList[[g]] <- subNDy[[g]][, Yvar[1]]
-        XList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, Yvar[2:length(Yvar)]]))
-      }
-      
+      CH01 <- CH(H01, stime)
+      CH02 <- CH(H02, stime)
 
-      if (nsig == 1) {
-        Z <- matrix(1, ncol = 1, nrow = length(Y))
-      } else {
-        Z <- data.frame(1, subNDy[, bvar1])
-        Z <- as.matrix(Z)
-      }
       W <- as.matrix(subNDc[1, Cvar[3:length(Cvar)]])
       
       ## find out E(bi)
@@ -302,59 +308,35 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       # meanb <- opt$par
       # Poscov <- solve(opt$hessian)
       
-      data <- list(Y, X, Z, W, CH01, CH02, beta, gamma1, gamma2, alpha1, alpha2, sigma, Sig)
-      names(data) <- c("Y", "X", "Z", "W", "CH01", "CH02", "beta",
-                                         "gamma1", "gamma2", "alpha1", "alpha2",  "sigma", "Sig")
+      # data <- list(YList, XList, ZList, W, CH01, CH02, beta, gamma1, gamma2, alpha1, alpha2, sigma, Sig)
+      # names(data) <- c("Y", "X", "Z", "W", "CH01", "CH02", "beta",
+                                         # "gamma1", "gamma2", "alpha1", "alpha2",  "sigma", "Sig")
       
-      
-      numSubj <- nrow(data$W)
+      numSubj <- nrow(W)
       opt <- list()
       pos.mode <- vector("list", numSubj)
       subX <- subY <- subZ <- vector("list", numSubj)
       pos.cov <- list()
-      submdataM <- vector("list", numBio)
-      submdataSM <- vector("list", numBio)
+
       
-      for(j in 1:numSubj) {
-        for (g in 1:numBio) {
-          numSubj <- length(data$mdataM[[g]])
-          
-          numRep <- data$mdataM[[g]][j]
-          indexStart <- data$mdataSM[[g]][j]
-          
-          subX[[j]][[g]] <- matrix(nrow = numRep, ncol = ncol(data$X[[g]]))
-          subY[[j]][[g]] <- matrix(nrow = numRep, ncol = 1)
-          subZ[[j]][[g]] <- matrix(nrow = numRep, ncol = ncol(data$Z[[g]]))
-          
-          
-          # change to vector
-          submdataM[g] <- data$mdataM[[g]][j]
-          submdataSM[g] <- data$mdataSM[[g]][j]
-          for (i in 1:numRep) {
-            subX1[[j]][[g]][i, ] <-  data$X1[[g]][indexStart + i - 1, ]
-            subY[[j]][[g]][i, ] <- data$Y[[g]][indexStart + i - 1]
-            subZ[[j]][[g]][i, ] <- data$Z[[g]][indexStart + i - 1, ]
-          }
-          
-        }
         
-        subCUH01 <- data$CUH01[j]
-        subCUH02 <- data$CUH02[j]
-        subHAZ01 <- data$HAZ01[j]
-        subHAZ02 <- data$HAZ02[j]
-        subcmprsk <- data$cmprsk[j]
-        subW <- data$W[j, ]
+        subCUH01 <- CUH01[j]
+        subCUH02 <- CUH02[j]
+        subHAZ01 <- HAZ01[j]
+        subHAZ02 <- HAZ02[j]
+        subcmprsk <- cmprsk[j]
+        # subW <- data$W[j, ]
         
         subdata <- list(
-          beta = data$beta,
-          gamma1 = data$gamma1,
-          gamma2 = data$gamma2,
-          alpha = list(data$alpha1, data$alpha2),
-          sigma = data$sigma,
-          Z = subZ[[j]],
-          X = subX[[j]],
-          Y = subY[[j]],
-          Sig = data$Sig,
+          beta = beta,
+          gamma1 = gamma1,
+          gamma2 = gamma2,
+          alpha = list(alpha1, alpha2),
+          sigma = sigma,
+          Z = ZList,
+          X = XList,
+          Y = YList,
+          Sig = Sig,
           CUH01 = subCUH01,
           CUH02 = subCUH02,
           HAZ01 = subHAZ01,
@@ -362,11 +344,11 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
           mdataM = submdataM,
           mdataSM = submdataSM,
           cmprsk = subcmprsk,
-          W = subW
+          W = W
         )
         
         opt <- optim(
-          par = c(rep(0, 4)), # this part here
+          par = c(rep(0, nsig)), # this part here
           getbSig,
           data = subdata,
           method = "BFGS",
@@ -376,14 +358,34 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         # pos.mode[[j]] <- matrix(nrow = p1a + p2a, ncol = 1)
         # pos.var[[j]] <- matrix(nrow = p1a + p2a, ncol = p1a + p2a)
         
-        pos.mode[[j]][[1]] <- opt$par[1:p1a]
-        pos.mode[[j]][[2]] <- opt$par[(p1a+1):(p1a+p2a)]
+        
+        # this part here
+        
+        # index = 1
+        pos.mode[[j]] <- opt$par
         pos.cov[[j]] <- solve(opt$hessian)
         
         
-      }
-      
-      preVec<- c(p1a,p2a)
+        subdata2 <- list(
+          beta = beta,
+          gamma1 = gamma1,
+          gamma2 = gamma2,
+          alpha = list(alpha1, alpha2),
+          sigma = sigma,
+          Z = ZList,
+          X = XList,
+          Y = YList,
+          Sig = Sig,
+          CUH01 = subCUH01,
+          CUH02 = subCUH02,
+          HAZ01 = subHAZ01,
+          HAZ02 = subHAZ02,
+          mdataM = submdataM,
+          mdataSM = submdataSM,
+          cmprsk = subcmprsk,
+          W = W, CH01 = CH01, CH02= CH02
+        )
+    
       
       
       
@@ -401,15 +403,21 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       #     Predraw2[j, jj] <- P2us
       #   }
       # } else {
+      
+        pREvec <- c()
+        
+        for(g in 1:numBio){
+          pREvec[g] <- ncol(ZList[[g]])
+        }
         
         for (jj in 1:lengthu) {
           ## calculate the CIF
-          CIF1 <- CIF1mv.CR(data, H01, H02, s, u[jj], pos.mode, numBio, pREvec)
-          P1us <- Pkmv.us(CIF1, data, pos.mode)
+          CIF1 <- CIF1mv.CR(subdata, H01, H02, stime, u[jj], opt$par, numBio, pREvec)
+          P1us <- Pkmv.us(CIF1, subdata2, opt$par, numBio = numBio, pREvec)
           Predraw1[j, jj] <- P1us
           
-          CIF2 <- CIF2mv.CR(data, H01, H02, s, u[jj], pos.mode, numBio, pREvec)
-          P2us <- Pkmv.us(CIF2, data, pos.mode)
+          CIF2 <- CIF2mv.CR(subdata, H01, H02, stime, u[jj],opt$par, numBio, pREvec)
+          P2us <- Pkmv.us(CIF2, subdata2,opt$par, numBio = numBio, pREvec)
           Predraw2[j, jj] <- P2us
         }
       #   quadpoint = NULL
@@ -422,7 +430,12 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       
     }
     
+
+    
   } 
+  
+  
+  
   
   # else {
   #   
@@ -485,12 +498,15 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   #     colnames(Pred[[jj]]) <- c("times", "PredSurv")
   #   }
   # }
+  for(g in 1:numBio){
+    names(y.obs[[g]]) <- yID
+  }
   
-  names(y.obs) <- names(Pred) <- yID
+  names(Pred) <- yID
   Last.time <- data.frame(cID, Last.time)
   sum <- list(Pred = Pred, Last.time = Last.time, y.obs = y.obs, method = method, quadpoint = quadpoint,
               CompetingRisk = CompetingRisk)
-  class(sum) <- "survfitjmcs"
+  class(sum) <- "survfitmvjmcs"
   sum
   
 }

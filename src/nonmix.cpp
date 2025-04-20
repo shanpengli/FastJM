@@ -69,23 +69,33 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	    Rcpp::List xListElement = Rcpp::as<Rcpp::List>(XList[i]);
 	    Rcpp::List yListElement = Rcpp::as<Rcpp::List>(YList[i]);
 	    Rcpp::List zListElement = Rcpp::as<Rcpp::List>(ZList[i]);
-	    Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+	    // need to change to matrix for flexible b
 	    
 	    Eigen::MatrixXd Xtemp = Rcpp::as<Eigen::MatrixXd>(xListElement[g]);
-	    Eigen::MatrixXd Ytemp = Rcpp::as<Eigen::MatrixXd>(yListElement[g]);
+	    Eigen::MatrixXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]);
 	    Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
+	    
+	    Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+	    Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
+
 	    
 	    double sigmag = sigmaInit(g);
 	    
-	    Eigen::MatrixXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+	    // Eigen::MatrixXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+	    
+	    // std::cout << "bVecfull" << bVeci << std::endl;
+	    // std::cout << "bVec" << bVecig << std::endl;
+	    // std::cout << "pREindex" << pREindex << std::endl;
+	    // std::cout << "pRE" << pRE << std::endl;
 	    
 	    XVXT = XVXT + Xtemp.transpose() * Xtemp / sigmag; //4x4
-	    YZBX = YZBX + Xtemp.transpose() * (Ytemp - Ztemp * bVec) / sigmag; // 4x1
+	    YZBX = YZBX + Xtemp.transpose() * (Ytemp - Ztemp * bVecig) / sigmag; // 4x1
 	    
 	  }
 	  
 	  betaNew = XVXT.inverse() * YZBX;
 	  betaFull.segment(index, p) = betaNew;
+	  // std::cout << "betaFull" <<betaFull << std::endl;
 	  betaNewList[std::string("beta") + std::to_string(g+1)] = betaNew;
 	  index += p;
 	  
@@ -100,23 +110,28 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	  
 
 	  Eigen::MatrixXd ZZT = Eigen::MatrixXd::Zero(pRE, pRE);
-	  pREindex = 0;
-	  
+	  // pREindex = 0;
 	  for (int i = 0; i < numSubj; i++) {
 	    Rcpp::List xListElement = Rcpp::as<Rcpp::List>(XList[i]);
 	    Rcpp::List yListElement = Rcpp::as<Rcpp::List>(YList[i]);
 	    Rcpp::List zListElement = Rcpp::as<Rcpp::List>(ZList[i]);
-	    Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+	    // Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 	    
 	    Eigen::MatrixXd Xtemp = Rcpp::as<Eigen::MatrixXd>(xListElement[g]);
-	    Eigen::MatrixXd Ytemp = Rcpp::as<Eigen::MatrixXd>(yListElement[g]);
+	    Eigen::MatrixXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]);
 	    Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
 	    
 	    pRE = pREVec(g);
 	    
-	    Eigen::MatrixXd bVeci = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+	    Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+	    Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
 	    Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 	    Eigen::MatrixXd sigig = sigmai.block(pREindex, pREindex, pRE, pRE);  // sigma i for gth biomarker
+	    
+	    // std::cout << "bVeci" << bVeci << std::endl;
+	    // std::cout << "bVecig" << bVecig << std::endl;
+	    // std::cout << "sigmai" << sigmai << std::endl;
+	    // std::cout << "sigig" << sigig<< std::endl;
 	    
 	    Rcpp::List mdataList = Rcpp::as<Rcpp::List>(mdata[g]);
 	    int numRep = Rcpp::as<int>(mdataList[i]);
@@ -124,12 +139,20 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	    for (int nij = 0; nij < numRep; nij++) {
 
 	      double epsilon = Ytemp(nij, 0) - MultVV(Xtemp.row(nij), betaNew);
-	      double zb = MultVV(Ztemp.row(nij), bVeci);
+	      double zb = MultVV(Ztemp.row(nij), bVecig);
 	      
 	      Eigen::MatrixXd ZZT = MultVVoutprod(Ztemp.row(nij));
-	      Eigen::MatrixXd bbT = MultVVoutprod(bVeci);
+	      Eigen::MatrixXd bbT = MultVVoutprod(bVecig);
 	      
 	      numsig += pow(epsilon, 2) - 2 * epsilon * zb + (ZZT * (sigig + bbT)).trace();
+	      
+	      
+	      // std::cout << "epsilon" << epsilon << std::endl;
+	      // std::cout << "zb" << zb << std::endl;
+	      // std::cout << "ZZt" << ZZT << std::endl;
+	      // std::cout <<  "bbt" << bbT << std::endl;
+	      // std::cout <<  "ZZT * (sigig + bbT)" << ZZT * (sigig + bbT) << std::endl;
+	      // std::cout << "betaNew" << betaNew << std::endl;
 	   
 	    }
 	    
@@ -139,6 +162,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	  sigmaVec(g) = numsig / nijSum;
 	  pREindex += pRE;
 	  
+	  std::cout << "pREindex" << pREindex << std::endl;
 	  
 	}
 	
@@ -160,15 +184,16 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	  
 	  index = 0;
 	  
-	  Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+	  // Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+	  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 	  Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 	  
-	  for(int g = 0; g < numBio; g++){
-	    Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-	    pRE = pREVec(g);
-	    bVeci.segment(index, pRE) = bVec;
-	    index += pRE;
-	  }
+	  // for(int g = 0; g < numBio; g++){
+	  //   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+	  //   pRE = pREVec(g);
+	  //   bVeci.segment(index, pRE) = bVec;
+	  //   index += pRE;
+	  // }
 	  
 	  numSig += sigmai + MultVVoutprod(bVeci);
 	  
@@ -209,17 +234,23 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		index = 0;
 
 		// // --- normal ----------------------
+		
+		
+		// HAZARD 1
 		for (int i = 0; i < numSubj; i++) {
-			Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 				Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 
 
-			for(int g = 0; g < numBio; g++){
-			  Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-			  pRE = pREVec(g);
-			  bVeci.segment(index, pRE) = bVec;
-			  index += pRE;
-			}
+			// for(int g = 0; g < numBio; g++){
+			//   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+			//   pRE = pREVec(g);
+			//   bVeci.segment(index, pRE) = bVec;
+			//   index += pRE;
+			// }
+			
+			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+			// Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
 			
 			index = 0;
 			
@@ -248,13 +279,16 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				{
 					for (i = i + 1; i < numSubj; i++)
 					{
-						bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-					  for(int g = 0; g < numBio; g++){
-					    Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-					    pRE = pREVec(g);
-					    bVeci.segment(index, pRE) = bVec;
-					    index += pRE;
-					  }
+					// 	bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+					//   for(int g = 0; g < numBio; g++){
+					//     Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+					//     pRE = pREVec(g);
+					//     bVeci.segment(index, pRE) = bVec;
+					//     index += pRE;
+					//   }
+					
+					  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+					  // Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
 					  
 					  index = 0;
 					  
@@ -285,28 +319,29 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 
 		}
 
+		// HAZARD 2
 
 		for (int i = 0; i < numSubj; i++) {
 		  index = 0;
 		  
-		  Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+		  // Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 		  Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 		  
-		  for(int g = 0; g < numBio; g++){
-		    Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-		    pRE = pREVec(g);
-		    bVeci.segment(index, pRE) = bVec;
-		    index += pRE;
-		  }
-
+		  // for(int g = 0; g < numBio; g++){
+		  //   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+		  //   pRE = pREVec(g);
+		  //   bVeci.segment(index, pRE) = bVec;
+		  //   index += pRE;
+		  // }
+		  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+		  // Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
 
 		  index = 0;
 		  
-			double muH2, tausq2, tau2;
+			double muH2, tausq2;
 			muH2 = MultVV(W.row(i), gamma2) + MultVV(alpha2, bVeci);
 			tausq2 = alpha2.transpose() * sigmai * alpha2;
 			dem2 += exp(muH2 + 0.5 * tausq2);
-
 
 			if (cmprsk(i) == 2) {
 
@@ -327,16 +362,17 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				{
 					for (i = i + 1; i < numSubj; i++)
 					{
-					  bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-					  for(int g = 0; g < numBio; g++){
-					    Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-					    pRE = pREVec(g);
-					    bVeci.segment(index, pRE) = bVec;
-					    index += pRE;
-					  }
+					  // bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+					  // for(int g = 0; g < numBio; g++){
+					  //   pRE = pREVec(g);
+					  //   Eigen::VectorXd bVec = (Rcpp::as<Eigen::VectorXd>(bListElement)).block(index, index, pRE, pRE);
+					  //   bVeci.segment(index, pRE) = bVec;
+					  //   index += pRE;
+					  // }
 					  
+					  bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+
 					  index = 0;
-					  
 					  
 						sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 						muH2 = MultVV(W.row(i), gamma2) + MultVV(alpha2, bVeci);
@@ -402,17 +438,17 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 
 		for (int i = 0; i < numSubj; i++) {
 			//scalef = 0;
-			Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 
-		  for(int g = 0; g < numBio; g++){
-		    
-		    Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-		    pRE = pREVec(g);
-		    bVeci.segment(index, pRE) = bVec;
-		    index += pRE;
-		  }
+		  // for(int g = 0; g < numBio; g++){
+		  //   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bList[i]);
+		  //   pRE = pREVec(g);
+		  //   index += pRE;
+		  // }
 		  
-		  index = 0;
+		  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+		  
+		  // index = 0;
 
 			// Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 			Eigen::MatrixXd BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
@@ -641,19 +677,17 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		{
 			// Eigen::VectorXd alpha1 = Eigen::VectorXd::Zero(pREtotal);
 			// Eigen::VectorXd bVeci = Eigen::VectorXd::Zero(pREtotal);
-			Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+			// 
+			// for(int g = 0; g < numBio; g++){
+			//   
+			//   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+			//   pRE = pREVec(g);
+			//   bVeci.segment(index, pRE) = bVec;
+			//   index += pRE;
+			// }
 			
-			for(int g = 0; g < numBio; g++){
-			  
-			  Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-			  pRE = pREVec(g);
-			  bVeci.segment(index, pRE) = bVec;
-			  index += pRE;
-			}
-			
-			index = 0;
-			
-
+			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 			Eigen::VectorXd latent = bVeci;
 			if (cmprsk(i) == 1) {
 				Sw_inter += W.row(i);
@@ -663,7 +697,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 
 
 		//NR update
-
 		Eigen::VectorXd Sfull_inter = Eigen::VectorXd::Zero(dimW + pREtotal);
 		Eigen::VectorXd Sfull_new = Eigen::VectorXd::Zero(dimW + pREtotal);
 		Eigen::MatrixXd info = Eigen::MatrixXd::Zero(dimW + pREtotal, dimW + pREtotal);
@@ -711,31 +744,19 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		Sl = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
 		Swl = Eigen::MatrixXd::Zero(dimW, pREtotal);
 
-		index = 0;
 
 
 		for (int i = 0; i < numSubj; i++) {
-			//scalef = 0;
-			Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+		
+		  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 
-		  for(int g = 0; g < numBio; g++){
-		    
-		    Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-		    pRE = pREVec(g);
-		    bVeci.segment(index, pRE) = bVec;
-		    index += pRE;
-		  }
-		  
-		  index = 0;
-
-			// Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 			Eigen::MatrixXd BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 			Eigen::VectorXd latent = bVeci;
 			double mu2, tausq;
 			tausq = alpha2.transpose() * BAssociation * alpha2;
 
 			Eigen::VectorXd w = W.row(i);
-			//Eigen::VectorXd l = latent;
+			
 			Eigen::VectorXd l = BAssociation * alpha2 + bVeci;
 
 			Eigen::MatrixXd wl = Eigen::MatrixXd::Zero(dimW, pREtotal);
@@ -801,16 +822,15 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		for (int i = 0; i < numSubj; i++)
 		{
 
-			Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-			for(int g = 0; g < numBio; g++){
-			  
-			  Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-			  pRE = pREVec(g);
-			  bVeci.segment(index, pRE) = bVec;
-			  index += pRE;
-			}
-			
-			index = 0;
+			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+			// for(int g = 0; g < numBio; g++){
+			//   
+			//   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
+			//   pRE = pREVec(g);
+			//   bVeci.segment(index, pRE) = bVec;
+			//   index += pRE;
+			// }
+			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 
 
 			Eigen::VectorXd latent = bVeci;
@@ -829,7 +849,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		info = Eigen::MatrixXd::Zero(dimW + pREtotal, dimW + pREtotal);
 
 		Sfull_inter << Sw_inter, Sl_inter;
-		//check2 = Sfull_inter;
 		Sfull_new << Sw_new, Sl_new;
 
 		// start row, start column, how many rows, how many col
@@ -844,6 +863,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 
 		phi2 += info.inverse() * (Sfull_inter - Sfull_new);
 
+		
 
 
 		Sw_new = Eigen::VectorXd::Zero(dimW);

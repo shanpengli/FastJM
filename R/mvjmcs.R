@@ -32,7 +32,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   longfmla <- list(lengthb)
   for(g in 1:lengthb){
-    
     longfmla[g] <- long.formula[g]
     
   }
@@ -58,19 +57,27 @@ mvjmcs <- function(ydata, cdata, long.formula,
   }
   
    # need to rearrange this part
+  numBio = length(long.formula)
+  
   mdataM <- mdataSM <- vector("list", numBio)
   
   for(g in 1:numBio){
     ydata <- getinit$ydata[[g]]
     mdata <- getinit$mdata[[g]]
+    mdataM[[g]] <- mdata$ni
     n <- nrow(mdata)
+    mdataSM[[g]] <- rep(0,n)
     mdata <- as.data.frame(mdata)
     mdata <- as.vector(mdata$ni)
-    mdataS[1] <- 1
+    mdataSM[[g]][1] <- 1
     mdataCum <- cumsum(mdata)
     mdata2 <- mdata - 1
-    mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
+    mdataSM[[g]][2:n] <- mdataCum[2:n] - mdata2[2:n]
   }
+  
+  # mdataM <- getinit$mdata
+  
+  
   cdata <- getinit$cdata
   
   survival <- all.vars(surv.formula)
@@ -103,17 +110,16 @@ mvjmcs <- function(ydata, cdata, long.formula,
   iter=0
   
   
-  
   getriskset <- Getriskset(cdata = getinit$cdata, surv.formula = surv.formula)
   
   ## number of distinct survival time
   H01 <- getriskset$tablerisk1
   H02 <- getriskset$tablerisk2
   
-  CUH01 <- rep(0, n1)
-  CUH02 <- rep(0, n1)
-  HAZ01 <- rep(0, n1)
-  HAZ02 <- rep(0, n1)
+  CUH01 <- rep(0, n)
+  CUH02 <- rep(0, n)
+  HAZ01 <- rep(0, n)
+  HAZ02 <- rep(0, n)
   
   CumuH01 <- cumsum(H01[, 3])
   CumuH02 <- cumsum(H02[, 3])
@@ -122,17 +128,23 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   HAZ0 <- list(HAZ01, HAZ02)
   
-  p1a <- ncol(getinit$Z[[1]]) # dim of random effect
-  p2a <- ncol(getinit$Z[[2]])
+  pREvec <- c()
   
+  for(g in 1:numBio){
+    pREvec[g] <- ncol(getinit$Z[[g]])
+  }
+  
+  pREtotal <- sum(pREvec)
+  
+  index = 0
   if (is.null(initial.para)) {
     
     SigList <- getinit$Sig # need to be 4x4
-    Sig11 <- SigList[[1]]
-    Sig22<- SigList[[2]] # first biomarker/ #second biomarker
-    Sig <- matrix(rep(0, p1a + p2a), nrow = p1a + p2a, ncol = p1a + p2a)
-    Sig[1:p1a,1:p1a] <- Sig11
-    Sig[(p1a+1):(p1a + p2a),(p1a+1):(p1a+p2a)] <- Sig22
+    Sig <- matrix(rep(0, pREtotal), nrow = pREtotal, ncol = pREtotal)
+    for(g in 1:length(pREvec)){
+      Sig[(index+1):(index+pREvec[g]),(index+1):(index+pREvec[g])] <- SigList[[g]]
+      index = index + pREvec[g]
+    }
     
   } else {
     Sig <- getinit$Sig
@@ -162,37 +174,25 @@ mvjmcs <- function(ydata, cdata, long.formula,
                mdataM = mdataM, mdataSM = mdataSM,
                cmprsk = getinit$cmprsk, W = getinit$W)
   
-  
-  numSubj <- length(mdata1)
+  numSubj <- n
   numBio <- length(data$X1)
   opt <- list()
   pos.mode <- vector("list", numSubj)
   subX1 <- subY <- subZ <- vector("list", numSubj)
-  pos.var <- list()
+  pos.cov <- list()
   submdataM <- vector("list", numBio)
   submdataSM <- vector("list", numBio)
   
   for(j in 1:numSubj) {
+    subX1[[j]] <- vector("list", numBio)
     for (g in 1:numBio) {
-      numSubj <- length(data$mdataM[[g]])
       
       numRep <- data$mdataM[[g]][j]
       indexStart <- data$mdataSM[[g]][j]
       
-      subX1[[j]][[g]] <- matrix(nrow = numRep, ncol = ncol(data$X1[[g]]))
-      subY[[j]][[g]] <- matrix(nrow = numRep, ncol = 1)
-      subZ[[j]][[g]] <- matrix(nrow = numRep, ncol = ncol(data$Z[[g]]))
-      
-      
-      # change to vector
-      submdataM[g] <- data$mdataM[[g]][j]
-      submdataSM[g] <- data$mdataSM[[g]][j]
-      for (i in 1:numRep) {
-        subX1[[j]][[g]][i, ] <-  data$X1[[g]][indexStart + i - 1, ]
-        subY[[j]][[g]][i, ] <- data$Y[[g]][indexStart + i - 1]
-        subZ[[j]][[g]][i, ] <- data$Z[[g]][indexStart + i - 1, ]
-      }
-      
+      subX1[[j]][[g]] <- data$X1[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+      subY[[j]][[g]] <- data$Y[[g]][indexStart:(indexStart+numRep-1)]
+      subZ[[j]][[g]] <- data$Z[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
     }
     
     subCUH01 <- data$CUH01[j]
@@ -200,7 +200,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     subHAZ01 <- data$HAZ01[j]
     subHAZ02 <- data$HAZ02[j]
     subcmprsk <- data$cmprsk[j]
-    subW <- data$W[j, ]
+    subW <- t(data$W[j, ])
     
     subdata <- list(
       beta = data$beta,
@@ -223,21 +223,15 @@ mvjmcs <- function(ydata, cdata, long.formula,
     )
     
     opt <- optim(
-      par = c(rep(0, 4)),
+      par = c(rep(0, pREtotal)), # CHANGE THIS PART
       getbSig,
       data = subdata,
       method = "BFGS",
       hessian = TRUE
     )
     
-    # pos.mode[[j]] <- matrix(nrow = p1a + p2a, ncol = 1)
-    # pos.var[[j]] <- matrix(nrow = p1a + p2a, ncol = p1a + p2a)
-    
-    pos.mode[[j]][[1]] <- opt$par[1:p1a]
-    pos.mode[[j]][[2]] <- opt$par[(p1a+1):(p1a+p2a)]
-    pos.var[[j]] <- solve(opt$hessian)
-    
-    
+    pos.mode[[j]] <- opt$par
+    pos.cov[[j]] <- solve(opt$hessian)
     
   }
   
@@ -250,14 +244,14 @@ mvjmcs <- function(ydata, cdata, long.formula,
   if(method == "quad"){
     output <- getQuadMix(subX1,subY, subZ, getinit$W,
                          mdataM, mdataSM,
-                         pos.mode, getinit$sigma, pos.var, weight.c, abscissas.c,
+                         pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
                          H01, H02, getinit$survtime, getinit$cmprsk,
                          getinit$gamma1, getinit$gamma2, getinit$alpha,
                          CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
   }else{
     output <- getNoQuad(subX1,subY, subZ, getinit$W,
                         mdataM, mdataSM,
-                        pos.mode, getinit$sigma, pos.var, weight.c, abscissas.c,
+                        pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
                         H01, H02, getinit$survtime, getinit$cmprsk,
                         getinit$gamma1, getinit$gamma2, getinit$alpha,
                         CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
@@ -277,16 +271,27 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   
   n <- nrow(data$W)
-  p1a <- ncol(data$Z[[1]])
-  p2a <- ncol(data$Z[[1]])
+  index = 0
+  gamma1 <- output$phi1[(index+1):numBio]
+  gamma2 <- output$phi2[(index+1):numBio]
+  index = index + numBio
+  #NEED TO ADJUST THIS PART
+  alpha1 <- output$phi1[(numBio+1):(numBio+(2*numBio))] # 3 and 2 come from competing risk
+  alpha2 <- output$phi2[(numBio+1):(numBio+(2*numBio))]
   
-  gamma1 <- output$phi1[1:2]
-  gamma2 <- output$phi2[1:2]
-  alphaList <- list(list(output$phi1[3:4], output$phi1[5:6]),list(output$phi2[3:4], output$phi2[5:6]))
+  alpha1g <- alpha2g <- vector("list", numBio)
+  index = 0
+  for(g in 1:numBio){
+    alpha1g[[g]] <- alpha1[(index+1):(index + pREvec[g])]
+    alpha2g[[g]] <- alpha2[(index+1):(index + pREvec[g])]
+    index = index + pREvec[g]
+  }
+  
+  
+  alphaList <- list(alpha1g, alpha2g)
   
   iter=0
   beta <- output$beta
-  
 
   
   repeat{
@@ -305,12 +310,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
     pregamma1 <- gamma1
     pregamma2 <- gamma2
     prealphaList <- alphaList
-    prealpha1b1 <- prealphaList[[1]][[1]]
-    prealpha1b2 <- prealphaList[[1]][[2]]
-    prealpha2b1 <- prealphaList[[2]][[1]]
-    prealpha2b2 <- prealphaList[[2]][[2]]
-    
-
+    prealpha1 <- output$phi1[(numBio+1):(2+(2*numBio))] # 3 and 2 come from competing risk
+    prealpha2 <- output$phi2[(numBio+1):(2+(2*numBio))]
+    writeLines("indexing")
+    print((numBio+1):(2+(2*numBio)))
+    print(output$phi2)
     preH01 <- output$H01
     preH02 <- output$H02
     preSig <- output$Sig
@@ -330,15 +334,14 @@ mvjmcs <- function(ydata, cdata, long.formula,
       writeLines("gamma2 is:")
       print(pregamma2)
       writeLines("alpha1 is:")
-      print(c(prealpha1b1, prealpha1b2))
+      print(prealpha1)
       writeLines("alpha2 is:")
-      print(c(prealpha2b1, prealpha2b2))
+      print(prealpha2)
       writeLines("Sig is:")
       print(Sig)
       writeLines("Error variance is:")
       print(sigma)
     }
-    
     
     CUH01 <- rep(0, n)
     CUH02 <- rep(0, n)
@@ -364,11 +367,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
       subHAZ01 <- HAZ01[j]
       subHAZ02 <- HAZ02[j]
       subcmprsk <- data$cmprsk[j]
-      subW <- data$W[j, ]
-      
+      subW <- t(data$W[j, ])
       
       subdata <- list(
-        #beta = output$beta,
         beta = output$betaList,
         gamma1 = data$gamma1,
         gamma2 = data$gamma2,
@@ -389,26 +390,22 @@ mvjmcs <- function(ydata, cdata, long.formula,
       )
       
       opt <- optim(
-        par = c(pos.mode[[j]][[1]], pos.mode[[j]][[2]]),
+        par = rep(0, pREtotal),
         getbSig,
         data = subdata,
         method = "BFGS",
         hessian = TRUE
       )
       
-      
-      pos.mode[[j]][[1]] <- opt$par[1:p1a]
-      pos.mode[[j]][[2]] <- opt$par[(p1a+1):(p1a+p2a)]
-      pos.var[[j]] <- solve(opt$hessian)
-      
-      
+      pos.mode[[j]] <- opt$par
+      pos.cov[[j]] <- solve(opt$hessian)
     }
     
     
     if(method == "quad"){
       output <- getQuadMix(subX1,subY, subZ, getinit$W,
                            mdataM, mdataSM,
-                           pos.mode, presigmaList, pos.var, weight.c, abscissas.c,
+                           pos.mode, presigma, pos.cov, weight.c, abscissas.c,
                            H01, H02, getinit$survtime, getinit$cmprsk,
                            data$gamma1, data$gamma2, data$alpha,
                            CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
@@ -416,39 +413,42 @@ mvjmcs <- function(ydata, cdata, long.formula,
     }else{
       output <- getNoQuad(subX1,subY, subZ, getinit$W,
                           mdataM, mdataSM,
-                          pos.mode, presigmaList, pos.var, weight.c, abscissas.c,
+                          pos.mode, presigma, pos.cov, weight.c, abscissas.c,
                           H01, H02, getinit$survtime, getinit$cmprsk,
                           data$gamma1, data$gamma2, data$alpha,
                           CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
     }
     
     # PAR UPDATE HERE - for debugging purposes
-    
-    tempbeta <- cbind(tempbeta, output$beta)
     beta <- output$beta
     sigma <- output$sigmaVec
     Sig <- output$Sig
-    tempphi1 <- c(tempphi1, output$phi1)
-    tempphi2 <- c(tempphi2, output$phi2)
+
     # tempsigma <- rbind(tempsigma, sigma)
-    gamma1 <- output$phi1[1:2]
-    gamma2 <- output$phi2[1:2]
-    alphaList <- list(list(output$phi1[3:4], output$phi1[5:6]),list(output$phi2[3:4], output$phi2[5:6]))
-    alpha1b1 <- alphaList[[1]][[1]]
-    alpha1b2 <- alphaList[[1]][[2]]
-    alpha2b1 <- alphaList[[2]][[1]]
-    alpha2b2 <- alphaList[[2]][[2]]
+    # CHANGE THIS PART
+    gamma1 <- output$phi1[1:numBio]
+    gamma2 <- output$phi2[1:numBio]
+    alpha1 <- output$phi1[(numBio+1):(numBio+(2*numBio))] # 3 and 2 come from competing risk
+    alpha2 <- output$phi2[(numBio+1):(numBio+(2*numBio))]
+    
+    alpha1g <- alpha2g <- vector("list", numBio)
+    index = 0
+    for(g in 1:numBio){
+      alpha1g[[g]] <- alpha1[(index+1):(index + pREvec[g])]
+      alpha2g[[g]] <- alpha2[(index+1):(index + pREvec[g])]
+      index = index + pREvec[g]
+    }
+    
+    alphaList <- list(alpha1g, alpha2g)
+    
     it <- it + 1
     tempSig[[it]] <- Sig
     H01 <- output$H01
     H02 <- output$H02
     
-    
-    
     # leave condition
     if((mvDiff(beta, prebeta, sigma, presigma, gamma1, pregamma1, gamma2, pregamma2,
-             alpha1b1, prealpha1b1, alpha2b1, prealpha2b1,
-             alpha1b2, prealpha1b2, alpha2b2, prealpha2b2,
+             alpha1, prealpha1, alpha2, prealpha2,
              Sig, preSig, H01, preH01, H02, preH02, tol) == 0) || (iter == maxiter) #|| (!is.list(GetEfun)) || (!is.list(GetMpara))
     ) {
       break
@@ -463,8 +463,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
   } else{
     SEest <- getmvCov(beta, gamma1, gamma2, 
-                    c(alpha1b1, alpha1b2), c(alpha2b1, alpha2b2), 
-                    H01, H02, pos.var, Sig, sigma, 
+                    alpha1, alpha2, 
+                    H01, H02, pos.cov, Sig, sigma, 
                     subX1, subY, subZ, getinit$W, 
                     getinit$survtime,getinit$cmprsk,
                     mdata, mdataSM, pos.mode)
@@ -473,9 +473,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
   end_time <- Sys.time()
   (runtime <- end_time - start_time)
   
-  return(list(output = output, re = pos.mode, sigi = pos.var, 
-              betaout = tempbeta, sigmaout = tempsigma, 
-              phi1out = tempphi1, phi2out = tempphi2, SEest,
+  return(list(output = output, re = pos.mode, sigi = pos.cov, 
+              beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
+              SEest,
               runtime = runtime))
   
 }
+
