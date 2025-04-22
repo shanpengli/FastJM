@@ -59,21 +59,22 @@ getbSig <- function(bSig, data){
   
   q = sum(pREvec)
   
-  
   index = 0
   b <- vector("list", length(pREvec))
+  bfull <- c()
   for(p in 1:length(pREvec)){
-    b[[p]] <- matrix(bSig[(index + 1):pREvec[p]], nrow = pREvec[p], ncol = 1)
+    b[[p]] <- matrix(bSig[(index + 1):(index + pREvec[p])], nrow = pREvec[p], ncol = 1)
+    bfull[(index + 1):(index + pREvec[p])] <- t(b[[p]])
     index = index + pREvec[p]
   }
+  
+  bfull <- as.matrix(bfull)
   
   total <- 0
   sum.alpha1i <- 0
   sum.alpha2i <- 0
   
   # need to generalize here
-  bfull <- matrix(ncol = 1)
-  
   
   # longitudinal portion
   for (g in 1:length(Y)) {
@@ -106,19 +107,6 @@ getbSig <- function(bSig, data){
       alpha2g <- alpha2
     }
     
-    
-    
-    # calculate zbig
-    # need to adjust for repeated measures
-    # Zbig <- matrix(NA, nrow = nrow(Zi), ncol = 1)
-    # for (i in 1:length(mdatag)) {
-    #   repM <- mdatag[i]
-    #   for (rep in 1:repM) {
-    #     # each row * each bi
-    #     Zbig[mdataSg[i] + rep - 1, ] <- t(Zi[mdataSg[i] + rep - 1, ]) %*% bi[i, ]
-    #   }
-    # }
-    
     # log likelihood part 1
     total <- total + sum((Yi - Xi %*% betai - Zi %*% bi)^2 / (2 * sigmai) + 0.5 * log(sigmai))
     
@@ -127,45 +115,28 @@ getbSig <- function(bSig, data){
     # sum alpha'b
     sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
     sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
-    
-    # get the full re vector
-    bfull <- rbind(bfull, bi)
   }
-  
-  # remove NA row
-  bfull<- t(bfull[-1,])
   
   # latent structure for each loop
   latent1 <- as.matrix(sum.alpha1i, nrow = 1)
   latent2 <- as.matrix(sum.alpha2i, nrow = 1)
   CH01 <- as.matrix(CH01)
   
-  
   # CH01 Might be wrong here
   
   total <- total + CH01 * exp(Wx%*% gamma1 + latent1) + ## part 2 change this part
     CH02 * exp(Wx %*% gamma2 + latent2) +
     0.5 * q *log(2*pi) +
-    0.5*log(det(Sig)) + bfull %*% solve(Sig) %*% t(bfull) / 2  # part 3
-  # need to update SIG/fix dimension
-  # need to account for
-  
-
+    0.5*log(det(Sig)) + t(bfull) %*% solve(Sig) %*% bfull / 2  # part 3
   
   if (Wcmprsk == 1) {
     # should be HAZ?, double check though
-    # total <- total - log(HAZ01[i]) - (W %*% gamma1 + sum.alpha1i)[1,1]  # adjusts for status == 1
     total <- total - log(HAZ01) - (Wx %*% gamma1 + latent1) # adjusts for status == 1
     }
   
-  
   if (Wcmprsk == 2) {
-    # total <- total - log(HAZ02[i]) - (W %*% gamma2 + sum.alpha2i)[1,1]  # adjusts for status == 2
     total <- total - log(HAZ02) - (Wx %*% gamma2 + latent2)  # adjusts for status == 2
-    
      }
-  
-
   
   total <- unname(total)
 

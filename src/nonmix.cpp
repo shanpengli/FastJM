@@ -162,7 +162,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	  sigmaVec(g) = numsig / nijSum;
 	  pREindex += pRE;
 	  
-	  std::cout << "pREindex" << pREindex << std::endl;
+	  // std::cout << "pREindex" << pREindex << std::endl;
 	  
 	}
 	

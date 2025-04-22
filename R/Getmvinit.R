@@ -24,7 +24,8 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
   mdata <- ydatanew <- bi <- list()
   
   if (is.null(initial.para)) {
-    beta <- sigma <- D <- Sig <- list()
+    beta <- D <- Sig <- list()
+    sigma <- c()
   } else {
     beta <- initial.para$beta
     sigma <- initial.para$sigma
@@ -85,7 +86,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         return(NULL)
       } else {
         beta[[g]] <- longfit$coefficients$fixed
-        sigma[[g]] <- longfit$sigma^2
+        sigma[g] <- longfit$sigma^2
         Sig[[g]] <- as.matrix(nlme::getVarCov(longfit))
         bi[[g]] <- longfit$coefficients$random[[1]]
       }
@@ -99,7 +100,6 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     cdatanew <- getdum$cdata
     
   }
-  
   
   cmprsk <- as.vector(cdata[, survival[2]])
   
@@ -173,11 +173,6 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         
       }
       
-      
-      
-      
-      
-      
     } else {
       
       survfmla.fixed <- surv.formula[3]
@@ -204,10 +199,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
       
     }
     
-    
-    
     ## extract covariates
-    
     X <- Y <- list()
     
     ## will need to fix this later
