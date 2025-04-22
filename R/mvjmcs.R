@@ -312,9 +312,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
     prealphaList <- alphaList
     prealpha1 <- output$phi1[(numBio+1):(2+(2*numBio))] # 3 and 2 come from competing risk
     prealpha2 <- output$phi2[(numBio+1):(2+(2*numBio))]
-    writeLines("indexing")
-    print((numBio+1):(2+(2*numBio)))
-    print(output$phi2)
+    # writeLines("indexing")
+    # print((numBio+1):(2+(2*numBio)))
+    # print(output$phi2)
     preH01 <- output$H01
     preH02 <- output$H02
     preSig <- output$Sig
