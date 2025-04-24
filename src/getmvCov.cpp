@@ -285,12 +285,12 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         
         
         Eigen::MatrixXd Xtemp = Rcpp::as<Eigen::MatrixXd>(xListElement[g]);
-        Eigen::MatrixXd Ytemp = Rcpp::as<Eigen::MatrixXd>(yListElement[g]); // need to change to vector later
+        Eigen::VectorXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]); // need to change to vector later
         Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
         
         
         // need to generalize this
-        double r = Ytemp(nij, 0) - MultVV(Xtemp.row(nij), betag);
+        double r = Ytemp(nij) - MultVV(Xtemp.row(nij), betag);
         double zb = MultVV(Ztemp.row(nij), bVecig);
         epsilon = r - zb; 
         
@@ -1114,7 +1114,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::VectorXd segamma2 = Eigen::VectorXd::Zero(gamma2.size()); 
   Eigen::VectorXd sealpha1 = Eigen::VectorXd::Zero(pREtotal);
   Eigen::VectorXd sealpha2 = Eigen::VectorXd::Zero(pREtotal);
-  Eigen::VectorXd sesigma= Eigen::VectorXd::Zero(numBio);;
+  Eigen::VectorXd sesigma = Eigen::VectorXd::Zero(numBio);
   Eigen::MatrixXd seSig = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
   
   
@@ -1144,13 +1144,13 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   for (t=0;t<pREtotal;t++) sealpha1(t) = sqrt(SSinv(index+t,index+t));
   index += pREtotal;
   for (t=0;t<pREtotal;t++) sealpha2(t) = sqrt(SSinv(index+t,index+t));
-  
   index += pREtotal;
   
   // sigma
   
   for (t=0;t<pREtotal;t++){ seSig(t,t) = sqrt(SSinv(index+t,index+t));
   }
+  index += pREtotal;
   u=0;
   for(q=1;q<pREtotal;q++)
   {

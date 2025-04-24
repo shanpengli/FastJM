@@ -150,23 +150,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     Sig <- getinit$Sig
   }
 
-  
-  
-  # -----------------------
-  # PARAMETERS DEFINED HERE - FOR DEBUGGING
-  # -----------------------
-  
-  #beta = list(beta1 = c(5, 1.5, 2, 1), beta2 = c(10, 1, 2, 1))
-  #sigma = list(0.5, 0.5)
-  #gamma1 = c(1, 0.5)
-  #gamma2 = c(-0.5, 0.5)
-  #Sig <- diag(1,4)
-  # alpha = list(alpha1 = list(alpha11 = c(0.5, 0.7),
-  #                            alpha12 = c(-0.5, 0.5)),
-  #              alpha2 = list(alpha21 = c(0.5, 0.7),
-  #                            alpha22 = c(-0.5, 0.5)))
-  
-  
   data <- list(beta = getinit$beta, gamma1 = getinit$gamma1, gamma2 = getinit$gamma2,
                alpha = getinit$alpha, sigma = getinit$sigma,
                Z = getinit$Z, X1 = getinit$X1, Y = getinit$Y, Sig = Sig,
@@ -267,17 +250,14 @@ mvjmcs <- function(ydata, cdata, long.formula,
   it <- 1
   tempSig <- list()
   tempSig[[it]] <- output$Sig
-  
-  
-  
-  n <- nrow(data$W)
+  ngamma <- ncol(data$W)
   index = 0
-  gamma1 <- output$phi1[(index+1):numBio]
-  gamma2 <- output$phi2[(index+1):numBio]
-  index = index + numBio
+  gamma1 <- output$phi1[(index+1):ngamma]
+  gamma2 <- output$phi2[(index+1):ngamma]
+  index = index + ngamma
   #NEED TO ADJUST THIS PART
-  alpha1 <- output$phi1[(numBio+1):(numBio+(2*numBio))] # 3 and 2 come from competing risk
-  alpha2 <- output$phi2[(numBio+1):(numBio+(2*numBio))]
+  alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
+  alpha2 <- output$phi2[(ngamma+1):(length(output$phi2))]
   
   alpha1g <- alpha2g <- vector("list", numBio)
   index = 0
@@ -292,33 +272,21 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   iter=0
   beta <- output$beta
+  sigma <- output$sigmaVec
 
-  
   repeat{
     
     iter <- iter + 1
-    
-    
-    # if(iter == 2){
-    #   writeLines("n is:")
-    #   print(j)
-    # }
-    
-    
     prebeta <- beta
-    
     pregamma1 <- gamma1
     pregamma2 <- gamma2
     prealphaList <- alphaList
-    prealpha1 <- output$phi1[(numBio+1):(2+(2*numBio))] # 3 and 2 come from competing risk
-    prealpha2 <- output$phi2[(numBio+1):(2+(2*numBio))]
-    # writeLines("indexing")
-    # print((numBio+1):(2+(2*numBio)))
-    # print(output$phi2)
-    preH01 <- output$H01
-    preH02 <- output$H02
-    preSig <- output$Sig
-    presigma <- output$sigmaVec # for checking
+    prealpha1 <- alpha1 # 3 and 2 come from competing risk
+    prealpha2 <- alpha2
+    preH01 <- H01
+    preH02 <- H02
+    preSig <- Sig
+    presigma <- sigma # for checking
     
     if (print.para) {
       writeLines("iter is:")
@@ -337,10 +305,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
       print(prealpha1)
       writeLines("alpha2 is:")
       print(prealpha2)
-      writeLines("Sig is:")
-      print(Sig)
-      writeLines("Error variance is:")
-      print(sigma)
     }
     
     CUH01 <- rep(0, n)
@@ -426,11 +390,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
 
     # tempsigma <- rbind(tempsigma, sigma)
     # CHANGE THIS PART
-    gamma1 <- output$phi1[1:numBio]
-    gamma2 <- output$phi2[1:numBio]
-    alpha1 <- output$phi1[(numBio+1):(numBio+(2*numBio))] # 3 and 2 come from competing risk
-    alpha2 <- output$phi2[(numBio+1):(numBio+(2*numBio))]
-    
+    gamma1 <- output$phi1[1:ngamma]
+    gamma2 <- output$phi2[1:ngamma]
+    alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
+    alpha2 <- output$phi2[(ngamma+1):(length(output$phi2))]
     alpha1g <- alpha2g <- vector("list", numBio)
     index = 0
     for(g in 1:numBio){
@@ -467,7 +430,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                     H01, H02, pos.cov, Sig, sigma, 
                     subX1, subY, subZ, getinit$W, 
                     getinit$survtime,getinit$cmprsk,
-                    mdata, mdataSM, pos.mode)
+                    mdataM, mdataSM, pos.mode)
   }
   
   end_time <- Sys.time()
@@ -475,8 +438,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   return(list(output = output, re = pos.mode, sigi = pos.cov, 
               beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
-              SEest,
-              runtime = runtime))
+              SEest = SEest, runtime = runtime))
   
 }
 

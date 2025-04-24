@@ -72,7 +72,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	    // need to change to matrix for flexible b
 	    
 	    Eigen::MatrixXd Xtemp = Rcpp::as<Eigen::MatrixXd>(xListElement[g]);
-	    Eigen::MatrixXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]);
+	    Eigen::VectorXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]);
 	    Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
 	    
 	    Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
@@ -118,7 +118,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	    // Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 	    
 	    Eigen::MatrixXd Xtemp = Rcpp::as<Eigen::MatrixXd>(xListElement[g]);
-	    Eigen::MatrixXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]);
+	    Eigen::VectorXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]);
 	    Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
 	    
 	    pRE = pREVec(g);
@@ -138,7 +138,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	    
 	    for (int nij = 0; nij < numRep; nij++) {
 
-	      double epsilon = Ytemp(nij, 0) - MultVV(Xtemp.row(nij), betaNew);
+	      double epsilon = Ytemp(nij) - MultVV(Xtemp.row(nij), betaNew);
 	      double zb = MultVV(Ztemp.row(nij), bVecig);
 	      
 	      Eigen::MatrixXd ZZT = MultVVoutprod(Ztemp.row(nij));
@@ -146,13 +146,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	      
 	      numsig += pow(epsilon, 2) - 2 * epsilon * zb + (ZZT * (sigig + bbT)).trace();
 	      
-	      
-	      // std::cout << "epsilon" << epsilon << std::endl;
-	      // std::cout << "zb" << zb << std::endl;
-	      // std::cout << "ZZt" << ZZT << std::endl;
-	      // std::cout <<  "bbt" << bbT << std::endl;
-	      // std::cout <<  "ZZT * (sigig + bbT)" << ZZT * (sigig + bbT) << std::endl;
-	      // std::cout << "betaNew" << betaNew << std::endl;
 	   
 	    }
 	    

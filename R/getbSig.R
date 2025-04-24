@@ -88,7 +88,7 @@ getbSig <- function(bSig, data){
     }
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
-    sigmai <- sigma[[g]]
+    sigmai <- sigma[g]
     mdatag <- mdata[[g]]
     mdataSg <- mdataS[[g]]
     alpha1 <- alphaList[[1]] # risk 1
