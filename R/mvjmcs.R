@@ -440,7 +440,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   return(list(output = output, re = pos.mode, sigi = pos.cov, 
               beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
-              SEest = SEest, runtime = runtime))
+              SEest = SEest, runtime = runtime, iter = iter))
   
 }
 
