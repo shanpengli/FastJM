@@ -208,13 +208,14 @@ mvjmcs <- function(ydata, cdata, long.formula,
     opt <- optim(
       par = c(rep(0, pREtotal)), # CHANGE THIS PART
       getbSig,
+      getbSig_grad,
       data = subdata,
       method = "BFGS",
       hessian = TRUE
     )
-    
     pos.mode[[j]] <- opt$par
     pos.cov[[j]] <- solve(opt$hessian)
+    
     
   }
   
@@ -356,6 +357,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       opt <- optim(
         par = rep(0, pREtotal),
         getbSig,
+        getbSig_grad,
         data = subdata,
         method = "BFGS",
         hessian = TRUE
