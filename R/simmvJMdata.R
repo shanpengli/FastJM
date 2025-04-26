@@ -14,7 +14,8 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
                         lambda2 = 0.025,
                         CL = 5,
                         CU = 10,
-                        covb = diag(rep(1, 4))
+                        covb = diag(rep(1, 4),
+                                    missprob = 0)
 ) {
   
   set.seed(seed)
@@ -74,7 +75,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
     for (i in 1:N) {
       
       ni <- floor(cdata[i, 2]/increment)
-      Visit <- sample(c(0, 1), ni, replace = TRUE, prob = c(0.2, 0.8))
+      Visit <- sample(c(0, 1), ni, replace = TRUE, prob = c(missprob, 1 - missprob))
       suby <- matrix(0, nrow = ni+1, ncol = 3)
       suby[, 1] <- i
       
@@ -120,17 +121,13 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
     }
     YdataRaw <- as.data.frame(YdataRaw)
     
-    print(g)
-    
     if(g == 1) {
       
       Ydata <- dplyr::full_join(Ydata, YdataRaw, by = "ID")
     } else {
       Ydata <- dplyr::full_join(Ydata, YdataRaw, by = c("ID", "time"))
     }
-    
-    print(g+5)
-    
+  
   }
   
   X <- cbind(ID, X)
