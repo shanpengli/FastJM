@@ -14,9 +14,8 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
                         lambda2 = 0.025,
                         CL = 5,
                         CU = 10,
-                        covb = diag(rep(1, 4),
-                                    missprob = 0)
-) {
+                        covb = diag(rep(1, 4)),
+                        missprob = 0){
   
   set.seed(seed)
   
