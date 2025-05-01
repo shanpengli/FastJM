@@ -1,4 +1,4 @@
-CIF1mv.CR <- function(data, H01, H02, s, u, bl, numBio, pREvec) {
+CIF1mv.CR <- function(data, H01, H02, stime, u, bl, numBio, pREvec) {
   a <- nrow(H01)
   b <- nrow(H02)
   CH01 <- cumsum(H01[, 3])
@@ -17,8 +17,24 @@ CIF1mv.CR <- function(data, H01, H02, s, u, bl, numBio, pREvec) {
   
   CIF1 <- 0
   
+  sumalpha1b <- sumalpha2b <- index <- 0
+  for(g in 1:numBio){
+    pRE <- pREvec[g]
+    if(numBio == 1){
+      alpha1g <- data$alpha[[1]]
+      alpha2g <- data$alpha[[2]]
+    }else{
+      alpha1g <- data$alpha[[1]][[g]]
+      alpha2g <- data$alpha[[2]][[g]]
+    }
+    b_ig <- bl[(index+1):(index+pRE)]
+    sumalpha1b <- sumalpha1b + alpha1g%*%b_ig # need to double check structure of bl, might be [[i]][index:index+pRE]
+    sumalpha2b <- sumalpha2b + alpha2g%*%b_ig
+    index = index + pRE
+  }
+  
   for (i in 1:a) {
-    if (s < H01[i, 1] & u >= H01[i, 1]) {
+     if (stime < H01[i, 1] & u >= H01[i, 1]) {
       if (i >= 2) {
         # CIF1 <- CIF1 + H01[i, 3]*exp(data$W%*%data$gamma1 + data$alpha1%*%bl)*
         #   exp(-CH01[i-1]*exp(data$W%*%data$gamma1 + data$alpha1%*%bl)-
@@ -26,16 +42,7 @@ CIF1mv.CR <- function(data, H01, H02, s, u, bl, numBio, pREvec) {
         
         ## will need to change this for fleixble
         
-        
-        sumalpha1b <- sumalpha2b <- index <- 0
-        for(g in 1:numBio){
-          pRE <- pREvec(g)
-          b_ig <- bl[[i]][[g]]
-          sumalpha1b <- sumalpha1b + alpha1[index:index+pRE]%*%b_ig # need to double check structure of bl, might be [[i]][index:index+pRE]
-          sumalpha2b <- sumalpha2b + alpha2[index:index+pRE]%*%b_ig
-          index = index + pRE
-        }
-        
+      
         CIF1 <- CIF1 + H01[i, 3]*exp(data$W%*%data$gamma1 + sumalpha1b)*
           exp(-CH01[i-1]*exp(data$W%*%data$gamma1 + sumalpha1b)-
                 CH02[i-1]*exp(data$W%*%data$gamma2 + sumalpha2b))

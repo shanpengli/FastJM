@@ -27,17 +27,14 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   
   int numSubj = XList.size();
   int numBio = Rcpp::as<Rcpp::List>(XList[0]).size();
-  
-  
-  
-  
+
   Eigen::VectorXd pVec = Eigen::VectorXd::Zero(numBio);
   Eigen::VectorXd pREVec = Eigen::VectorXd::Zero(numBio);
-  
+
   int p, pRE;
   int ptotal = 0;
   int pREtotal = 0;
-  
+
   for (int g = 0; g < numBio; g++) {
     p = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(XList[0])[g]).cols();
     pVec(g) = p;
@@ -46,32 +43,32 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     pREVec(g) = pRE;
     pREtotal += pRE;
   }
-  
-  for (int t; t < p; t++){
-    
-  }
-  
-  
-  // make this biomarker gen
-  
+
+  // for (int t; t < p; t++){
+  //   
+  // }
+  // 
+  // 
+  // // make this biomarker gen
+  // 
   int d = beta.size() + 2*gamma1.size() + 2*alpha1.size() + Sig.cols()*(Sig.cols() + 1)/2 + numBio;
   int a = H01.rows();
   int b = H02.rows();
-  
+
   int i,q,j,t,u;
-  
+
   double temp,temp1;
-  
+
   double tausq;//, FUNBEC;
-  
+
   int i2;
-  
-  
+
+
   Eigen::MatrixXd SS  = Eigen::MatrixXd::Zero(d,d);
   Eigen::MatrixXd SSinv  = Eigen::MatrixXd::Zero(d,d);
   Eigen::VectorXd S = Eigen::VectorXd::Zero(d);
-  
-  
+
+
   int risk1_index;
   int risk2_index;
   int risk1_index_temp=a-1;
@@ -86,10 +83,10 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   int risk2_index_vtemp=b-1;
   int risk2_index_vttemp=b-1;
   int risk2_index_vtttemp=b-1;
-  
+
   Eigen::VectorXd CumuH01 = Eigen::VectorXd::Zero(a);
   Eigen::VectorXd CumuH02 = Eigen::VectorXd::Zero(b);
-  
+
   temp1=0;
   for (i=0;i<a;i++) {
     temp1 += H01(i, 2);
@@ -100,25 +97,25 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     temp1 += H02(i, 2);
     CumuH02(i) = temp1;
   }
-  
+
   double epsilon=0;
-  
-  
-  
+
+
+
   double qqsigma=0;
-  
-  
-  
+
+
+
   // int p1 = beta.size();
   // int p2 = gamma1.size();
-  // 
+  //
   // biomarker loop here
-  
-  
+  // 
+  // 
   Eigen::VectorXd SZ = Eigen::VectorXd::Zero(p);
   // Eigen::VectorXd SZ1 = Eigen::VectorXd::Zero(p1);
   // Eigen::MatrixXd SZZ = Eigen::MatrixXd::Zero(p1, pREtotal);
-  
+
   Eigen::VectorXd X = Eigen::VectorXd::Zero(gamma1.size());
   Eigen::VectorXd SX = Eigen::VectorXd::Zero(gamma1.size());
   Eigen::VectorXd SX1 = Eigen::VectorXd::Zero(gamma1.size());
@@ -130,9 +127,9 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::MatrixXd SXX22 = Eigen::MatrixXd::Zero(gamma2.size(), b);
   Eigen::MatrixXd SRXX1 = Eigen::MatrixXd::Zero(gamma1.size(), numSubj);
   Eigen::MatrixXd SRXX2 = Eigen::MatrixXd::Zero(gamma2.size(), numSubj);
-  
-  
-  // NEED TO ADAPT FOR DIFFERENT NUMBER OF RANDOM EFFECTS
+  // 
+  // 
+  // // NEED TO ADAPT FOR DIFFERENT NUMBER OF RANDOM EFFECTS
   Eigen::VectorXd N = Eigen::VectorXd::Zero(pREtotal);
   Eigen::VectorXd TN = Eigen::VectorXd::Zero(pREtotal);
   Eigen::VectorXd TN1 = Eigen::VectorXd::Zero(pREtotal);
@@ -144,189 +141,181 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::MatrixXd TNN11 = Eigen::MatrixXd::Zero(pREtotal,a);
   Eigen::MatrixXd TNN2 = Eigen::MatrixXd::Zero(pREtotal,b);
   Eigen::MatrixXd TNN22 = Eigen::MatrixXd::Zero(pREtotal,b);
-  
+
   Eigen::MatrixXd bs = Eigen::MatrixXd::Zero(pREtotal,pREtotal);
   Eigen::MatrixXd ZZT = Eigen::MatrixXd::Zero(pRE,pRE);
-  // Eigen::MatrixXd bs2 = Eigen::MatrixXd::Zero(pREtotal,pREtotal);
-  
-  
+  Eigen::MatrixXd bs2 = Eigen::MatrixXd::Zero(pREtotal,pREtotal);
+
+
   double r;//, epsilon;
   //int numSubj = XList.size();
   //int numBio = Rcpp::as<Rcpp::List>(XList[0]).size();
-  
+
   // TEMPORARY MAKE SURE TO COMMENT OUT LATER!!!
-  
-  
-  
-  // change to multiple biomarker
-  
+  // 
+  // 
+  // 
+  // // change to multiple biomarker
+  // 
   int index = 0;
   int pREindex = 0;
   int agIndex = 0;
   double num;
   int SEindex = 0;
-  
+
   //    Eigen::MatrixXd FUNEC = Eigen::MatrixXd::Zero(2,numSubj);
   //
-  //    //b
+  // //    //b
   Eigen::MatrixXd FUNB = Eigen::MatrixXd::Zero(pREtotal,numSubj);
   Eigen::MatrixXd FUNBS = Eigen::MatrixXd::Zero(pREtotal*(pREtotal+1)/2,numSubj); //bbt
-  Eigen::VectorXd bifull = Eigen::VectorXd::Zero(pREtotal);
+  // Eigen::VectorXd bifull = Eigen::VectorXd::Zero(pREtotal);
   Eigen::MatrixXd bVeci  = Eigen::VectorXd::Zero(pREtotal);
   Eigen::MatrixXd BAssociation = Eigen::MatrixXd::Zero(pREtotal,pREtotal);
   Eigen::MatrixXd FUNEC = Eigen::MatrixXd::Zero(2, numSubj); //exp(alpha*b)
   //     //bexp(alpha*b)
   Eigen::MatrixXd FUNBEC = Eigen::MatrixXd::Zero(2*pREtotal,numSubj); // 2 for number of competing risks
-  
-  
-  //     //bbTexp(alpha*b)
-  //     Eigen::MatrixXd FUNBSEC = Eigen::MatrixXd::Zero(2*pRE*(pRE+1)/2,k);
-  
+  // 
+  // 
+  // //     //bbTexp(alpha*b)
+      // Eigen::MatrixXd FUNBSEC = Eigen::MatrixXd::Zero(2*pRE*(pRE+1)/2,k);
+
   Eigen::VectorXd FUNBECvec = Eigen::VectorXd::Zero(2*pREtotal);
-  
-  
+  // 
+  // 
   for(int i = 0; i < numSubj; i++){
-    
-    
-    Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-    for(int g = 0; g < numBio; g++){
-      Eigen::VectorXd bVecig = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-      bifull.segment(pREindex,pRE) = bVecig;
-      pREindex +=pRE;
-      
-    }
-    
+
+    bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
     pREindex = 0;
-    
-    
-    
-    FUNB.col(i) = bifull;
-    
-    bVeci = bifull;
-    // latent 
+
+    // FUNB.col(i) = bifull;
+    FUNB.col(i) = bVeci;
+
+    // bVeci = bifull;
+    // latent
     Eigen::VectorXd latent = bVeci;
     BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]); // this part need ot make slexible
     Eigen::MatrixXd sigi = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
-    
-    
-    
+
     Eigen::MatrixXd FUNBSmat =  sigi + MultVVoutprod(bVeci); // 4x4
     Eigen::VectorXd FUNBSvec =  Eigen::VectorXd::Zero(pREtotal*(pREtotal+1)/2-FUNBSmat.diagonal().size()); // 6
-    
+
     int FUNBSind= 0;
-    
+
     for (int row = 1; row < pREtotal; row++) {
       for (int col = 0; col < pREtotal-row; col++) {
         FUNBSvec(FUNBSind) = FUNBSmat(col, col+row);
         FUNBSind++;
       }
     }
-    
+
     FUNBS.col(i) << FUNBSmat.diagonal(), FUNBSvec;
-    
+
     tausq = alpha1.transpose() * BAssociation * alpha1;
     FUNEC(0,i) = exp(MultVV(alpha1, latent) + 0.5 * tausq);
     FUNBEC.col(i).segment(index, pREtotal) = exp(MultVV(alpha1, latent) + 0.5 * tausq) * (BAssociation * alpha1 + latent);
-    
+    // 
     tausq = alpha2.transpose() * BAssociation * alpha2;
     FUNEC(1,i) = exp(MultVV(alpha2, latent) + 0.5 * tausq);
     FUNBEC.col(i).segment(index + pREtotal, pREtotal) = exp(MultVV(alpha2, latent) + 0.5 * tausq) * (BAssociation * alpha2 + latent);
-    
   }
-  
-  
+
   SZ = Eigen::VectorXd::Zero(p);
-  
-  
+
   Eigen::VectorXd betaVec = Eigen::VectorXd::Zero(ptotal);
   Eigen::VectorXd qqsigmaVec = Eigen::VectorXd::Zero(numBio);
-  
-  
-  
-  
-  
-  
+
+
   for (int i = 0; i < numSubj; i++) {
-    
+
     index = 0;
     S = Eigen::VectorXd::Zero(d); // vector that stores observed score vector of each subject; when looping, will clear up for each subject!!
-    
-    
+
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~
     //
     // BETA
     //
     // ~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    
+
+
     int betaIndex = 0;
     //int sigIndex = 0;
     int bIndex = 0;
-    
     for(int g = 0; g < numBio; g++){
       double sigma = sigmaVec(g);
       pRE = pREVec(g);
       p = pVec(g);
       num = 0;
-      Rcpp::List mdataList = Rcpp::as<Rcpp::List>(mdata[g]); 
+      Rcpp::List mdataList = Rcpp::as<Rcpp::List>(mdata[g]);
+      
+      
       int numRep = Rcpp::as<int>(mdataList[i]);
-      
-      
       SZ = Eigen::VectorXd::Zero(p);
-      
+
       Eigen::VectorXd betag = beta.segment(betaIndex,p);
       Eigen::VectorXd bVecig = FUNB.col(i).segment(bIndex,pRE);
-      
+
+      Rcpp::List xListElement = Rcpp::as<Rcpp::List>(XList[i]);
+      Rcpp::List yListElement = Rcpp::as<Rcpp::List>(YList[i]);
+      Rcpp::List zListElement = Rcpp::as<Rcpp::List>(ZList[i]);
+
+
+      Eigen::MatrixXd Xtemp = Rcpp::as<Eigen::MatrixXd>(xListElement[g]);
+      Eigen::VectorXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]); // need to change to vector later
+      Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
+
+
       for (int nij = 0; nij < numRep; nij++) {
-        
-        Rcpp::List xListElement = Rcpp::as<Rcpp::List>(XList[i]);
-        Rcpp::List yListElement = Rcpp::as<Rcpp::List>(YList[i]);
-        Rcpp::List zListElement = Rcpp::as<Rcpp::List>(ZList[i]);
-        
-        
-        Eigen::MatrixXd Xtemp = Rcpp::as<Eigen::MatrixXd>(xListElement[g]);
-        Eigen::VectorXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]); // need to change to vector later
-        Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
-        
-        
+
+
+
         // need to generalize this
-        double r = Ytemp(nij) - MultVV(Xtemp.row(nij), betag);
-        double zb = MultVV(Ztemp.row(nij), bVecig);
-        epsilon = r - zb; 
-        
-        
+        double r = Ytemp(nij) - MultVV(Xtemp.row(nij), betag); //here
+        double zb = MultVV(Ztemp.row(nij), bVecig); // here
+      
+      // std::cout << "r " << r << std::endl;
+      // std::cout << "ztemp " << Ztemp.row(nij) << std::endl;
+      // std::cout << "bVecig " << bVecig << std::endl;
+        epsilon = r - zb;
+        // std::cout << "xtemp " << Xtemp.row(nij) << std::endl;
+
         // beta calc
         SZ += epsilon*Xtemp.row(nij);
         
+        // std::cout << "eps*Xtemp " << epsilon*Xtemp.row(nij) << std::endl;
+
         // sigma calc
         Eigen::MatrixXd ZZT = MultVVoutprod(Ztemp.row(nij));
         Eigen::MatrixXd bbT = MultVVoutprod(bVecig);
-        
+
         Eigen::MatrixXd sigig = BAssociation.block(bIndex, bIndex, pRE, pRE); // THIS BLOCK NEEDS TO make sure it's subject specific
-        
+
         // num += pow(r, 2) - 2 * r * zb + (ZZT * FUNBS.block(index,index,pRE,pRE)).trace();
         num += pow(r, 2) - 2 * r * zb + (ZZT * (sigig + bbT)).trace();
-        
+
       }
-      
-      SZ /= sigma; 
+
+      SZ /= sigma;
       qqsigma = num/(2*pow(sigma,2)) - numRep/(2*sigma);
-      
+
       betaVec.segment(betaIndex,p) = SZ;
       qqsigmaVec(g) = qqsigma;
       betaIndex += p;
+      // std::cout << "sz " << SZ << std::endl;
+      // std::cout << "betaIndex " << betaIndex << std::endl;
+      // std::cout << "p " << p << std::endl;
       bIndex += pRE;
     }
-    
-    
 
-    
-    
+
     S.segment(index,ptotal + numBio) << betaVec, qqsigmaVec;
-    
+    // std::cout << "beta " << betaVec << std::endl;
+    // std::cout << "beta done " << S.segment(index, ptotal + numBio)<< std::endl;
+
     index += ptotal;
     index += numBio;
-    
+
+
     ///////////////////////////
     
     
@@ -344,11 +333,11 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       risk1_index=risk1_index_temp;
       for (i2=i;i2<numSubj;i2++) // double check this index
       {
-        
+
         Eigen::VectorXd w = W.row(i2);
         temp += exp(MultVV(w, gamma1))*FUNEC(0,i2);
         SX += exp(MultVV(w,gamma1))*FUNEC(0,i2)*w;
-        
+
         if (cmprsk(i2) == 1)
         {
           if (i2 == numSubj-1)
@@ -377,13 +366,13 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
           {
             for (i2=i2+1;i2<numSubj;i2++) // subject number
             {
-              
-              
+
+
               Eigen::VectorXd w = W.row(i2);
               temp += exp(MultVV(w, gamma1))*FUNEC(0,i2);
               SX += exp(MultVV(w,gamma1))*FUNEC*w;
-              
-              
+
+
               if (i2 == numSubj-1)
               {
                 SX*= H01(risk1_index, 1)/pow(temp, 2);
@@ -411,7 +400,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
               else continue;
             }
           }
-          
+
         }
         else continue;
       }
@@ -442,7 +431,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       }
     }
     SRX = SRXX1.col(i);
-    
+
     if (i==0)
     {
       SRX -= CumuH01(risk1_index_ttemp)*W.row(i);
@@ -464,10 +453,10 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         risk1_index_ttemp=0;
       }
     }
-    
-    
+
+
     SRX*= exp(MultVV(W.row(i), gamma1))*FUNEC(0,i);
-    
+
     if (survtime(i) >= H01(risk1_index_tttemp, 0))
     {
       if (cmprsk(i) == 1)
@@ -510,25 +499,26 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         S.segment(index, gamma1.size()) = SRX;
       }
     }
-    
-    
+
+    // std::cout << "gamma1 " << S.segment(index, gamma1.size())<< std::endl;
+    // std::cout << "alpha1full " << S << std::endl;
     index += gamma1.size();
-    
+
     if (i == 0)
     {
       temp=0;
-      
+
       SX = Eigen::VectorXd::Zero(gamma2.size());
       SRXX = Eigen::VectorXd::Zero(gamma2.size());
-      
+
       risk2_index=risk2_index_temp;
       for (int i2=i;i2<numSubj;i2++)
       {
-        
-        
+
+
         temp+=exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2);
         SX += exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2)*W.row(i2);
-        
+
         if (cmprsk(i2) == 2)
         {
           if (i2 == numSubj-1)
@@ -557,10 +547,10 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
           {
             for (i2=i2+1;i2<numSubj;i2++)
             {
-              
+
               temp+=exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2);
               SX += exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2)*W.row(i2);
-              
+
               if (i2 == numSubj-1)
               {
                 SX*= H02(risk2_index, 1)/pow(temp, 2);
@@ -588,7 +578,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
               else continue;
             }
           }
-          
+
         }
         else continue;
       }
@@ -618,7 +608,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       }
     }
     SRX = SRXX2.col(i);
-    
+
     if (i==0){
       SRX -= CumuH02(risk2_index_ttemp)*W.row(i);
     }
@@ -638,9 +628,9 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         risk2_index_ttemp=0;
       }
     }
-    
+
     SRX*= exp(MultVV(W.row(i), gamma2))*FUNEC(1,i);
-    
+
     if (survtime(i) >= H02(risk2_index_tttemp, 0))
     {
       if (cmprsk(i) == 2)
@@ -670,7 +660,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         }
         else
         {
-  
+
           S.segment(index, gamma2.size()) = SRX;
         }
       }
@@ -680,42 +670,47 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         S.segment(index, gamma2.size()) = SRX;
       }
     }
+
+    // std::cout << "gamma2 " << S << std::endl;
+
+    // // std::cout << "gamma1 " << S.segment(index, gamma1.size())<< std::endl;
+    // std::cout << "alpha1full " << S << std::endl;
     
     index += gamma2.size();
-    
-    
-    
+
+
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~
     //
     // ALPHA
     //
     // ~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    
+
+
     /* calculate score for alpha */
     /*  alpha1 */
     if (i == 0){
       temp=0;
-      
+
       TN = Eigen::VectorXd::Zero(pREtotal);
       TRN = Eigen::VectorXd::Zero(pREtotal);
-      
+
       risk1_index=risk1_index_vtemp;
       for (i2=i;i2<numSubj;i2++){
         Eigen::VectorXd bVeci = Eigen::VectorXd::Zero(pREtotal);
         Eigen::MatrixXd BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i2]);
         Eigen::VectorXd latent = bVeci;
-        
+
         tausq = alpha1.transpose() * BAssociation * alpha1;
-        
+
         temp += exp(MultVV(W.row(i2), gamma1))*FUNEC(0, i2);
-        
+
         N = FUNBEC.col(i2).segment(agIndex, 2*numBio);
-        
-        
+
+
         TN += exp(MultVV(W.row(i2), gamma1))*N; // E(bTexp(aTb))xexp(WTgamma)
-        
-        
+
+
         if (cmprsk(i2) == 1)
         {
           if (i2 == numSubj-1)
@@ -774,7 +769,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
               else continue;
             }
           }
-          
+
         }
         else continue;
       }
@@ -804,9 +799,9 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       }
     }
     TRN = TRNN1.col(i);
-    
+
     TRN *= exp(MultVV(W.row(i), gamma1))*FUNEC(0,i);
-    
+
     if (i==0)
     {
       for (t=0;t<pREtotal;t++) N(t) = FUNBEC(t,i);
@@ -833,8 +828,8 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         risk1_index_vttemp=0;
       }
     }
-    
-    
+
+
     if (survtime(i) >= H01(risk1_index_vtttemp,0))
     {
       if (cmprsk(i) == 1)
@@ -852,7 +847,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     }
     else
     {
-      
+
       risk1_index_vtttemp--;
       if (risk1_index_vtttemp>=0)
       {
@@ -873,9 +868,11 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         for (q=0;q<pREtotal;q++) S(index + q) = TRN(q);
       }
     }
-    
+
+    // std::cout << "alpha1 " << S(index + q) << std::endl;
+    // std::cout << "alpha1full " << S << std::endl;
     index += 2*numBio;
-    
+
     /*  alpha2 */
     if (i == 0)
     {
@@ -883,7 +880,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       TN = Eigen::VectorXd::Zero(pREtotal);
       TRNN = Eigen::VectorXd::Zero(pREtotal);
       risk2_index=risk2_index_vtemp;
-      
+
       for (i2=i;i2<numSubj;i2++)
       {
         temp += exp(MultVV(W.row(i2), gamma2))*FUNEC(1, i2); // motify the FUNEC and stuff like that; keep framework same
@@ -947,7 +944,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
               else continue;
             }
           }
-          
+
         }
         else continue;
       }
@@ -978,9 +975,9 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       }
     }
     TRN = TRNN2.col(i);
-    
+
     TRN *= exp(MultVV(W.row(i), gamma2))*FUNEC(1,i);
-    
+
     if (i==0)
     {
       for (t=0;t<pREtotal;t++) N(t) = FUNBEC(pREtotal+t,i);
@@ -1007,8 +1004,8 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         risk2_index_vttemp=0;
       }
     }
-    
-    
+
+
     if (survtime(i) >= H02(risk2_index_vtttemp,0))
     {
       if (cmprsk(i) == 2)
@@ -1036,38 +1033,41 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         else
         {
           for (q=0;q<pREtotal;q++) S(index + q) = TRN(q);
-         
+
         }
       }
       else
       {
         risk2_index_vtttemp=0;
-        for (q=0;q<pREtotal;q++) S(index + q) = TRN(q);
-        
+        for (q=0;q<pREtotal;q++) {S(index + q) = TRN(q);
+          // std::cout << "alpha2 " << S(index + q) << std::endl;
+        }
       }
     }
-    
-    
-    
+
+    // std::cout << "alpha2 " << S(index + q) << std::endl;
+    // std::cout << "alpha2full " << S << std::endl;
+
+
     agIndex+= numBio;
     pREindex +=pRE;
     index += 2*numBio;
-    
-    
-    
+
+
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~
     //
     // SIGMA
     //
     // ~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     for(t=0;t<pREtotal;t++) bs(t,t) = FUNBS(t,i);// needs to therefore be in loop
-    
+
     if(pREtotal>1)
     {
       u=0;
@@ -1080,13 +1080,13 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         }
       }
     }
-    
-    
+
+
     bs = Sig.inverse()*bs*Sig.inverse() - Sig.inverse();
-    
+
     for (t=0;t<pREtotal;t++) S(index+t) = 0.5*bs(t,t);
     index += pREtotal;
-    
+
     u=0;
     for(q=1;q<pREtotal;q++)
     {
@@ -1095,59 +1095,59 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         u++;
       }
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     SS += MultVVoutprod(S);
-    
-    
-    
+
+
+
   }
-  
+
   SSinv = SS.inverse();
-  
-  
+
+
   Eigen::VectorXd sebeta = Eigen::VectorXd::Zero(ptotal);
-  Eigen::VectorXd segamma1 = Eigen::VectorXd::Zero(gamma1.size()); 
-  Eigen::VectorXd segamma2 = Eigen::VectorXd::Zero(gamma2.size()); 
+  Eigen::VectorXd segamma1 = Eigen::VectorXd::Zero(gamma1.size());
+  Eigen::VectorXd segamma2 = Eigen::VectorXd::Zero(gamma2.size());
   Eigen::VectorXd sealpha1 = Eigen::VectorXd::Zero(pREtotal);
   Eigen::VectorXd sealpha2 = Eigen::VectorXd::Zero(pREtotal);
   Eigen::VectorXd sesigma = Eigen::VectorXd::Zero(numBio);
   Eigen::MatrixXd seSig = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
-  
-  
-  
+
+
+
   index = 0;
-  
+
   // beta
   for (t=0;t<ptotal;t++) sebeta(t) = sqrt(SSinv(t,t));
   index += ptotal;
-  
+
   // sigma
   for (t=0;t< numBio;t++)  sesigma(t) = sqrt(SSinv(index + t,index + t));
   index += numBio;
-  
-  
-  
-  
+
+
+
+
   // gamma
   for (t=0;t<gamma1.size();t++) segamma1(t) = sqrt(SSinv(index+t,index+t));
   index += gamma1.size();
-  
+
   for (t=0;t<gamma2.size();t++) segamma2(t) = sqrt(SSinv(index+t,index+t));
-  
+
   index += gamma2.size();
-  
+
   // alpha
   for (t=0;t<pREtotal;t++) sealpha1(t) = sqrt(SSinv(index+t,index+t));
   index += pREtotal;
   for (t=0;t<pREtotal;t++) sealpha2(t) = sqrt(SSinv(index+t,index+t));
   index += pREtotal;
-  
+
   // sigma
-  
+
   for (t=0;t<pREtotal;t++){ seSig(t,t) = sqrt(SSinv(index+t,index+t));
   }
   index += pREtotal;
@@ -1160,9 +1160,8 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       u++;
     }
   }
-  
-  
-  
+
+
   return Rcpp::List::create(Rcpp::Named("vcov")=SSinv,
                             Rcpp::Named("sebeta")=sebeta,
                             Rcpp::Named("sesigma")=sesigma,
@@ -1175,4 +1174,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
                             Rcpp::Named("FUNBEC")= FUNBEC,
                             Rcpp::Named("S")=SS,
                             Rcpp::Named("output")= SSinv);
+  
+  
+  return Rcpp::List::create(Rcpp::Named("test")=bList);
 }
