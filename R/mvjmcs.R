@@ -274,6 +274,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   iter=0
   beta <- output$beta
   sigma <- output$sigmaVec
+  Sig <- output$Sig
 
   repeat{
     
