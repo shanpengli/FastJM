@@ -44,14 +44,9 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     pREtotal += pRE;
   }
 
-  // for (int t; t < p; t++){
-  //   
-  // }
+
   // 
-  // 
-  // // make this biomarker gen
-  // 
-  int d = beta.size() + 2*gamma1.size() + 2*alpha1.size() + Sig.cols()*(Sig.cols() + 1)/2 + numBio;
+  int d = beta.size() + gamma1.size() + gamma2.size() + alpha1.size() + alpha2.size()+ Sig.cols()*(Sig.cols() + 1)/2 + numBio;
   int a = H01.rows();
   int b = H02.rows();
 
@@ -196,7 +191,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]); // this part need ot make slexible
     Eigen::MatrixXd sigi = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 
-    Eigen::MatrixXd FUNBSmat =  sigi + MultVVoutprod(bVeci); // 4x4
+    Eigen::MatrixXd FUNBSmat =  sigi + MultVVoutprod(bVeci); // pREtotalxpRetotal
     Eigen::VectorXd FUNBSvec =  Eigen::VectorXd::Zero(pREtotal*(pREtotal+1)/2-FUNBSmat.diagonal().size()); // 6
 
     int FUNBSind= 0;
@@ -272,25 +267,16 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         // need to generalize this
         double r = Ytemp(nij) - MultVV(Xtemp.row(nij), betag); //here
         double zb = MultVV(Ztemp.row(nij), bVecig); // here
-      
-      // std::cout << "r " << r << std::endl;
-      // std::cout << "ztemp " << Ztemp.row(nij) << std::endl;
-      // std::cout << "bVecig " << bVecig << std::endl;
+    
         epsilon = r - zb;
-        // std::cout << "xtemp " << Xtemp.row(nij) << std::endl;
-
         // beta calc
         SZ += epsilon*Xtemp.row(nij);
-        
-        // std::cout << "eps*Xtemp " << epsilon*Xtemp.row(nij) << std::endl;
 
         // sigma calc
         Eigen::MatrixXd ZZT = MultVVoutprod(Ztemp.row(nij));
         Eigen::MatrixXd bbT = MultVVoutprod(bVecig);
 
         Eigen::MatrixXd sigig = BAssociation.block(bIndex, bIndex, pRE, pRE); // THIS BLOCK NEEDS TO make sure it's subject specific
-
-        // num += pow(r, 2) - 2 * r * zb + (ZZT * FUNBS.block(index,index,pRE,pRE)).trace();
         num += pow(r, 2) - 2 * r * zb + (ZZT * (sigig + bbT)).trace();
 
       }
@@ -301,20 +287,13 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       betaVec.segment(betaIndex,p) = SZ;
       qqsigmaVec(g) = qqsigma;
       betaIndex += p;
-      // std::cout << "sz " << SZ << std::endl;
-      // std::cout << "betaIndex " << betaIndex << std::endl;
-      // std::cout << "p " << p << std::endl;
       bIndex += pRE;
     }
 
 
     S.segment(index,ptotal + numBio) << betaVec, qqsigmaVec;
-    // std::cout << "beta " << betaVec << std::endl;
-    // std::cout << "beta done " << S.segment(index, ptotal + numBio)<< std::endl;
-
-    index += ptotal;
-    index += numBio;
-
+  
+    index += ptotal + numBio;
 
     ///////////////////////////
     
@@ -324,8 +303,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     // GAMMA
     //
     // ~~~~~~~~~~~~~~~~~~~~~~~~
-    
-    
     
     /* calculate score for gamma */
     if (i == 0){
@@ -366,7 +343,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
           {
             for (i2=i2+1;i2<numSubj;i2++) // subject number
             {
-
 
               Eigen::VectorXd w = W.row(i2);
               temp += exp(MultVV(w, gamma1))*FUNEC(0,i2);
@@ -464,12 +440,10 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         X = W.row(i);
         X -= SXX11.col(a-1-risk1_index_tttemp);
         X += SRX;
-        // for (q=0;q<p2;q++) S(p1+q) = X(q);
         S.segment(index, gamma1.size()) = X;
       }
       else
       {
-        // for (q=0;q<p2;q++) S(p1+q) = SRX(q);
         S.segment(index, gamma1.size()) = SRX;
       }
     }
@@ -483,19 +457,16 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
           X = W.row(i);
           X -= SXX11.col(a-1-risk1_index_tttemp);
           X += SRX;
-          // for (q=0;q<p2;q++) S(p1+q) = X(q);
           S.segment(index, gamma1.size()) = X;
         }
         else
         {
-          // for (q=0;q<p2;q++) S(p1+q) = SRX(q);
           S.segment(index, gamma1.size()) = SRX;
         }
       }
       else
       {
         risk1_index_tttemp=0;
-        // for (q=0;q<p2;q++) S(p1+q) = SRX(q);
         S.segment(index, gamma1.size()) = SRX;
       }
     }
@@ -705,7 +676,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
         temp += exp(MultVV(W.row(i2), gamma1))*FUNEC(0, i2);
 
-        N = FUNBEC.col(i2).segment(agIndex, 2*numBio);
+        N = FUNBEC.col(i2).segment(agIndex, pREtotal);
 
 
         TN += exp(MultVV(W.row(i2), gamma1))*N; // E(bTexp(aTb))xexp(WTgamma)
@@ -871,7 +842,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
     // std::cout << "alpha1 " << S(index + q) << std::endl;
     // std::cout << "alpha1full " << S << std::endl;
-    index += 2*numBio;
+    index += pREtotal; // double check this
 
     /*  alpha2 */
     if (i == 0)
@@ -1051,7 +1022,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
     agIndex+= numBio;
     pREindex +=pRE;
-    index += 2*numBio;
+    index += pREtotal;
 
 
 
@@ -1060,9 +1031,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     // SIGMA
     //
     // ~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
 
 
 

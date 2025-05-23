@@ -1,44 +1,133 @@
-##' @export
+##' Joint modeling of multivariate longitudinal continuous data and competing risks
+##'
+##' Function fits a joint model for multiple longitudinal outcomes and competing risks using a fast EM algorithm.
+##'
+##' @title Joint modeling of multivariate longitudinal and competing risks data
+##' @name mvjmcs
+##' @param ydata A longitudinal data frame in long format.
+##' @param cdata A survival data frame with competing risks or single failure. Each subject has one data entry.
+##' @param long.formula A list of formula objects specifying fixed effects for each longitudinal outcome.
+##' @param random A formula or list of formulas describing random effects structures (e.g., \code{~ 1|ID}).
+##' @param surv.formula A formula for the survival sub-model, including survival time and event indicator.
+##' @param maxiter Maximum number of EM iterations. Default is 10000.
+##' @param opt Optimization method for mixed model. Default is \code{"nlminb"}.
+##' @param tol Convergence tolerance for EM algorithm. Default is 0.0001.
+##' @param method Numerical integration method for E-step. Options: \code{"normalApprox"}.
+##' @param model Internal model structure (auto-filled based on random effects).
+##' @param print.para Logical; if \code{TRUE}, prints parameter values at each iteration.
+##' @param initial.para Optional list of initialized parameters. Default is \code{NULL}.
+##' @param quadpoint Number of Gauss-Hermite quadrature points. Default is 6.
+#'
+##' @return A list containing:
+##' \item{output}{EM algorithm output from final iteration}
+##' \item{re}{Estimated random effects for each subject}
+##' \item{sigi}{Estimated random effects covariance matrices (posterior) for each subject}
+##' \item{beta}{Estimated fixed effects for longitudinal models}
+##' \item{sigmaout}{Biomarker error variance estimates}
+##' \item{gamma1}{Fixed effects for cause 1}
+##' \item{gamma2}{Fixed effects for cause 2 (if \code{CompetingRisk = TRUE})}
+##' \item{alpha1}{Association parameters for cause 1}
+##' \item{alpha2}{Association parameters for cause 2}
+##' \item{SEest}{Estimated standard errors of all parameters}
+##' \item{runtime}{Elapsed run time}
+##' \item{iter}{Number of EM iterations run}
+##'
+##' @examples
 ##' 
+##' 
+##'   require(FastJM)
+##'   require(survival
+##' 
+##'   # Fit joint model with two biomarkers
+##'   fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
+##'                 random = list(~time| ID, ~1|ID),
+##'                 surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001, 
+##'                 model = "interslope", method = "normApprox")
+##'   fit
+##'   
+##'   # Obtain the variance-variance matrix of all parameter estimates
+##'   
+                
+                
+               
+##' @seealso \code{\link{jmcs}}, \code{\link{survfitjmcs}}, \code{\link{AUCjmcs}}, \code{\link{MAEQjmcs}}, \code{\link{PEjmcs}}
+##' @export
 
 mvjmcs <- function(ydata, cdata, long.formula,
-                         random = NULL, surv.formula,
-                         maxiter = 10000, opt = "nlminb", tol = 0.0001, method = c("quad", "noquad"), 
-                         model, print.para = TRUE, 
+                   random = NULL, surv.formula,
+                   maxiter = 10000, opt = "nlminb", tol = 0.0001, method = c("normalApprox"), 
+                   model, print.para = TRUE, 
                    initial.para = NULL,
                    quadpoint = 6){
   # "aGH", "normApprox", 
   
   start_time <- Sys.time()
   
-  random.form <- all.vars(random)
-  RE <- random.form[-length(random.form)]
-  ID <- random.form[length(random.form)]
+  #
+  # if(numBio == 1){
+  #   mvjmcsSB()
+  # }
+  
+  if(is.list(long.formula)){
+    numBio = length(long.formula)
+  }
+  else{
+    numBio = 1
+  }
+  
+  random.form <- RE  <- model <- vector("list", numBio)
+  
+  # <- ID
+  
+  if(is.list(random)){
+    for(g in 1:numBio){
+      random.form[[g]] <- all.vars(random[[g]])
+      if(length(random.form[[g]])==1){
+        # RE[[g]] <- NULL # already null
+          model[[g]] <- "intercept"
+      }else{
+        RE[[g]] <- random.form[[g]][-length(all.vars(random[[g]]))]
+        model[[g]] <- "interslope"
+      }
+      # ID[[g]] <- random.form[[g]][length(all.vars(random[[g]]))]
+    }
+    ID <- random.form[[g]][length(all.vars(random[[g]]))]
+  }
+  
+  # for now, forcibly create list... better way to do this later
+  else{
+    for(g in 1:numBio){
+      random.form[[g]] <- all.vars(random)
+      if(length(random) == 1){
+        # RE[[g]] <- NULL
+        model[[g]] <- "intercept"
+      }else{
+        RE[[g]] <- random.form[[g]][-length(all.vars(random))]
+        model[[g]] <- "interslope"
+      }
+      # ID[[g]] <- random.form[[g]][length(all.vars(random))]
+    }
+    ID[[g]] <- random.form[[g]][length(all.vars(random))]
+  }
   
   lengthb <- length(long.formula)
   long <- list()
   
   # check for every biomarker
   for(g in 1:lengthb){
-    
     if (!inherits(long.formula[[g]], "formula") || length(long.formula[[g]]) != 3) {
       stop("\nLinear mixed effects model must be a formula of the form \"resp ~ pred\"")
     }
-    
     long[[g]] <- all.vars(long.formula[[g]])
-    
-    
   }
-  
   longfmla <- list(lengthb)
   for(g in 1:lengthb){
     longfmla[g] <- long.formula[g]
-    
   }
   
-  survival <- all.vars(surv.formula)
-  random.form <- all.vars(random)
-  ID <- random.form[length(random.form)]
+  # survival <- all.vars(surv.formula)
+  # random.form <- all.vars(random)
+  # ID <- random.form[length(random.form)]
   cnames <- colnames(cdata)
   ynames <- colnames(ydata)
   
@@ -47,16 +136,21 @@ mvjmcs <- function(ydata, cdata, long.formula,
   rawydata <- ydata
   rawcdata <- cdata
   
-  getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
-                       surv.formula = surv.formula,
-                       model = "interslope", ID = ID, RE = RE, survinitial = TRUE,
-                       REML = TRUE, random = random, opt = "nlminb", initial.para)
-  
+  if(is.list(random)){
+    getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
+                         surv.formula = surv.formula,
+                         model = model, ID = ID, RE = RE, survinitial = TRUE,
+                         REML = TRUE, random = random, opt = "nlminb", initial.para)
+  }
+  else{
+    
+  }
+   
   if (is.null(getinit)) {
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
   }
   
-   # need to rearrange this part
+  # need to rearrange this part
   numBio = length(long.formula)
   
   mdataM <- mdataSM <- vector("list", numBio)
@@ -149,7 +243,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   } else {
     Sig <- getinit$Sig
   }
-
+  
   data <- list(beta = getinit$beta, gamma1 = getinit$gamma1, gamma2 = getinit$gamma2,
                alpha = getinit$alpha, sigma = getinit$sigma,
                Z = getinit$Z, X1 = getinit$X1, Y = getinit$Y, Sig = Sig,
@@ -216,30 +310,26 @@ mvjmcs <- function(ydata, cdata, long.formula,
     pos.mode[[j]] <- opt$par
     pos.cov[[j]] <- solve(opt$hessian)
     
-    
   }
-  
-  
-  
   
   survtime <- getinit$survtime
   cmprsk <- getinit$cmprsk
   
-  if(method == "quad"){
-    output <- getQuadMix(subX1,subY, subZ, getinit$W,
-                         mdataM, mdataSM,
-                         pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
-                         H01, H02, getinit$survtime, getinit$cmprsk,
-                         getinit$gamma1, getinit$gamma2, getinit$alpha,
-                         CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-  }else{
-    output <- getNoQuad(subX1,subY, subZ, getinit$W,
+  # if(method == "quad"){
+  #   output <- getQuadMix(subX1,subY, subZ, getinit$W,
+  #                        mdataM, mdataSM,
+  #                        pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
+  #                        H01, H02, getinit$survtime, getinit$cmprsk,
+  #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
+  #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
+  # }else{
+    output <- normalApprox(subX1,subY, subZ, getinit$W,
                         mdataM, mdataSM,
                         pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
                         H01, H02, getinit$survtime, getinit$cmprsk,
                         getinit$gamma1, getinit$gamma2, getinit$alpha,
                         CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-  }
+  # }
   
   # PAR UPDATE HERE
   
@@ -255,6 +345,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
   index = 0
   gamma1 <- output$phi1[(index+1):ngamma]
   gamma2 <- output$phi2[(index+1):ngamma]
+  
+  # gamma1 <- c(1,0.5)
+  # gamma2 <- c(-0.5,0.5)
   index = index + ngamma
   #NEED TO ADJUST THIS PART
   alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
@@ -274,7 +367,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
   iter=0
   beta <- output$beta
   sigma <- output$sigmaVec
-
+  Sig <- output$Sig
+  
   repeat{
     
     iter <- iter + 1
@@ -368,32 +462,34 @@ mvjmcs <- function(ydata, cdata, long.formula,
     }
     
     
-    if(method == "quad"){
-      output <- getQuadMix(subX1,subY, subZ, getinit$W,
-                           mdataM, mdataSM,
-                           pos.mode, presigma, pos.cov, weight.c, abscissas.c,
-                           H01, H02, getinit$survtime, getinit$cmprsk,
-                           data$gamma1, data$gamma2, data$alpha,
-                           CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
-      
-    }else{
-      output <- getNoQuad(subX1,subY, subZ, getinit$W,
+    # if(method == "quad"){
+    #   output <- getQuadMix(subX1,subY, subZ, getinit$W,
+    #                        mdataM, mdataSM,
+    #                        pos.mode, presigma, pos.cov, weight.c, abscissas.c,
+    #                        H01, H02, getinit$survtime, getinit$cmprsk,
+    #                        data$gamma1, data$gamma2, data$alpha,
+    #                        CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
+    #   
+    # }else{
+      output <- normalApprox(subX1,subY, subZ, getinit$W,
                           mdataM, mdataSM,
                           pos.mode, presigma, pos.cov, weight.c, abscissas.c,
                           H01, H02, getinit$survtime, getinit$cmprsk,
                           data$gamma1, data$gamma2, data$alpha,
                           CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
-    }
+    # }
     
     # PAR UPDATE HERE - for debugging purposes
     beta <- output$beta
     sigma <- output$sigmaVec
     Sig <- output$Sig
-
+    
     # tempsigma <- rbind(tempsigma, sigma)
     # CHANGE THIS PART
     gamma1 <- output$phi1[1:ngamma]
     gamma2 <- output$phi2[1:ngamma]
+    # gamma1 <- c(1,0.5)
+    # gamma2 <- c(-0.5,0.5)
     alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
     alpha2 <- output$phi2[(ngamma+1):(length(output$phi2))]
     alpha1g <- alpha2g <- vector("list", numBio)
@@ -413,8 +509,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     # leave condition
     if((mvDiff(beta, prebeta, sigma, presigma, gamma1, pregamma1, gamma2, pregamma2,
-             alpha1, prealpha1, alpha2, prealpha2,
-             Sig, preSig, H01, preH01, H02, preH02, tol) == 0) || (iter == maxiter) #|| (!is.list(GetEfun)) || (!is.list(GetMpara))
+               alpha1, prealpha1, alpha2, prealpha2,
+               Sig, preSig, H01, preH01, H02, preH02, tol) == 0) || (iter == maxiter) #|| (!is.list(GetEfun)) || (!is.list(GetMpara))
     ) {
       break
     }
@@ -424,23 +520,39 @@ mvjmcs <- function(ydata, cdata, long.formula,
   if (iter == maxiter) {
     writeLines("program stops because of nonconvergence")
     convergence = 0
-    SEest = 0
+    sebeta <- sesigma <- segamma1 <- segamma2 <- sealpha1 <- sealpha2 <- seSig <- NULL
     
   } else{
+    convergence = 1
     SEest <- getmvCov(beta, gamma1, gamma2, 
-                    alpha1, alpha2, 
-                    H01, H02, pos.cov, Sig, sigma, 
-                    subX1, subY, subZ, getinit$W, 
-                    getinit$survtime,getinit$cmprsk,
-                    mdataM, mdataSM, pos.mode)
+                      alpha1, alpha2, 
+                      H01, H02, pos.cov, Sig, sigma, 
+                      subX1, subY, subZ, getinit$W, 
+                      getinit$survtime,getinit$cmprsk,
+                      mdataM, mdataSM, pos.mode)
+    
+    sebeta <- SEest$sebeta
+    sesigma <- SEest$sesigma
+    segamma1 <- SEest$segamma1
+    segamma2 <- SEest$segamma2
+    sealpha1 <- SEest$sealpha1
+    sealpha2 <- SEest$sealpha2
+    seSig <- SEest$seSig
+
   }
   
   end_time <- Sys.time()
-  (runtime <- end_time - start_time)
+  print(runtime <- end_time - start_time)
   
-  return(list(output = output, re = pos.mode, sigi = pos.cov, 
-              beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
-              SEest = SEest, runtime = runtime, iter = iter))
+  # return(list(output = output, re = pos.mode, sigi = pos.cov, 
+  #             beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
+  #             SEest = SEest, runtime = runtime, iter = iter))
+  
+
+  return(list(beta = beta, gamma1 = gamma1, gamma2 = gamma2, 
+              alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
+              Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
+              vcov = pos.cov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
+              sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, RE = pos.mode, runtime = runtime))
   
 }
-

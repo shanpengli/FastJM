@@ -41,8 +41,8 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   
   # x2 --> 2
   # nu --> alpha
-  if (!inherits(object, "jmcs"))
-    stop("Use only with 'jmcs' objects.\n")
+  if (!inherits(object, "mvjmcs"))
+    stop("Use only with 'mvjmcs' objects.\n")
   if (is.null(ynewdata))
     stop("New longitudinal data for dynamic prediction is needed.")
   if (is.null(cnewdata))
@@ -76,7 +76,7 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     if (is.null(clongdata)) {
       stop("Please provide a long format data frame that includes all longitudinal covariates for dynamic prediction.\n")
     } else {
-      survival <- all.vars(object$SurvivalSubmodel)
+      survival <- all.vars(object$SurvivalSubmodel) # no Survival submodel
       if (prod(LOCFcovariate %in% survival) == 0)
         stop("Some covariates are not trained in the joint model. Please reconsider the covariates for prediction.\n")
       if (!obs.time %in% colnames(clongdata))

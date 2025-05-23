@@ -11,10 +11,7 @@ sortmvdata <- function(cdata, ydata, ID, surv.formula, long.formula) {
   
   for(g in 1:numBio){
     Truelong <- c(Truelong,all.vars(long.formula[[g]])) # get variable names from the long formula
-    
-    
     long <- c(long, all.vars(long.formula[[g]])) # prepare column names for long data
-    
   }
   
   Truelong <- unique(Truelong)

@@ -7,7 +7,7 @@
 // [[Rcpp::export]]
 
 
-Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W,
+Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W,
 	Rcpp::List mdata, Rcpp::List mdataSList,
 	Rcpp::List bList, Eigen::VectorXd sigmaInit, Rcpp::List sigmaiList,
 	Eigen::VectorXd weight, Eigen::VectorXd absc,
@@ -40,8 +40,11 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	  pRE = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[g]).cols();
 	  pREVec(g) = pRE;
 	  pREtotal += pRE;
+	  
 	}
 	
+	// std::cout << "pREVec" << pREVec << std::endl;
+	// std::cout << "pREtotal" << pREtotal << std::endl;
 	
 	
 	int index = 0;
@@ -59,6 +62,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	  // ~~~~~~~~~~~~~~~
 	  
 	  p = pVec(g);
+	  pRE= pREVec(g);
 	  
 	  Eigen::MatrixXd XVXT = Eigen::MatrixXd::Zero(p, p);
 	  Eigen::MatrixXd YZBX = Eigen::MatrixXd::Zero(p, 1);
@@ -125,6 +129,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	    
 	    Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 	    Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
+	    
 	    Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 	    Eigen::MatrixXd sigig = sigmai.block(pREindex, pREindex, pRE, pRE);  // sigma i for gth biomarker
 	    
@@ -144,8 +149,25 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	      Eigen::MatrixXd ZZT = MultVVoutprod(Ztemp.row(nij));
 	      Eigen::MatrixXd bbT = MultVVoutprod(bVecig);
 	      
+	      
+	      // std::cout << "zzt" << ZZT << std::endl;
+	      // std::cout << "bbt" << bbT << std:: endl;
+
 	      numsig += pow(epsilon, 2) - 2 * epsilon * zb + (ZZT * (sigig + bbT)).trace();
 	      
+	      // if(g == 1){
+	        // std::cout << "z" << Ztemp.row(nij) << std::endl;
+	        // std::cout << "bVecig" << bVecig << std::endl;
+	        // std::cout << "zb" << zb << std::endl;
+	        // std::cout << "zzt" << ZZT << std::endl;
+	        // std::cout << "bbt" << bbT << std:: endl;
+	   //    std::cout << "epsilon" << epsilon << std::endl;
+	   //    std::cout << "middle part" << 2 * epsilon * zb << std:: endl;
+	   // std::cout << "trace thing" << (ZZT * (sigig + bbT)).trace() << std::endl;
+	   // // std::cout << "z" << Ztemp.row(nij) << std::endl;
+	   // std::cout << "bVecig" << bVecig << std::endl;
+	   // std::cout << "numsig" <<numsig << std::endl;
+	      // }
 	   
 	    }
 	    
@@ -189,6 +211,9 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 	  // }
 	  
 	  numSig += sigmai + MultVVoutprod(bVeci);
+	  // std::cout << "bVeci" << bVeci << std::endl;
+	  // std::cout << "sigmai" << sigmai << std::endl;
+	  // std::cout << "bbT" << MultVVoutprod(bVeci) << std::endl;
 	  
 	}
 	
@@ -217,11 +242,19 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		index = 0;
 		
 		for(int g = 0; g < numBio; g++){
+		  pRE = pREVec(g);
 		  Eigen::VectorXd alpha1g = Rcpp::as<Eigen::VectorXd>(alphaListElement1[g]); // get alpha1// risk 1 bio g
 		  Eigen::VectorXd alpha2g = Rcpp::as<Eigen::VectorXd>(alphaListElement2[g]); // get alpha2// risk 2 bio g
 		  alpha1.segment(index, pRE) = alpha1g;
 		  alpha2.segment(index, pRE) = alpha2g;
+		  // std::cout << "alpha 1g " << alpha1g<< std::endl;
+		  // std::cout << "alpha 2g " << alpha2g<< std::endl;
+		  // std::cout << "alpha 1 " << alpha1<< std::endl;
+		  // std::cout << "alpha 2 " << alpha2<< std::endl;
+		  // std::cout<< "index " << index << std::endl;
+		  // std::cout<< "pRE " << pRE << std::endl;
 		  index += pRE;
+
 		}
 		
 		index = 0;
@@ -231,27 +264,21 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		
 		// HAZARD 1
 		for (int i = 0; i < numSubj; i++) {
-			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 				Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
-
-
-			// for(int g = 0; g < numBio; g++){
-			//   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-			//   pRE = pREVec(g);
-			//   bVeci.segment(index, pRE) = bVec;
-			//   index += pRE;
-			// }
 			
-			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+			  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 			// Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
 			
 			index = 0;
 			
-			double muH1, tau1, tausq1;
+			double muH1, tausq1;
 			muH1 = MultVV(W.row(i), gamma1) + MultVV(alpha1, bVeci);
 			tausq1 = alpha1.transpose() * sigmai * alpha1;
 
 			dem1 += exp(muH1 + 0.5 * tausq1);
+			
+			// std::cout << "muH1" << mu << std::endl;
+			// std::cout << "dem1" << dem1 << std::endl;
 			if (cmprsk(i) == 1) {
 				//dem += exp(muH1 + 0.5 * tau1);
 
@@ -272,16 +299,8 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				{
 					for (i = i + 1; i < numSubj; i++)
 					{
-					// 	bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-					//   for(int g = 0; g < numBio; g++){
-					//     Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-					//     pRE = pREVec(g);
-					//     bVeci.segment(index, pRE) = bVec;
-					//     index += pRE;
-					//   }
 					
-					  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
-					  // Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
+					  bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 					  
 					  index = 0;
 					  
@@ -320,12 +339,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		  // Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
 		  Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 		  
-		  // for(int g = 0; g < numBio; g++){
-		  //   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-		  //   pRE = pREVec(g);
-		  //   bVeci.segment(index, pRE) = bVec;
-		  //   index += pRE;
-		  // }
 		  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 		  // Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
 
@@ -355,13 +368,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				{
 					for (i = i + 1; i < numSubj; i++)
 					{
-					  // bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-					  // for(int g = 0; g < numBio; g++){
-					  //   pRE = pREVec(g);
-					  //   Eigen::VectorXd bVec = (Rcpp::as<Eigen::VectorXd>(bListElement)).block(index, index, pRE, pRE);
-					  //   bVeci.segment(index, pRE) = bVec;
-					  //   index += pRE;
-					  // }
 					  
 					  bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 
@@ -370,7 +376,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 						sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 						muH2 = MultVV(W.row(i), gamma2) + MultVV(alpha2, bVeci);
 						tausq2 = alpha2.transpose() * sigmai * alpha2;
-						//tau2 = sqrt(tausq2);
 						dem2 += exp(muH2 + 0.5 * tausq2);
 
 						if (i == numSubj - 1)
@@ -443,14 +448,12 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		  
 		  // index = 0;
 
-			// Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 			Eigen::MatrixXd BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 			Eigen::VectorXd latent = bVeci;
 			double mu1, tausq;
 			tausq = alpha1.transpose() * BAssociation * alpha1;
 
 			Eigen::VectorXd w = W.row(i);
-			//Eigen::VectorXd l = latent;
 			Eigen::VectorXd l = BAssociation * alpha1 + bVeci;
 
 			Eigen::MatrixXd wl = Eigen::MatrixXd::Zero(dimW, pREtotal);
@@ -504,7 +507,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				Sw /= scalefH01;
 				Sl /= scalefH01;
 
-
 				risk1_index--;
 				//     if (i == numSubj - 1)
 				//     {
@@ -517,11 +519,11 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				//         Sww_new += SwwT;
 				//         Sll_new += SllT;
 				//         Swl_new += Swl;
-
+				// 
 				//         SwwT /= scalefH01;
 				//         SllT /= scalefH01;
 				//         Swl /= scalefH01;
-
+				// 
 				//          // s
 				//        Sw *= scalefH01;
 				//        Sl *= scalefH01;
@@ -529,16 +531,16 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				//         Sl_new += Sl;
 				//         Sw /= scalefH01;
 				//         Sl /= scalefH01;
-
-
+				// 
+				// 
 				//         risk1_index--;
-
+				// 
 				//     }
-
+				// 
 				//     else if (survtime(i + 1) != survtime(i))
 				//     {
 				//         scalefH01 = H01(risk1_index, 2);
-
+				// 
 				//         // i
 				//         SwwT *= scalefH01;
 				//         SllT *= scalefH01;
@@ -549,7 +551,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				//         SwwT /= scalefH01;
 				//         SllT /= scalefH01;
 				//         Swl /= scalefH01;
-
+				// 
 				//          // s
 				//        Sw *= scalefH01;
 				//        Sl *= scalefH01;
@@ -561,105 +563,102 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 				//     }
 				//     else
 				//     {
-				//         for (i = i + 1; i < numSubj; i++)
-				//         {
-
-				//             bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-				//             bVec1 = Rcpp::as<Eigen::VectorXd>(bListElement[0]);
-				//             bVec2 = Rcpp::as<Eigen::VectorXd>(bListElement[1]);
-				//             bVeci << bVec1, bVec2;
-				//             latent = bVeci;
-				//             w = W.row(i);
-				//             l = latent;
-
-
-				//             mu1 = MultVV(w, gamma1) + MultVV(alpha1, l);
-				//             wwT =  MultVVoutprod(W.row(i));
-				//             llT = MultVVoutprod(latent);
-
-				//             scalef = exp(mu1);
-
-				//             wl = Eigen::MatrixXd::Zero(dimW, p1a+p2a);
-
-				//             wl = w * l.transpose();
-
-				// // for I
-				// wwT *= scalef;
-				// llT *= scalef;
-				// wl *= scalef;
-				// SwwT += wwT;
-				// SllT += llT;
-				// Swl += wl;
-
-
-				// // // for S
+				//         // for (i = i + 1; i < numSubj; i++)
+				//         // {
+				//         // 
+				//         //     bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+				//         //     latent = bVeci;
+				//         //     w = W.row(i);
+				//         //     l = latent;
+				//         // 
+				//         // 
+				//         //     mu1 = MultVV(w, gamma1) + MultVV(alpha1, l);
+				//         //     wwT =  MultVVoutprod(W.row(i));
+				//         //     llT = MultVVoutprod(latent);
+				// 
+				// //             scalef = exp(mu1);
+				// 
+				// //             wl = Eigen::MatrixXd::Zero(dimW, p1a+p2a);
+				// 
+				// //             wl = w * l.transpose();
+				// 
+				// // // for I
 				// // wwT *= scalef;
 				// // llT *= scalef;
+				// // wl *= scalef;
 				// // SwwT += wwT;
 				// // SllT += llT;
-
-
-				// // for S
-				// w *= scalef;
-				// l *= scalef;
-				// Sw += w;
-				// Sl += l;
-
-
-				//             if (i == numSubj - 1)
-				//             {
-				//                 scalefH01 = H01(risk1_index, 2);
-				//         SwwT *= scalefH01;
-				//         SllT *= scalefH01;
-				//         Swl *= scalefH01;
-				//         Sww_new += SwwT;
-				//         Sll_new += SllT;
-				//         Swl_new += Swl;
-				//         SwwT /= scalefH01;
-				//         SllT /= scalefH01;
-				//         Swl /= scalefH01;
-
-				//          // s
-				//        Sw *= scalefH01;
-				//        Sl *= scalefH01;
-				//         Sw_new += Sw;
-				//         Sl_new += Sl;
-				//         Sw /= scalefH01;
-				//         Sl /= scalefH01;
-
-				//         risk1_index--;
-				//                 break;
-				//             }
-				//             else if (survtime(i + 1) != survtime(i))
-				//             {
-				//                 scalefH01 = H01(risk1_index, 2);
-
-				//                 // i
-				//         SwwT *= scalefH01;
-				//         SllT *= scalefH01;
-				//         Swl *= scalefH01;
-				//         Sww_new += SwwT;
-				//         Sll_new += SllT;
-				//         Swl_new += Swl;
-				//         SwwT /= scalefH01;
-				//         SllT /= scalefH01;
-				//         Swl /= scalefH01;
-
-				//          // s
-				//        Sw *= scalefH01;
-				//        Sl *= scalefH01;
-				//         Sw_new += Sw;
-				//         Sl_new += Sl;
-				//         Sw /= scalefH01;
-				//         Sl /= scalefH01;
-				//         risk1_index--;
-				//                 break;
-				//             }
-				//             else continue;
-				//         }
-				//     }
+				// // Swl += wl;
+				// 
+				// 
+				// // // // for S
+				// // // wwT *= scalef;
+				// // // llT *= scalef;
+				// // // SwwT += wwT;
+				// // // SllT += llT;
+				// 
+				// 
+				// // // for S
+				// // w *= scalef;
+				// // l *= scalef;
+				// // Sw += w;
+				// // Sl += l;
+				// 
+				// 
+				// //             if (i == numSubj - 1)
+				// //             {
+				// //                 scalefH01 = H01(risk1_index, 2);
+				// //         SwwT *= scalefH01;
+				// //         SllT *= scalefH01;
+				// //         Swl *= scalefH01;
+				// //         Sww_new += SwwT;
+				// //         Sll_new += SllT;
+				// //         Swl_new += Swl;
+				// //         SwwT /= scalefH01;
+				// //         SllT /= scalefH01;
+				// //         Swl /= scalefH01;
+				// 
+				// //          // s
+				// //        Sw *= scalefH01;
+				// //        Sl *= scalefH01;
+				// //         Sw_new += Sw;
+				// //         Sl_new += Sl;
+				// //         Sw /= scalefH01;
+				// //         Sl /= scalefH01;
+				// 
+				// //         risk1_index--;
+				// //                 break;
+				// //             }
+				// //             else if (survtime(i + 1) != survtime(i))
+				// //             {
+				// //                 scalefH01 = H01(risk1_index, 2);
+				// 
+				// //                 // i
+				// //         SwwT *= scalefH01;
+				// //         SllT *= scalefH01;
+				// //         Swl *= scalefH01;
+				// //         Sww_new += SwwT;
+				// //         Sll_new += SllT;
+				// //         Swl_new += Swl;
+				// //         SwwT /= scalefH01;
+				// //         SllT /= scalefH01;
+				// //         Swl /= scalefH01;
+				// 
+				// //          // s
+				// //        Sw *= scalefH01;
+				// //        Sl *= scalefH01;
+				// //         Sw_new += Sw;
+				// //         Sl_new += Sl;
+				// //         Sw /= scalefH01;
+				// //         Sl /= scalefH01;
+				// //         risk1_index--;
+				// //                 break;
+				// //             }
+				// //             else continue;
+				// //         }
+				// //     }
 				// }
-				// else continue;
+				// // else continue;
 			}
 
 		}
@@ -668,17 +667,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 
 		for (int i = 0; i < numSubj; i++)
 		{
-			// Eigen::VectorXd alpha1 = Eigen::VectorXd::Zero(pREtotal);
-			// Eigen::VectorXd bVeci = Eigen::VectorXd::Zero(pREtotal);
-			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-			// 
-			// for(int g = 0; g < numBio; g++){
-			//   
-			//   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-			//   pRE = pREVec(g);
-			//   bVeci.segment(index, pRE) = bVec;
-			//   index += pRE;
-			// }
 			
 			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 			Eigen::VectorXd latent = bVeci;
@@ -705,6 +693,8 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 
 		// NR update
 		Eigen::VectorXd phi1 = Eigen::VectorXd::Zero(dimW + pREtotal);
+		// std::cout<< "gamma1 " <<  gamma1 << std::endl;
+		// std::cout<< "info " << info.inverse() << std::endl;
 		phi1 << gamma1, alpha1;
 		phi1 += info.inverse() * (Sfull_inter - Sfull_new);
 
@@ -716,18 +706,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		Sl_inter = Eigen::VectorXd::Zero(pREtotal);
 		Sll_new = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
 		Swl_new = Eigen::MatrixXd::Zero(dimW, pREtotal);
-		// new matrix
-		//Eigen::MatrixXd joint = Eigen::MatrixXd::Zero(p2 + p2, p2);
-		// Eigen::MatrixXd  jjT = Eigen::MatrixXd::Zero(dimW   1a + p2a, dimW + pREtotal); // double check matrix dim might've switched
-		// Eigen::MatrixXd SjjT = Eigen::MatrixXd::Zero(dimW + pREtotal, dimW + pREtotal);
-		// Eigen::VectorXd Sj = Eigen::VectorXd::Zero(dimW + pREtotal);
 
-
-
-		//     //MultVV(Z.row(j), FUNB.col(j) + tau * abscMat(0, j));
-
-	//         //xb1 =  // fixed effect; contribute to LLH
-	//         //zb = MultVV(FUNC, alpha1); // random effect component
 
 		wwT = Eigen::MatrixXd::Zero(dimW, dimW);
 		llT = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
@@ -749,9 +728,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 			tausq = alpha2.transpose() * BAssociation * alpha2;
 
 			Eigen::VectorXd w = W.row(i);
-			
 			Eigen::VectorXd l = BAssociation * alpha2 + bVeci;
-
 			Eigen::MatrixXd wl = Eigen::MatrixXd::Zero(dimW, pREtotal);
 
 			wl = w * l.transpose(); //
@@ -815,17 +792,7 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		for (int i = 0; i < numSubj; i++)
 		{
 
-			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-			// for(int g = 0; g < numBio; g++){
-			//   
-			//   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-			//   pRE = pREVec(g);
-			//   bVeci.segment(index, pRE) = bVec;
-			//   index += pRE;
-			// }
 			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
-
-
 			Eigen::VectorXd latent = bVeci;
 			if (cmprsk(i) == 2) {
 				Sw_inter += W.row(i);
@@ -855,17 +822,6 @@ Rcpp::List getNoQuad(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen
 		phi2 << gamma2, alpha2;
 
 		phi2 += info.inverse() * (Sfull_inter - Sfull_new);
-
-		
-
-
-		Sw_new = Eigen::VectorXd::Zero(dimW);
-		Sw_inter = Eigen::VectorXd::Zero(dimW);
-		Sww_new = Eigen::MatrixXd::Zero(dimW, dimW);
-		Sl_new = Eigen::VectorXd::Zero(pREtotal);
-		Sl_inter = Eigen::VectorXd::Zero(pREtotal);
-		Sll_new = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
-		Swl_new = Eigen::MatrixXd::Zero(dimW, pREtotal);
 
 
 		// Rcpp::Named("FUNB") = FUNB,
