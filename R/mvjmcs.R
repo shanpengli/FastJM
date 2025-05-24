@@ -368,7 +368,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
   beta <- output$beta
   sigma <- output$sigmaVec
   Sig <- output$Sig
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> 3e7ea76aeee1c4dc9786e60bf355cda500d30ca1
   repeat{
     
     iter <- iter + 1
