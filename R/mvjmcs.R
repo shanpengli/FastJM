@@ -47,9 +47,9 @@
 ##'   
 ##'   # Obtain the variance-variance matrix of all parameter estimates
 ##'   
-                
-                
-               
+
+
+
 ##' @seealso \code{\link{jmcs}}, \code{\link{survfitjmcs}}, \code{\link{AUCjmcs}}, \code{\link{MAEQjmcs}}, \code{\link{PEjmcs}}
 ##' @export
 
@@ -84,7 +84,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       random.form[[g]] <- all.vars(random[[g]])
       if(length(random.form[[g]])==1){
         # RE[[g]] <- NULL # already null
-          model[[g]] <- "intercept"
+        model[[g]] <- "intercept"
       }else{
         RE[[g]] <- random.form[[g]][-length(all.vars(random[[g]]))]
         model[[g]] <- "interslope"
@@ -145,7 +145,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   else{
     
   }
-   
+  
   if (is.null(getinit)) {
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
   }
@@ -323,12 +323,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
   #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
   #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
   # }else{
-    output <- normalApprox(subX1,subY, subZ, getinit$W,
-                        mdataM, mdataSM,
-                        pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
-                        H01, H02, getinit$survtime, getinit$cmprsk,
-                        getinit$gamma1, getinit$gamma2, getinit$alpha,
-                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
+  output <- normalApprox(subX1,subY, subZ, getinit$W,
+                         mdataM, mdataSM,
+                         pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
+                         H01, H02, getinit$survtime, getinit$cmprsk,
+                         getinit$gamma1, getinit$gamma2, getinit$alpha,
+                         CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
   # }
   
   # PAR UPDATE HERE
@@ -368,14 +368,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   beta <- output$beta
   sigma <- output$sigmaVec
   Sig <- output$Sig
-<<<<<<< HEAD
-<<<<<<< HEAD
-  
-=======
-=======
->>>>>>> 3e7ea76aeee1c4dc9786e60bf355cda500d30ca1
 
->>>>>>> 3e7ea76aeee1c4dc9786e60bf355cda500d30ca1
   repeat{
     
     iter <- iter + 1
@@ -478,12 +471,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
     #                        CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
     #   
     # }else{
-      output <- normalApprox(subX1,subY, subZ, getinit$W,
-                          mdataM, mdataSM,
-                          pos.mode, presigma, pos.cov, weight.c, abscissas.c,
-                          H01, H02, getinit$survtime, getinit$cmprsk,
-                          data$gamma1, data$gamma2, data$alpha,
-                          CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
+    output <- normalApprox(subX1,subY, subZ, getinit$W,
+                           mdataM, mdataSM,
+                           pos.mode, presigma, pos.cov, weight.c, abscissas.c,
+                           H01, H02, getinit$survtime, getinit$cmprsk,
+                           data$gamma1, data$gamma2, data$alpha,
+                           CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
     # }
     
     # PAR UPDATE HERE - for debugging purposes
@@ -545,7 +538,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     sealpha1 <- SEest$sealpha1
     sealpha2 <- SEest$sealpha2
     seSig <- SEest$seSig
-
+    
   }
   
   end_time <- Sys.time()
@@ -555,7 +548,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   #             beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
   #             SEest = SEest, runtime = runtime, iter = iter))
   
-
+  
   return(list(beta = beta, gamma1 = gamma1, gamma2 = gamma2, 
               alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
               Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
