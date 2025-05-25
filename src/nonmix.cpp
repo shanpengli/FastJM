@@ -10,7 +10,6 @@
 Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W,
 	Rcpp::List mdata, Rcpp::List mdataSList,
 	Rcpp::List bList, Eigen::VectorXd sigmaInit, Rcpp::List sigmaiList,
-	Eigen::VectorXd weight, Eigen::VectorXd absc,
 	Eigen::MatrixXd H01, Eigen::MatrixXd H02, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk,
 	Eigen::VectorXd& gamma1, Eigen::VectorXd& gamma2, Rcpp::List alphaList,
 	const Eigen::VectorXd& CUH01,

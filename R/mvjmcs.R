@@ -12,12 +12,8 @@
 ##' @param maxiter Maximum number of EM iterations. Default is 10000.
 ##' @param opt Optimization method for mixed model. Default is \code{"nlminb"}.
 ##' @param tol Convergence tolerance for EM algorithm. Default is 0.0001.
-##' @param method Numerical integration method for E-step. Options: \code{"normalApprox"}.
-##' @param model Internal model structure (auto-filled based on random effects).
 ##' @param print.para Logical; if \code{TRUE}, prints parameter values at each iteration.
 ##' @param initial.para Optional list of initialized parameters. Default is \code{NULL}.
-##' @param quadpoint Number of Gauss-Hermite quadrature points. Default is 6.
-#'
 ##' @return A list containing:
 ##' \item{output}{EM algorithm output from final iteration}
 ##' \item{re}{Estimated random effects for each subject}
@@ -36,38 +32,22 @@
 ##' 
 ##' 
 ##'   require(FastJM)
-##'   require(survival
-##' 
+##'   require(survival)
 ##'   # Fit joint model with two biomarkers
 ##'   fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
 ##'                 random = list(~time| ID, ~1|ID),
-##'                 surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001, 
-##'                 model = "interslope", method = "normApprox")
+##'                 surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001)
 ##'   fit
-##'   
-##'   # Obtain the variance-variance matrix of all parameter estimates
-##'   
-
-
-
 ##' @seealso \code{\link{jmcs}}, \code{\link{survfitjmcs}}, \code{\link{AUCjmcs}}, \code{\link{MAEQjmcs}}, \code{\link{PEjmcs}}
 ##' @export
 
 mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
-                   maxiter = 10000, opt = "nlminb", tol = 0.0001, method = c("normalApprox"), 
-                   model, print.para = TRUE, 
+                   maxiter = 10000, opt = "nlminb", tol = 0.0001, print.para = TRUE, 
                    initial.para = NULL,
                    quadpoint = 6){
-  # "aGH", "normApprox", 
   
   start_time <- Sys.time()
-  
-  #
-  # if(numBio == 1){
-  #   mvjmcsSB()
-  # }
-  
   if(is.list(long.formula)){
     numBio = length(long.formula)
   }
@@ -91,11 +71,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
       }
       # ID[[g]] <- random.form[[g]][length(all.vars(random[[g]]))]
     }
-    ID <- random.form[[g]][length(all.vars(random[[g]]))]
-  }
-  
-  # for now, forcibly create list... better way to do this later
-  else{
+    ID <- random.form[[1]][length(all.vars(random[[1]]))]
+  } else {
     for(g in 1:numBio){
       random.form[[g]] <- all.vars(random)
       if(length(random) == 1){
@@ -107,7 +84,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       }
       # ID[[g]] <- random.form[[g]][length(all.vars(random))]
     }
-    ID[[g]] <- random.form[[g]][length(all.vars(random))]
+    ID <- random.form[[g]][length(all.vars(random))]
   }
   
   lengthb <- length(long.formula)
@@ -136,15 +113,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
   rawydata <- ydata
   rawcdata <- cdata
   
-  if(is.list(random)){
-    getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
-                         surv.formula = surv.formula,
-                         model = model, ID = ID, RE = RE, survinitial = TRUE,
-                         REML = TRUE, random = random, opt = "nlminb", initial.para)
-  }
-  else{
-    
-  }
+  getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
+                       surv.formula = surv.formula,
+                       model = model, ID = ID, RE = RE, survinitial = TRUE,
+                       REML = TRUE, random = random, opt = opt, initial.para)
   
   if (is.null(getinit)) {
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
@@ -193,10 +165,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     H01 <- as.matrix(getriskset$tablerisk1)
     
   }
-  
-  GH.val  <- gauss.quad.prob(quadpoint)
-  weight.c <- GH.val$weights # weights
-  abscissas.c <- GH.val$nodes # abscissas
   
   survtime <- getinit$survtime
   cmprsk <- getinit$cmprsk
@@ -318,14 +286,14 @@ mvjmcs <- function(ydata, cdata, long.formula,
   # if(method == "quad"){
   #   output <- getQuadMix(subX1,subY, subZ, getinit$W,
   #                        mdataM, mdataSM,
-  #                        pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
+  #                        pos.mode,  getinit$sigma, pos.cov, 
   #                        H01, H02, getinit$survtime, getinit$cmprsk,
   #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
   #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
   # }else{
   output <- normalApprox(subX1,subY, subZ, getinit$W,
                          mdataM, mdataSM,
-                         pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
+                         pos.mode,  getinit$sigma, pos.cov, 
                          H01, H02, getinit$survtime, getinit$cmprsk,
                          getinit$gamma1, getinit$gamma2, getinit$alpha,
                          CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
@@ -465,7 +433,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     # if(method == "quad"){
     #   output <- getQuadMix(subX1,subY, subZ, getinit$W,
     #                        mdataM, mdataSM,
-    #                        pos.mode, presigma, pos.cov, weight.c, abscissas.c,
+    #                        pos.mode, presigma, pos.cov, 
     #                        H01, H02, getinit$survtime, getinit$cmprsk,
     #                        data$gamma1, data$gamma2, data$alpha,
     #                        CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
@@ -473,7 +441,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     # }else{
     output <- normalApprox(subX1,subY, subZ, getinit$W,
                            mdataM, mdataSM,
-                           pos.mode, presigma, pos.cov, weight.c, abscissas.c,
+                           pos.mode, presigma, pos.cov, 
                            H01, H02, getinit$survtime, getinit$cmprsk,
                            data$gamma1, data$gamma2, data$alpha,
                            CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
