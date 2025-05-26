@@ -27,7 +27,6 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   X <- cbind(X1, X2)
   
   #hazard rate of risk1 and risk2
-  
   ## non-informative cencoring time 
   C <- runif(N, min = CL, max = CU)
   risk1 <- vector()
