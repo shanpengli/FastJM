@@ -1,4 +1,4 @@
-getbSig <- function(bSig, data){
+getbSig_grad <- function(bSig, data){
   
   
   # sigma <- exp(data$W %*% data$tau + w)  # calculates sigma; don't need assume homogeneous error variance
@@ -33,15 +33,12 @@ getbSig <- function(bSig, data){
   
   # survival
   CH01 <- data$CH01
-  CH02 <- data$CH02
   HAZ01 <- data$HAZ01
-  HAZ02 <- data$HAZ02
   mdata <- data$mdata
   mdataS <- data$mdataS
   Wcmprsk <- data$Wcmprsk
   Wx <- as.matrix(data$Wx)
   gamma1 <- as.matrix(data$gamma1) # vector
-  gamma2 <- as.matrix(data$gamma2)
   
   # p12 <- nrow(Z[[1]])
   # p22<- nrow(Z[[2]])
@@ -70,13 +67,14 @@ getbSig <- function(bSig, data){
   
   bfull <- as.matrix(bfull)
   
-  total <- 0
+  total <- c()
   sum.alpha1i <- 0
   sum.alpha2i <- 0
   
   # need to generalize here
   
   # longitudinal portion
+  index <- 0
   for (g in 1:length(Y)) {
     
     Yi <- as.matrix(Y[[g]])
@@ -92,50 +90,39 @@ getbSig <- function(bSig, data){
     mdatag <- mdata[[g]]
     mdataSg <- mdataS[[g]]
     alpha1 <- alphaList[[1]] # risk 1
-    alpha2 <- alphaList[[2]] # risk 2
     # gets for each biomarker
     
     if(is.list(alpha1)){
       alpha1g <- alpha1[[g]] # alpha1
-      alpha2g <- alpha2[[g]] # alpha2
     }else{
       alpha1g <- alpha1
-      alpha2g <- alpha2
     }
     
-    # log likelihood part 1
-    total <- total + sum((Yi - Xi %*% betai - Zi %*% bi)^2 / (2 * sigmai) + 0.5 * log(sigmai))
+    pRE <- pREvec[g]
+    total[(index+1):(index+pRE)] <- - 2*t(Zi) %*% (Yi - Xi %*% betai - Zi %*% bi) / (2 * sigmai)
+    index <- index + pRE
     
     # double check if it is squared
     
     # sum alpha'b
     sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
-    sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
   }
   
   # latent structure for each loop
-  latent1 <- as.matrix(sum.alpha1i, nrow = 1)
-  latent2 <- as.matrix(sum.alpha2i, nrow = 1)
+  latent1 <- sum.alpha1i
   CH01 <- as.matrix(CH01)
   
   # CH01 Might be wrong here
   
-  total <- total + CH01 * exp(Wx%*% gamma1 + latent1) + ## part 2 change this part
-    CH02 * exp(Wx %*% gamma2 + latent2) +
-    0.5 * q *log(2*pi) +
-    0.5*log(det(Sig)) + t(bfull) %*% solve(Sig) %*% bfull / 2  # part 3
+  total <- total + as.numeric(CH01 * exp(Wx%*% gamma1 + latent1))*unlist(alpha1) + ## part 2 change this part
+ + solve(Sig) %*% bfull  # part 3
   
   if (Wcmprsk == 1) {
-    # should be HAZ?, double check though
-    total <- total - log(HAZ01) - (Wx %*% gamma1 + latent1) # adjusts for status == 1
-    }
-  
-  if (Wcmprsk == 2) {
-    total <- total - log(HAZ02) - (Wx %*% gamma2 + latent2)  # adjusts for status == 2
-     }
+    total <- total - unlist(alpha1) # adjusts for status == 1
+  }
   
   total <- unname(total)
-
+  
   return(total)
   
 }

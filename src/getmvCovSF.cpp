@@ -8,11 +8,8 @@
 
 Rcpp::List getmvCov(const Eigen::VectorXd beta, 
                     const Eigen::VectorXd & gamma1, 
-                    const Eigen::VectorXd & gamma2, 
                     const Eigen::VectorXd & alpha1, 
-                    const Eigen::VectorXd & alpha2, 
                     const Eigen::MatrixXd & H01, 
-                    const Eigen::MatrixXd & H02, 
                     Rcpp::List sigmaiList,
                     const Eigen::MatrixXd & Sig,
                     const Eigen::VectorXd sigmaVec,
@@ -44,11 +41,9 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     pREtotal += pRE;
   }
 
-
   // 
-  int d = beta.size() + gamma1.size() + gamma2.size() + alpha1.size() + alpha2.size()+ Sig.cols()*(Sig.cols() + 1)/2 + numBio;
+  int d = beta.size() + gamma1.size()  + alpha1.size() + Sig.cols()*(Sig.cols() + 1)/2 + numBio;
   int a = H01.rows();
-  int b = H02.rows();
 
   int i,q,j,t,u;
 
@@ -65,22 +60,14 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
 
   int risk1_index;
-  int risk2_index;
   int risk1_index_temp=a-1;
   int risk1_index_ttemp=a-1;
   int risk1_index_tttemp=a-1;
-  int risk2_index_temp=b-1;
-  int risk2_index_ttemp=b-1;
-  int risk2_index_tttemp=b-1;
   int risk1_index_vtemp=a-1;
   int risk1_index_vttemp=a-1;
   int risk1_index_vtttemp=a-1;
-  int risk2_index_vtemp=b-1;
-  int risk2_index_vttemp=b-1;
-  int risk2_index_vtttemp=b-1;
 
   Eigen::VectorXd CumuH01 = Eigen::VectorXd::Zero(a);
-  Eigen::VectorXd CumuH02 = Eigen::VectorXd::Zero(b);
 
   temp1=0;
   for (i=0;i<a;i++) {
@@ -88,10 +75,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     CumuH01(i) = temp1;
   }
   temp1=0;
-  for (i=0;i<b;i++) {
-    temp1 += H02(i, 2);
-    CumuH02(i) = temp1;
-  }
 
   double epsilon=0;
 
@@ -168,13 +151,14 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::MatrixXd BAssociation = Eigen::MatrixXd::Zero(pREtotal,pREtotal);
   Eigen::MatrixXd FUNEC = Eigen::MatrixXd::Zero(2, numSubj); //exp(alpha*b)
   //     //bexp(alpha*b)
-  Eigen::MatrixXd FUNBEC = Eigen::MatrixXd::Zero(2*pREtotal,numSubj); // 2 for number of competing risks
+  // mult pRetotal by num CR
+  Eigen::MatrixXd FUNBEC = Eigen::MatrixXd::Zero(pREtotal,numSubj); // 2 for number of competing risks
   // 
   // 
   // //     //bbTexp(alpha*b)
       // Eigen::MatrixXd FUNBSEC = Eigen::MatrixXd::Zero(2*pRE*(pRE+1)/2,k);
 
-  Eigen::VectorXd FUNBECvec = Eigen::VectorXd::Zero(2*pREtotal);
+  Eigen::VectorXd FUNBECvec = Eigen::VectorXd::Zero(pREtotal);
   // 
   // 
   for(int i = 0; i < numSubj; i++){
@@ -209,9 +193,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     FUNEC(0,i) = exp(MultVV(alpha1, latent) + 0.5 * tausq);
     FUNBEC.col(i).segment(index, pREtotal) = exp(MultVV(alpha1, latent) + 0.5 * tausq) * (BAssociation * alpha1 + latent);
     // 
-    tausq = alpha2.transpose() * BAssociation * alpha2;
-    FUNEC(1,i) = exp(MultVV(alpha2, latent) + 0.5 * tausq);
-    FUNBEC.col(i).segment(index + pREtotal, pREtotal) = exp(MultVV(alpha2, latent) + 0.5 * tausq) * (BAssociation * alpha2 + latent);
   }
 
   SZ = Eigen::VectorXd::Zero(p);
@@ -261,7 +242,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
 
       for (int nij = 0; nij < numRep; nij++) {
-
 
 
         // need to generalize this
@@ -475,180 +455,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     // std::cout << "alpha1full " << S << std::endl;
     index += gamma1.size();
 
-    if (i == 0)
-    {
-      temp=0;
-
-      SX = Eigen::VectorXd::Zero(gamma2.size());
-      SRXX = Eigen::VectorXd::Zero(gamma2.size());
-
-      risk2_index=risk2_index_temp;
-      for (int i2=i;i2<numSubj;i2++)
-      {
-
-
-        temp+=exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2);
-        SX += exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2)*W.row(i2);
-
-        if (cmprsk(i2) == 2)
-        {
-          if (i2 == numSubj-1)
-          {
-            SX*= H02(risk2_index, 1)/pow(temp, 2);
-            SXX2.col(b-1-risk2_index) = SX;
-            SRXX += SX;
-            SX/= H02(risk2_index, 1)/pow(temp, 2);
-            SX/=temp;
-            SXX22.col(b-1-risk2_index) = SX;
-            SX*=temp;
-            risk2_index--;
-          }
-          else if (survtime(numSubj+1) != survtime(numSubj))
-          {
-            SX*= H02(risk2_index, 1)/pow(temp, 2);
-            SXX2.col(b-1-risk2_index) = SX;
-            SRXX += SX;
-            SX/= H02(risk2_index, 1)/pow(temp, 2);
-            SX/=temp;
-            SXX22.col(b-1-risk2_index) = SX;
-            SX*=temp;
-            risk2_index--;
-          }
-          else
-          {
-            for (i2=i2+1;i2<numSubj;i2++)
-            {
-
-              temp+=exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2);
-              SX += exp(MultVV(W.row(i2), gamma2))*FUNEC(1,i2)*W.row(i2);
-
-              if (i2 == numSubj-1)
-              {
-                SX*= H02(risk2_index, 1)/pow(temp, 2);
-                SXX2.col(b-1-risk2_index) = SX;
-                SRXX += SX;
-                SX/= H02(risk2_index, 1)/pow(temp, 2);
-                SX/=temp;
-                SXX22.col(b-1-risk2_index) = SX;
-                SX*=temp;
-                risk2_index--;
-                break;
-              }
-              else if (survtime(i2+1) != survtime(i2))
-              {
-                SX*= H02(risk2_index, 1)/pow(temp, 2);
-                SXX2.col(b-1-risk2_index) = SX;
-                SRXX += SX;
-                SX/= H02(risk2_index, 1)/pow(temp, 2);
-                SX/=temp;
-                SXX22.col(b-1-risk2_index) = SX;
-                SX*=temp;
-                risk2_index--;
-                break;
-              }
-              else continue;
-            }
-          }
-
-        }
-        else continue;
-      }
-      SRXX2.col(i) = SRXX;
-    }
-    else
-    {
-      if (risk2_index_temp>=0)
-      {
-        if (survtime(i) >= H02(risk2_index_temp, 0))
-        {
-          SRXX2.col(i) = SRXX2.col(i-1);
-        }
-        else
-        {
-          risk2_index_temp--;
-          if (risk2_index_temp>=0)
-          {
-            SRXX = SRXX2.col(i-1);
-            SRXX -= SXX2.col(b-1-risk2_index_temp-1);
-            SRXX2.col(i) = SRXX;
-          }
-        }
-      }
-      else{
-        risk2_index_temp=0;
-      }
-    }
-    SRX = SRXX2.col(i);
-
-    if (i==0){
-      SRX -= CumuH02(risk2_index_ttemp)*W.row(i);
-    }
-    else if (survtime(i) >= H02(risk2_index_ttemp, 0))
-    {
-      SRX -= CumuH02(risk2_index_ttemp)*W.row(i);
-    }
-    else{
-      risk2_index_ttemp--;
-      if (risk2_index_ttemp>=0)
-      {
-        SRX -= CumuH02(risk2_index_ttemp)*W.row(i);
-      }
-      else
-      {
-        SRX = SRXX2.col(i);
-        risk2_index_ttemp=0;
-      }
-    }
-
-    SRX*= exp(MultVV(W.row(i), gamma2))*FUNEC(1,i);
-
-    if (survtime(i) >= H02(risk2_index_tttemp, 0))
-    {
-      if (cmprsk(i) == 2)
-      {
-        X = W.row(i);
-        X -= SXX22.col(b-1-risk2_index_tttemp);
-        X += SRX;
-        //for (q=0;q<p2;q++) S(p1+p2+q) = X(q);
-        S.segment(index, gamma2.size()) = X;
-      }
-      else
-      {
-        // for (q=0;q<p2;q++) S(p1+p2+q) = SRX(q);
-        S.segment(index, gamma2.size()) = SRX;
-      }
-    }
-    else{
-      risk2_index_tttemp--;
-      if (risk2_index_tttemp>=0)
-      {
-        if (cmprsk(i) == 2)
-        {
-          X = W.row(i);
-          X -= SXX22.col(b-1-risk2_index_tttemp);
-          X += SRX;
-          S.segment(index, gamma2.size()) = X;
-        }
-        else
-        {
-
-          S.segment(index, gamma2.size()) = SRX;
-        }
-      }
-      else
-      {
-        risk2_index_tttemp=0;
-        S.segment(index, gamma2.size()) = SRX;
-      }
-    }
-
-    // std::cout << "gamma2 " << S << std::endl;
-
-    // // std::cout << "gamma1 " << S.segment(index, gamma1.size())<< std::endl;
-    // std::cout << "alpha1full " << S << std::endl;
-    
-    index += gamma2.size();
-
 
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -844,185 +650,13 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     // std::cout << "alpha1full " << S << std::endl;
     index += pREtotal; // double check this
 
-    /*  alpha2 */
-    if (i == 0)
-    {
-      temp=0;
-      TN = Eigen::VectorXd::Zero(pREtotal);
-      TRNN = Eigen::VectorXd::Zero(pREtotal);
-      risk2_index=risk2_index_vtemp;
-
-      for (i2=i;i2<numSubj;i2++)
-      {
-        temp += exp(MultVV(W.row(i2), gamma2))*FUNEC(1, i2); // motify the FUNEC and stuff like that; keep framework same
-        for (int ind=0;ind<pREtotal;ind++) N(ind) = FUNBEC(pREtotal+ind,i2);
-        TN += exp(MultVV(W.row(i2), gamma2))*N;
-        if (cmprsk(i2) == 2)
-        {
-          if (i2 == numSubj-1)
-          {
-            TN *= H02(risk2_index, 1)/pow(temp,2);
-            TNN2.col(b-1-risk2_index) = TN;
-            TRNN += TN;
-            TN /= H02(risk2_index, 1)/pow(temp,2);
-            TN /= temp;
-            TNN22.col(b-1-risk2_index) = TN;
-            TN *= temp;
-            risk2_index--;
-          }
-          else if (survtime(i2+1) != survtime(i2))
-          {
-            TN *= H02(risk2_index, 1)/pow(temp,2);
-            TNN2.col(b-1-risk2_index) = TN;
-            TRNN += TN;
-            TN /= H02(risk2_index, 1)/pow(temp,2);
-            TN /= temp;
-            TNN22.col(b-1-risk2_index) = TN;
-            TN *= temp;
-            risk2_index--;
-          }
-          else
-          {
-            for (i2=i2+1;i2<numSubj;i2++)
-            {
-              temp += exp(MultVV(W.row(i2), gamma2))*FUNEC(1, i2);
-              for (int ind=0;ind<pREtotal;ind++) N(ind) = FUNBEC(pREtotal+ind,i2);
-              TN += exp(MultVV(W.row(i2), gamma2))*N;
-              if (i2 == numSubj-1)
-              {
-                TN *= H02(risk2_index, 1)/pow(temp,2);
-                TNN2.col(b-1-risk2_index) = TN;
-                TRNN += TN;
-                TN /= H02(risk2_index, 1)/pow(temp,2);
-                TN /= temp;
-                TNN22.col(b-1-risk2_index) = TN;
-                TN *= temp;
-                risk2_index--;
-                break;
-              }
-              else if (survtime(i2+1) != survtime(i2))
-              {
-                TN *= H02(risk2_index, 1)/pow(temp,2);
-                TNN2.col(b-1-risk2_index) = TN;
-                TRNN += TN;
-                TN /= H02(risk2_index, 1)/pow(temp,2);
-                TN /= temp;
-                TNN22.col(b-1-risk2_index) = TN;
-                TN *= temp;
-                risk2_index--;
-                break;
-              }
-              else continue;
-            }
-          }
-
-        }
-        else continue;
-      }
-      TRNN2.col(i) = TRNN;
-    }
-    else
-    {
-      if (risk2_index_vtemp>=0)
-      {
-        if (survtime(i) >= H02(risk2_index_vtemp, 0))
-        {
-          TRNN2.col(i) = TRNN2.col(i-1);
-        }
-        else
-        {
-          risk2_index_vtemp--;
-          if (risk2_index_vtemp>=0)
-          {
-            TRNN = TRNN2.col(i-1);
-            TRNN -= TNN2.col(b-1-risk2_index_vtemp-1);
-            TRNN2.col(i) = TRNN;
-          }
-        }
-      }
-      else
-      {
-        risk2_index_vtemp=0;
-      }
-    }
-    TRN = TRNN2.col(i);
-
-    TRN *= exp(MultVV(W.row(i), gamma2))*FUNEC(1,i);
-
-    if (i==0)
-    {
-      for (t=0;t<pREtotal;t++) N(t) = FUNBEC(pREtotal+t,i);
-      N *= CumuH02(risk2_index_vttemp)*exp(MultVV(W.row(i), gamma2));
-      TRN -= N;
-    }
-    else if (survtime(i) >= H02(risk2_index_vttemp,0))
-    {
-      for (t=0;t<pREtotal;t++) N(t) = FUNBEC(pREtotal+t,i);
-      N *= CumuH02(risk2_index_vttemp)*exp(MultVV(W.row(i), gamma2));
-      TRN -= N;
-    }
-    else
-    {
-      risk2_index_vttemp--;
-      if (risk2_index_vttemp>=0)
-      {
-        for (t=0;t<pREtotal;t++) N(t) = FUNBEC(pREtotal+t,i);
-        N *= CumuH02(risk2_index_vttemp)*exp(MultVV(W.row(i), gamma2));
-        TRN -= N;
-      }
-      else
-      {
-        risk2_index_vttemp=0;
-      }
-    }
-
-
-    if (survtime(i) >= H02(risk2_index_vtttemp,0))
-    {
-      if (cmprsk(i) == 2)
-      {
-        TN = FUNB.col(i) - TNN22.col(b-1-risk2_index_vtttemp);
-        TN += TRN;
-        for (q=0;q<pREtotal;q++) S(index + q) = TN(q);
-      }
-      else
-      {
-        for (q=0;q<pREtotal;q++) S(index + q) = TRN(q);
-      }
-    }
-    else
-    {
-      risk2_index_vtttemp--;
-      if (risk2_index_vtttemp>=0)
-      {
-        if (cmprsk(i) == 2)
-        {
-          TN = FUNB.col(i) - TNN22.col(b-1-risk2_index_vtttemp);
-          TN += TRN;
-          for (q=0;q<pREtotal;q++) S(index + q) = TN(q);
-        }
-        else
-        {
-          for (q=0;q<pREtotal;q++) S(index + q) = TRN(q);
-
-        }
-      }
-      else
-      {
-        risk2_index_vtttemp=0;
-        for (q=0;q<pREtotal;q++) {S(index + q) = TRN(q);
-          // std::cout << "alpha2 " << S(index + q) << std::endl;
-        }
-      }
-    }
-
     // std::cout << "alpha2 " << S(index + q) << std::endl;
     // std::cout << "alpha2full " << S << std::endl;
 
 
-    agIndex+= numBio;
-    pREindex +=pRE;
-    index += pREtotal;
+    // agIndex+= numBio;
+    // pREindex +=pRE;
+ 
 
 
 
@@ -1065,9 +699,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     }
 
 
-
-
-
     SS += MultVVoutprod(S);
 
 
@@ -1097,21 +728,12 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   for (t=0;t< numBio;t++)  sesigma(t) = sqrt(SSinv(index + t,index + t));
   index += numBio;
 
-
-
-
   // gamma
   for (t=0;t<gamma1.size();t++) segamma1(t) = sqrt(SSinv(index+t,index+t));
   index += gamma1.size();
 
-  for (t=0;t<gamma2.size();t++) segamma2(t) = sqrt(SSinv(index+t,index+t));
-
-  index += gamma2.size();
-
   // alpha
   for (t=0;t<pREtotal;t++) sealpha1(t) = sqrt(SSinv(index+t,index+t));
-  index += pREtotal;
-  for (t=0;t<pREtotal;t++) sealpha2(t) = sqrt(SSinv(index+t,index+t));
   index += pREtotal;
 
   // sigma
@@ -1134,9 +756,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
                             Rcpp::Named("sebeta")=sebeta,
                             Rcpp::Named("sesigma")=sesigma,
                             Rcpp::Named("segamma1")=segamma1,
-                            Rcpp::Named("segamma2")=segamma2,
                             Rcpp::Named("sealpha1")=sealpha1,
-                            Rcpp::Named("sealpha2")=sealpha2,
                             Rcpp::Named("seSig")=seSig,
                             Rcpp::Named("FUNBS")= FUNBS,
                             Rcpp::Named("FUNBEC")= FUNBEC,
