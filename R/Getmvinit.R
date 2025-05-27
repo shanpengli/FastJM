@@ -46,22 +46,22 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     long <- all.vars(long.formula[[g]])
     
     ##random effect covariates
-    if (model == "interslope") {
-      if (prod(RE %in% ynames) == 0) {
-        Fakename <- which(RE %in% ynames == FALSE)
-        stop(paste0("The variable ", RE[Fakename], " not found in the longitudinal dataset.\n"))
-      } else if (prod(RE %in% long) == 0) {
-        Fakename <- which(RE %in% long == FALSE)
-        stop(paste0("The variable ", RE[Fakename], " not found in the long.formula argument.
+    if (model[[g]] == "interslope") {
+      if (prod(RE[[g]] %in% ynames) == 0) {
+        Fakename <- which(RE[[g]] %in% ynames == FALSE)
+        stop(paste0("The variable ", RE[[g]][Fakename], " not found in the longitudinal dataset.\n"))
+      } else if (prod(RE[[g]] %in% long) == 0) {
+        Fakename <- which(RE[[g]] %in% long == FALSE)
+        stop(paste0("The variable ", RE[[g]][Fakename], " not found in the long.formula argument.
                   Please include this variable in the random argument.\n"))
       } else {
-        p1a <- 1 + length(RE)
-        Z <- ydata[, RE]
+        p1a <- 1 + length(RE[[g]])
+        Z <- ydata[, RE[[g]]]
         Z <- cbind(1, Z)
         Zlist[[g]] <- as.matrix(Z)
       }
-    } else if (model == "intercept") {
-      if (!is.null(RE)) {
+    } else if (model[[g]] == "intercept") {
+      if (!is.null(RE[[g]])) {
         stop("You are fitting a mixed effects model with random intercept only
            but random effects covariates are specified at the same time. Please respecify your model!")
       }
@@ -79,7 +79,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     
     if (is.null(initial.para)) {
       
-      longfit <- try(nlme::lme(fixed = long.formula[[g]], random = random, data = ydata, method = method,
+      longfit <- try(nlme::lme(fixed = long.formula[[g]], random = random[[g]], data = ydata, method = method,
                                control = nlme::lmeControl(opt = opt), na.action = na.omit), silent = TRUE)
       
       if ('try-error' %in% class(longfit)) {
@@ -94,7 +94,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
     }
     
     getdum <- getmvdummy(long.formula = long.formula[[g]], surv.formula = surv.formula,
-                         random = random, ydata = ydata, cdata = cdata)
+                         random = random[[g]], ydata = ydata, cdata = cdata)
     
     ydatanew[[g]] <- getdum$ydata
     cdatanew <- getdum$cdata

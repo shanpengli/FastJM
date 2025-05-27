@@ -169,7 +169,7 @@ getQuadMix <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaLi
     .Call(`_FastJM_getQuadMix`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
 }
 
-getNoQuad <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
-    .Call(`_FastJM_getNoQuad`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
+normalApprox <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
+    .Call(`_FastJM_normalApprox`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
 }
 
