@@ -116,9 +116,6 @@ getbSig <- function(bSig, data){
   # latent structure for each loop
   latent1 <- as.matrix(sum.alpha1i, nrow = 1)
   latent2 <- as.matrix(sum.alpha2i, nrow = 1)
-  CH01 <- as.matrix(CH01)
-  
-  # CH01 Might be wrong here
   
   total <- total + CH01 * exp(Wx%*% gamma1 + latent1) + ## part 2 change this part
     CH02 * exp(Wx %*% gamma2 + latent2) +

@@ -10,7 +10,6 @@
 Rcpp::List normalApproxSF(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W,
 	Rcpp::List mdata, Rcpp::List mdataSList,
 	Rcpp::List bList, Eigen::VectorXd sigmaInit, Rcpp::List sigmaiList,
-	Eigen::VectorXd weight, Eigen::VectorXd absc,
 	Eigen::MatrixXd H01, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk,
 	Eigen::VectorXd& gamma1, Rcpp::List alphaList,
 	const Eigen::VectorXd& CUH01,
@@ -620,7 +619,7 @@ Rcpp::List normalApproxSF(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, 
                            Rcpp::Named("sigmaVec") = sigmaVec,
 		                        Rcpp::Named("Sig") = SigE,
 		                    Rcpp::Named("H01") = H01,
-		                    Rcpp::Named("phi1") = phi1;
+		                    Rcpp::Named("phi1") = phi1);
 
 }
 

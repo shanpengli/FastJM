@@ -18,10 +18,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	const Eigen::VectorXd& HAZ02, const Eigen::MatrixXd& Sig,
 	Rcpp::List betaList){
 
-
-	Eigen::MatrixXd H01q = H01;
-	Eigen::MatrixXd H02q = H02;
-
 	int numSubj = XList.size();
 	int numBio = Rcpp::as<Rcpp::List>(XList[0]).size();
 	
@@ -39,7 +35,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	  pRE = Rcpp::as<Eigen::MatrixXd>(Rcpp::as<Rcpp::List>(ZList[0])[g]).cols();
 	  pREVec(g) = pRE;
 	  pREtotal += pRE;
-	  
 	}
 	
 	// std::cout << "pREVec" << pREVec << std::endl;
@@ -80,16 +75,11 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	    
 	    Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 	    Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
+	    // bVeci contains all random effects for subject i, concatenated across biomarkers.
+	    // pREindex used to segment it biomarker-by-biomarker.
 
 	    
 	    double sigmag = sigmaInit(g);
-	    
-	    // Eigen::MatrixXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-	    
-	    // std::cout << "bVecfull" << bVeci << std::endl;
-	    // std::cout << "bVec" << bVecig << std::endl;
-	    // std::cout << "pREindex" << pREindex << std::endl;
-	    // std::cout << "pRE" << pRE << std::endl;
 	    
 	    XVXT = XVXT + Xtemp.transpose() * Xtemp / sigmag; //4x4
 	    YZBX = YZBX + Xtemp.transpose() * (Ytemp - Ztemp * bVecig) / sigmag; // 4x1
@@ -102,6 +92,8 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	  betaNewList[std::string("beta") + std::to_string(g+1)] = betaNew;
 	  index += p;
 	  
+	  // std::cout << "betaNew " << betaNew << std::endl;
+	  
 	  //~~~~~~~~~~~~
 	  //
 	  // sigma
@@ -111,7 +103,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	  double numsig = 0;
 	  int nijSum = 0;
 	  
-
 	  Eigen::MatrixXd ZZT = Eigen::MatrixXd::Zero(pRE, pRE);
 	  // pREindex = 0;
 	  for (int i = 0; i < numSubj; i++) {
@@ -124,18 +115,11 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	    Eigen::VectorXd Ytemp = Rcpp::as<Eigen::VectorXd>(yListElement[g]);
 	    Eigen::MatrixXd Ztemp = Rcpp::as<Eigen::MatrixXd>(zListElement[g]);
 	    
-	    pRE = pREVec(g);
-	    
 	    Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 	    Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
 	    
 	    Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 	    Eigen::MatrixXd sigig = sigmai.block(pREindex, pREindex, pRE, pRE);  // sigma i for gth biomarker
-	    
-	    // std::cout << "bVeci" << bVeci << std::endl;
-	    // std::cout << "bVecig" << bVecig << std::endl;
-	    // std::cout << "sigmai" << sigmai << std::endl;
-	    // std::cout << "sigig" << sigig<< std::endl;
 	    
 	    Rcpp::List mdataList = Rcpp::as<Rcpp::List>(mdata[g]);
 	    int numRep = Rcpp::as<int>(mdataList[i]);
@@ -145,7 +129,7 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	      double epsilon = Ytemp(nij) - MultVV(Xtemp.row(nij), betaNew);
 	      double zb = MultVV(Ztemp.row(nij), bVecig);
 	      
-	      Eigen::MatrixXd ZZT = MultVVoutprod(Ztemp.row(nij));
+	      ZZT = MultVVoutprod(Ztemp.row(nij));
 	      Eigen::MatrixXd bbT = MultVVoutprod(bVecig);
 	      
 	      
@@ -154,28 +138,32 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 
 	      numsig += pow(epsilon, 2) - 2 * epsilon * zb + (ZZT * (sigig + bbT)).trace();
 	      
-	      // if(g == 1){
-	        // std::cout << "z" << Ztemp.row(nij) << std::endl;
-	        // std::cout << "bVecig" << bVecig << std::endl;
-	        // std::cout << "zb" << zb << std::endl;
-	        // std::cout << "zzt" << ZZT << std::endl;
-	        // std::cout << "bbt" << bbT << std:: endl;
+	   // if(g == 1){
+	   // std::cout << "z" << Ztemp.row(nij) << std::endl;
+	   // std::cout << "bVecig " << bVecig << std::endl;
+	   // std::cout << "zb " << zb << std::endl;
+	   // std::cout << "zzt " << ZZT << std::endl;
+	   // std::cout << "bbt" << bbT << std:: endl;
 	   //    std::cout << "epsilon" << epsilon << std::endl;
 	   //    std::cout << "middle part" << 2 * epsilon * zb << std:: endl;
 	   // std::cout << "trace thing" << (ZZT * (sigig + bbT)).trace() << std::endl;
 	   // // std::cout << "z" << Ztemp.row(nij) << std::endl;
-	   // std::cout << "bVecig" << bVecig << std::endl;
-	   // std::cout << "numsig" <<numsig << std::endl;
-	      // }
+	   // std::cout << "bVecig " << bVecig << std::endl;
+	   // std::cout << "numsig " <<numsig << std::endl;
+	   // }
 	   
 	    }
 	    
 	    nijSum += numRep;
+	   
 	  }
 	  
 	  sigmaVec(g) = numsig / nijSum;
-	  pREindex += pRE;
+
 	  
+	  pREindex += pRE;
+	  // std::cout << "numer" << numsig << std::endl;
+	  // std::cout << "nij" << nijSum<< std::endl;
 	  // std::cout << "pREindex" << pREindex << std::endl;
 	  
 	}
@@ -197,17 +185,9 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 	for (int i = 0; i < numSubj; i++) {
 	  
 	  index = 0;
-	  
-	  // Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+
 	  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 	  Eigen::MatrixXd sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
-	  
-	  // for(int g = 0; g < numBio; g++){
-	  //   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bListElement[g]);
-	  //   pRE = pREVec(g);
-	  //   bVeci.segment(index, pRE) = bVec;
-	  //   index += pRE;
-	  // }
 	  
 	  numSig += sigmai + MultVVoutprod(bVeci);
 	  // std::cout << "bVeci" << bVeci << std::endl;
@@ -666,7 +646,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 
 		for (int i = 0; i < numSubj; i++)
 		{
-			
 			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 			Eigen::VectorXd latent = bVeci;
 			if (cmprsk(i) == 1) {
@@ -697,6 +676,8 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 		phi1 << gamma1, alpha1;
 		phi1 += info.inverse() * (Sfull_inter - Sfull_new);
 
+		gamma1 << 1, 0.5;
+		gamma2 << -0.5, 0.5;
 
 		Sw_new = Eigen::VectorXd::Zero(dimW);
 		Sw_inter = Eigen::VectorXd::Zero(dimW);
@@ -714,8 +695,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 		Sw = Eigen::MatrixXd::Zero(dimW, dimW);
 		Sl = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
 		Swl = Eigen::MatrixXd::Zero(dimW, pREtotal);
-
-
 
 		for (int i = 0; i < numSubj; i++) {
 		
@@ -755,8 +734,7 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 			Sl += l; //sum exp(mu)
 
 
-			if (cmprsk(i) == 2)
-			{
+			if (cmprsk(i) == 2){
 
 				scalefH02 = H02(risk2_index, 2);
 				//SXX *= scalefH01;
@@ -787,9 +765,7 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 
 		}
 
-		index = 0;
-		for (int i = 0; i < numSubj; i++)
-		{
+		for (int i = 0; i < numSubj; i++){
 
 			Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 			Eigen::VectorXd latent = bVeci;
@@ -809,6 +785,7 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 
 		Sfull_inter << Sw_inter, Sl_inter;
 		Sfull_new << Sw_new, Sl_new;
+		
 
 		// start row, start column, how many rows, how many col
 		info.block(0, 0, dimW, dimW) = Sww_new;

@@ -6,7 +6,7 @@
 //
 // [[Rcpp::export]]
 
-Rcpp::List getmvCov(const Eigen::VectorXd beta, 
+Rcpp::List getmvCovSF(const Eigen::VectorXd beta, 
                     const Eigen::VectorXd & gamma1, 
                     const Eigen::VectorXd & alpha1, 
                     const Eigen::MatrixXd & H01, 
@@ -101,10 +101,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::VectorXd SRXX = Eigen::VectorXd::Zero(gamma1.size());
   Eigen::MatrixXd SXX1 = Eigen::MatrixXd::Zero(gamma1.size(), a);
   Eigen::MatrixXd SXX11 = Eigen::MatrixXd::Zero(gamma1.size(), a);
-  Eigen::MatrixXd SXX2 = Eigen::MatrixXd::Zero(gamma2.size(), b);
-  Eigen::MatrixXd SXX22 = Eigen::MatrixXd::Zero(gamma2.size(), b);
   Eigen::MatrixXd SRXX1 = Eigen::MatrixXd::Zero(gamma1.size(), numSubj);
-  Eigen::MatrixXd SRXX2 = Eigen::MatrixXd::Zero(gamma2.size(), numSubj);
   // 
   // 
   // // NEED TO ADAPT FOR DIFFERENT NUMBER OF RANDOM EFFECTS
@@ -117,8 +114,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::MatrixXd TRNN2 = Eigen::MatrixXd::Zero(pREtotal,numSubj);
   Eigen::MatrixXd TNN1 = Eigen::MatrixXd::Zero(pREtotal,a);
   Eigen::MatrixXd TNN11 = Eigen::MatrixXd::Zero(pREtotal,a);
-  Eigen::MatrixXd TNN2 = Eigen::MatrixXd::Zero(pREtotal,b);
-  Eigen::MatrixXd TNN22 = Eigen::MatrixXd::Zero(pREtotal,b);
 
   Eigen::MatrixXd bs = Eigen::MatrixXd::Zero(pREtotal,pREtotal);
   Eigen::MatrixXd ZZT = Eigen::MatrixXd::Zero(pRE,pRE);
@@ -710,9 +705,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
   Eigen::VectorXd sebeta = Eigen::VectorXd::Zero(ptotal);
   Eigen::VectorXd segamma1 = Eigen::VectorXd::Zero(gamma1.size());
-  Eigen::VectorXd segamma2 = Eigen::VectorXd::Zero(gamma2.size());
   Eigen::VectorXd sealpha1 = Eigen::VectorXd::Zero(pREtotal);
-  Eigen::VectorXd sealpha2 = Eigen::VectorXd::Zero(pREtotal);
   Eigen::VectorXd sesigma = Eigen::VectorXd::Zero(numBio);
   Eigen::MatrixXd seSig = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
 
@@ -760,7 +753,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
                             Rcpp::Named("seSig")=seSig,
                             Rcpp::Named("FUNBS")= FUNBS,
                             Rcpp::Named("FUNBEC")= FUNBEC,
-                            Rcpp::Named("S")=SS,
-                            Rcpp::Named("output")= SSinv);
+                            Rcpp::Named("S")=SS);
   
 }

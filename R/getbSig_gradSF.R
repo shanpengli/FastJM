@@ -1,4 +1,4 @@
-getbSig_grad <- function(bSig, data){
+getbSig_gradSF <- function(bSig, data){
   
   
   # sigma <- exp(data$W %*% data$tau + w)  # calculates sigma; don't need assume homogeneous error variance
@@ -7,10 +7,10 @@ getbSig_grad <- function(bSig, data){
   # sigma: vector of error variance for each biomarker
   # unique to each value
   
-  names(data) <- c("beta", "gamma1", "gamma2", "alphaList",
+  names(data) <- c("beta", "gamma1", "alphaList",
                    "sigma", "Z", "X", "Y", "Sig", # "b", "Sig",
-                   "CH01", "CH02",
-                   "HAZ01", "HAZ02", "mdata", "mdataS", "Wcmprsk", "Wx")
+                   "CH01", 
+                   "HAZ01", "mdata", "mdataS", "Wcmprsk", "Wx")
   
   # don't need mdata
   Y <- data$Y

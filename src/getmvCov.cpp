@@ -1140,7 +1140,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
                             Rcpp::Named("seSig")=seSig,
                             Rcpp::Named("FUNBS")= FUNBS,
                             Rcpp::Named("FUNBEC")= FUNBEC,
-                            Rcpp::Named("S")=SS,
-                            Rcpp::Named("output")= SSinv);
+                            Rcpp::Named("S")=SS);
   
 }

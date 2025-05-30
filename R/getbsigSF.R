@@ -58,7 +58,6 @@ getbSigSF <- function(bSig, data){
   
   total <- 0
   sum.alpha1i <- 0
-  sum.alpha2i <- 0
   
   # need to generalize here
   
@@ -84,12 +83,6 @@ getbSigSF <- function(bSig, data){
       alpha1g <- alpha1[[g]] # alpha1
     }else{
       alpha1g <- alpha1
-    }
-    
-    if(is.list(alpha2)){
-      alpha2g <- alpha2[[g]] # alpha2
-    }else{
-      alpha2g <- alpha2
     }
     
     # log likelihood part 1

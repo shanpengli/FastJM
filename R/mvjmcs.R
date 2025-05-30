@@ -12,12 +12,9 @@
 ##' @param maxiter Maximum number of EM iterations. Default is 10000.
 ##' @param opt Optimization method for mixed model. Default is \code{"nlminb"}.
 ##' @param tol Convergence tolerance for EM algorithm. Default is 0.0001.
-##' @param method Numerical integration method for E-step. Options: \code{"normalApprox"}.
-##' @param model Internal model structure (auto-filled based on random effects).
 ##' @param print.para Logical; if \code{TRUE}, prints parameter values at each iteration.
 ##' @param initial.para Optional list of initialized parameters. Default is \code{NULL}.
-##' @param quadpoint Number of Gauss-Hermite quadrature points. Default is 6.
-#'
+##'
 ##' @return A list containing:
 ##' \item{output}{EM algorithm output from final iteration}
 ##' \item{re}{Estimated random effects for each subject}
@@ -55,10 +52,9 @@
 
 mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
-                   maxiter = 10000, opt = "nlminb", tol = 0.0001, method = c("normalApprox"), 
+                   maxiter = 10000, opt = "nlminb", tol = 0.0001,
                    model, print.para = TRUE, 
-                   initial.para = NULL,
-                   quadpoint = 6){
+                   initial.para = NULL){
   # "aGH", "normApprox", 
   
   start_time <- Sys.time()
@@ -206,12 +202,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   iter=0
   
-  # getriskset <- Getriskset(cdata = getinit$cdata, surv.formula = surv.formula)
-  # 
-  # ## number of distinct survival time
-  # H01 <- getriskset$tablerisk1
-  # H02 <- getriskset$tablerisk2
-  
   if(CompetingRisk == TRUE){
     
   
@@ -331,10 +321,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
   # }else{
   output <- normalApprox(subX1,subY, subZ, getinit$W,
                          mdataM, mdataSM,
-                         pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
+                         pos.mode,  getinit$sigma, pos.cov,
                          H01, H02, getinit$survtime, getinit$cmprsk,
                          getinit$gamma1, getinit$gamma2, getinit$alpha,
-                         CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
+                         CUH01, CUH02,HAZ01,HAZ02, Sig, subdata$beta)
   # }
   
   # PAR UPDATE HERE
@@ -381,6 +371,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     prebeta <- beta
     pregamma1 <- gamma1
     pregamma2 <- gamma2
+    
     prealphaList <- alphaList
     prealpha1 <- alpha1 # 3 and 2 come from competing risk
     prealpha2 <- alpha2
@@ -479,7 +470,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     # }else{
     output <- normalApprox(subX1,subY, subZ, getinit$W,
                            mdataM, mdataSM,
-                           pos.mode, presigma, pos.cov, weight.c, abscissas.c,
+                           pos.mode, presigma, pos.cov,
                            H01, H02, getinit$survtime, getinit$cmprsk,
                            data$gamma1, data$gamma2, data$alpha,
                            CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
@@ -544,6 +535,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
     sealpha1 <- SEest$sealpha1
     sealpha2 <- SEest$sealpha2
     seSig <- SEest$seSig
+    vcov <- SEest$vcov
+    
     
   }
   
@@ -558,14 +551,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
   return(list(beta = beta, gamma1 = gamma1, gamma2 = gamma2, 
               alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
               Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
-              vcov = pos.cov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
-              sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, RE = pos.mode, runtime = runtime))
-  }
+              vcov = vcov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
+              sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov, runtime = runtime))
+  }else{
   # ~~~~~~~~~~~~~
   # SINGLE FAILURE
   # ~~~~~~~~~~~~~
-  else{
-    
     
     CUH01 <- rep(0, n)
     HAZ01 <- rep(0, n)
@@ -573,7 +564,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     getHazardSF(CumuH01, getinit$survtime, getinit$cmprsk, H01,  CUH01, HAZ01)
     
-    HAZ0 <- list(HAZ01, HAZ02)
+    HAZ0 <- list(HAZ01)
     
     pREvec <- c()
     
@@ -649,7 +640,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       opt <- optim(
         par = c(rep(0, pREtotal)), # CHANGE THIS PART
         getbSigSF,
-        getbSig_grad,
+        getbSig_gradSF,
         data = subdata,
         method = "BFGS",
         hessian = TRUE
@@ -670,12 +661,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
     #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
     #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
     # }else{
-    output <- normalApprox(subX1,subY, subZ, getinit$W,
+    output <- normalApproxSF(subX1,subY, subZ, getinit$W,
                            mdataM, mdataSM,
-                           pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
-                           H01, H02, getinit$survtime, getinit$cmprsk,
-                           getinit$gamma1, getinit$gamma2, getinit$alpha,
-                           CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
+                           pos.mode,  getinit$sigma, pos.cov, 
+                           H01, getinit$survtime, getinit$cmprsk,
+                           getinit$gamma1, getinit$alpha,
+                           CUH01,HAZ01,Sig, subdata$beta)
     # }
     
     # PAR UPDATE HERE
@@ -683,7 +674,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     tempbeta <- output$beta
     # tempsigma <- c(output$sigma1, output$sigma2)
     tempphi1 <- output$phi1
-    tempphi2 <- output$phi2
     
     it <- 1
     tempSig <- list()
@@ -691,7 +681,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     ngamma <- ncol(data$W)
     index = 0
     gamma1 <- output$phi1[(index+1):ngamma]
-    gamma2 <- output$phi2[(index+1):ngamma]
     
     # gamma1 hiim<- c(1,0.5)
     # gamma2 <- c(-0.5,0.5)
@@ -745,7 +734,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
       CumuH01 <- cumsum(output$H01[, 3])
       
-      getHazardSF(CumuH01, CumuH02, survtime, cmprsk, preH01, CUH01, HAZ01)
+      getHazardSF(CumuH01, survtime, cmprsk, preH01, CUH01, HAZ01)
       
       data <- list(beta = prebeta, gamma1 = pregamma1,
                    alpha = prealphaList, sigma = presigma,
@@ -793,7 +782,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
       output <- normalApproxSF(subX1,subY, subZ, getinit$W,
                              mdataM, mdataSM,
-                             pos.mode, presigma, pos.cov, weight.c, abscissas.c,
+                             pos.mode, presigma, pos.cov,
                              H01, getinit$survtime, getinit$cmprsk,
                              data$gamma1, data$alpha,
                              CUH01,HAZ01, preSig, subdata$beta)
@@ -822,7 +811,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       H01 <- output$H01
       
       # leave condition
-      if((mvDiff(beta, prebeta, sigma, presigma, gamma1, pregamma1, 
+      if((mvDiffSF(beta, prebeta, sigma, presigma, gamma1, pregamma1, 
                  alpha1, prealpha1,
                  Sig, preSig, H01, preH01, tol) == 0) || (iter == maxiter) #|| (!is.list(GetEfun)) || (!is.list(GetMpara))
       ) {
@@ -838,7 +827,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
     } else{
       convergence = 1
-      SEest <- getmvCov(beta, gamma1,
+      SEest <- getmvCovSF(beta, gamma1,
                         alpha1,  
                         H01, pos.cov, Sig, sigma, 
                         subX1, subY, subZ, getinit$W, 
@@ -850,6 +839,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       segamma1 <- SEest$segamma1
       sealpha1 <- SEest$sealpha1
       seSig <- SEest$seSig
+      vcov <- SEest$vcov
     }
     
     end_time <- Sys.time()
@@ -859,8 +849,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
     return(list(beta = beta, gamma1 = gamma1, 
                 alpha1 = alpha1, H01 = H01, 
                 Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
-                vcov = pos.cov, sebeta = sebeta, segamma1 = segamma1,
-                sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, RE = pos.mode, runtime = runtime))
+                vcov = vcov, sebeta = sebeta, segamma1 = segamma1,
+                sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov,
+                runtime = runtime))
   }
   
 }
