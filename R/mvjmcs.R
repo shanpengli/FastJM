@@ -52,10 +52,9 @@
 
 mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
-                   maxiter = 10000, opt = "nlminb", tol = 0.0001,
-                   model, print.para = TRUE, 
+                   maxiter = 10000, opt = "nlminb", tol = 0.005,
+                   print.para = TRUE, 
                    initial.para = NULL){
-  # "aGH", "normApprox", 
   
   start_time <- Sys.time()
   
@@ -68,8 +67,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   if(is.list(long.formula)){
     numBio = length(long.formula)
-  }
-  else{
+  } else {
     numBio = 1
   }
   
@@ -83,29 +81,26 @@ mvjmcs <- function(ydata, cdata, long.formula,
       if(length(random.form[[g]])==1){
         # RE[[g]] <- NULL # already null
         model[[g]] <- "intercept"
-      }else{
+      } else {
         RE[[g]] <- random.form[[g]][-length(all.vars(random[[g]]))]
         model[[g]] <- "interslope"
       }
       # ID[[g]] <- random.form[[g]][length(all.vars(random[[g]]))]
     }
     ID <- random.form[[g]][length(all.vars(random[[g]]))]
-  }
-  
-  # for now, forcibly create list... better way to do this later
-  else{
+  } else {
     for(g in 1:numBio){
       random.form[[g]] <- all.vars(random)
       if(length(random) == 1){
         # RE[[g]] <- NULL
         model[[g]] <- "intercept"
-      }else{
+      } else {
         RE[[g]] <- random.form[[g]][-length(all.vars(random))]
         model[[g]] <- "interslope"
       }
       # ID[[g]] <- random.form[[g]][length(all.vars(random))]
     }
-    ID[[g]] <- random.form[[g]][length(all.vars(random))]
+    ID <- random.form[[g]][length(all.vars(random))]
   }
   
   lengthb <- length(long.formula)
@@ -134,15 +129,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
   rawydata <- ydata
   rawcdata <- cdata
   
-  if(is.list(random)){
-    getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
-                         surv.formula = surv.formula,
-                         model = model, ID = ID, RE = RE, survinitial = TRUE,
-                         REML = TRUE, random = random, opt = "nlminb", initial.para)
-  }
-  else{
-    
-  }
+  getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
+                       surv.formula = surv.formula,
+                       model = model, ID = ID, RE = RE, survinitial = TRUE,
+                       REML = TRUE, random = random, opt = "nlminb", initial.para)
   
   if (is.null(getinit)) {
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
@@ -318,7 +308,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   #                        H01, H02, getinit$survtime, getinit$cmprsk,
   #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
   #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-  # }else{
+  # } else {
   output <- normalApprox(subX1,subY, subZ, getinit$W,
                          mdataM, mdataSM,
                          pos.mode,  getinit$sigma, pos.cov,
@@ -467,7 +457,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     #                        data$gamma1, data$gamma2, data$alpha,
     #                        CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
     #   
-    # }else{
+    # } else {
     output <- normalApprox(subX1,subY, subZ, getinit$W,
                            mdataM, mdataSM,
                            pos.mode, presigma, pos.cov,
@@ -519,7 +509,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     convergence = 0
     sebeta <- sesigma <- segamma1 <- segamma2 <- sealpha1 <- sealpha2 <- seSig <- NULL
     
-  } else{
+  } else {
     convergence = 1
     SEest <- getmvCov(beta, gamma1, gamma2, 
                       alpha1, alpha2, 
@@ -553,7 +543,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
               Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
               vcov = vcov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
               sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov, runtime = runtime))
-  }else{
+  } else {
   # ~~~~~~~~~~~~~
   # SINGLE FAILURE
   # ~~~~~~~~~~~~~
@@ -660,7 +650,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     #                        H01, H02, getinit$survtime, getinit$cmprsk,
     #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
     #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-    # }else{
+    # } else {
     output <- normalApproxSF(subX1,subY, subZ, getinit$W,
                            mdataM, mdataSM,
                            pos.mode,  getinit$sigma, pos.cov, 
@@ -825,7 +815,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       convergence = 0
       sebeta <- sesigma <- segamma1 <- sealpha1 <- seSig <- NULL
       
-    } else{
+    } else {
       convergence = 1
       SEest <- getmvCovSF(beta, gamma1,
                         alpha1,  

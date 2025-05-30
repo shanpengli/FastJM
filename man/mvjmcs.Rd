@@ -12,10 +12,9 @@ mvjmcs(
   surv.formula,
   maxiter = 10000,
   opt = "nlminb",
-  tol = 1e-04,
+  tol = 0.005,
   print.para = TRUE,
-  initial.para = NULL,
-  quadpoint = 6
+  initial.para = NULL
 )
 }
 \arguments{
@@ -64,12 +63,17 @@ Function fits a joint model for multiple longitudinal outcomes and competing ris
 
 
   require(FastJM)
-  require(survival)
+  require(survival
+
   # Fit joint model with two biomarkers
   fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
                 random = list(~time| ID, ~1|ID),
-                surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001)
+                surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001, 
+                model = "interslope", method = "normApprox")
   fit
+  
+  # Obtain the variance-variance matrix of all parameter estimates
+  
 }
 \seealso{
 \code{\link{jmcs}}, \code{\link{survfitjmcs}}, \code{\link{AUCjmcs}}, \code{\link{MAEQjmcs}}, \code{\link{PEjmcs}}
