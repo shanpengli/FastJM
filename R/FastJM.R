@@ -8,6 +8,5 @@
 #' @importFrom MASS mvrnorm
 #' @importFrom timeROC timeROC
 #' @importFrom magrittr %>%
-#' @import PAmeasures
 #' @importFrom stats as.formula median optim pnorm qqline qqnorm quantile vcov model.matrix model.frame runif pchisq complete.cases rbeta
 NULL
