@@ -676,9 +676,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
 		phi1 << gamma1, alpha1;
 		phi1 += info.inverse() * (Sfull_inter - Sfull_new);
 
-		gamma1 << 1, 0.5;
-		gamma2 << -0.5, 0.5;
-
 		Sw_new = Eigen::VectorXd::Zero(dimW);
 		Sw_inter = Eigen::VectorXd::Zero(dimW);
 		Sww_new = Eigen::MatrixXd::Zero(dimW, dimW);

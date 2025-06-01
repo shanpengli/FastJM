@@ -68,8 +68,7 @@ Function fits a joint model for multiple longitudinal outcomes and competing ris
   # Fit joint model with two biomarkers
   fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
                 random = list(~time| ID, ~1|ID),
-                surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001, 
-                model = "interslope", method = "normApprox")
+                surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001)
   fit
   
   # Obtain the variance-variance matrix of all parameter estimates

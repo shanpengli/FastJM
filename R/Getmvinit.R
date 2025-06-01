@@ -1,5 +1,5 @@
 Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
-                      model, ID, RE, survinitial, REML, random, opt, initial.para,
+                      model, ID, RE, REML, random, opt, initial.para,
                       latAsso = "sre") {
   
   cnames <- colnames(cdata)
@@ -112,8 +112,9 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         
         survfmla.fixed <- surv.formula[3]
         survfmla.fixed <- gsub("\\(+$", "",survfmla.fixed)
-        
+        survfmla.comb <- survfmla.fixed
         if(latAsso == "sre"){
+          index = 1
           for(g in 1:numBio){
             mi = bi[[g]]
             dimmi[g] <- ncol(mi)
@@ -123,16 +124,17 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
             colnames(mi) <- paste("random", colnames(mi), g, sep = "_")
             cdata <- cbind(cdata,mi)
             
-            mifmla <- paste0(names(cdata)[(ncol(cdata)-ncol(mi)*g+1):(ncol(cdata)-ncol(mi)*g)], collapse = "+")
-            survfmla.comb <- paste0(survfmla.fixed, "+", mifmla)
-            
-            survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
-            survfmla <- as.formula(paste(survfmla.out1, survfmla.comb, sep = "~"))
-            fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
-            survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
-            survfmla <- as.formula(paste(survfmla.out2, survfmla.comb, sep = "~"))
-            fitSURV2 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
+            mifmla <- paste0(names(cdata)[(length(all.vars(surv.formula))+1 + index):(length(all.vars(surv.formula)) + index + dimmi[g])], collapse = "+")
+            index = index + dimmi[g]
+            survfmla.comb <- paste0(survfmla.comb, "+", mifmla)
           }
+          
+          survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
+          survfmla <- as.formula(paste(survfmla.out1, survfmla.comb, sep = "~"))
+          fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
+          survfmla.out2 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==2)")
+          survfmla <- as.formula(paste(survfmla.out2, survfmla.comb, sep = "~"))
+          fitSURV2 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
         }
         
         #survfmla <- survival::Surv(survtime, cmprsk == 1) ~X21 + X22 + random_Intercept +
@@ -140,33 +142,22 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         
         allalphaInd1 <- allalphaInd2 <- c()
         alpha <- list(alpha1 = list(), alpha2 = list())
-        if (survinitial) {
-          fitSURV1co <- fitSURV1$coefficients
-          fitSURV2co <- fitSURV2$coefficients
-          
-          for (g in 1:numBio) {
-            alphaInd1 <- (length(all.vars(surv.formula[[3]]))+1):(length(all.vars(surv.formula[[3]]))+dimmi[g])
-            alphaInd2 <- (length(all.vars(surv.formula[[3]]))+1):(length(all.vars(surv.formula[[3]]))+dimmi[g])
-            alpha[[1]][[g]] <- fitSURV1co[alphaInd1]
-            alpha[[2]][[g]] <- fitSURV2co[alphaInd2]
-            allalphaInd1 <- c(allalphaInd1, alphaInd1)
-            allalphaInd2 <- c(allalphaInd2, alphaInd2)
-          }
-          
-          gamma1 <- fitSURV1co[-allalphaInd1]
-          gamma2 <- fitSURV2co[-allalphaInd2]
-        } else {
-          gamma1 = rep(0, length(fitSURV1co[-allalphaInd1]))
-          names(gamma1) <- names(fitSURV1co)
-          gamma2 = rep(0, length(fitSURV2co[-allalphaInd2]))
-          names(gamma2) <- names(fitSURV2co)
-          
-          for(g in 1:numBio){
-            alpha[[1]][[g]] <- rep(0, dimmi[g])
-            alpha[[2]][[g]] <- rep(0, dimmi[g])
-          }
-          
+        
+        fitSURV1co <- fitSURV1$coefficients
+        fitSURV2co <- fitSURV2$coefficients
+        index <- 0
+        for (g in 1:numBio) {
+          alphaInd1 <- (length(all.vars(surv.formula[[3]]))+index+1):(length(all.vars(surv.formula[[3]]))+index+dimmi[g])
+          alphaInd2 <- (length(all.vars(surv.formula[[3]]))+index+1):(length(all.vars(surv.formula[[3]]))+index+dimmi[g])
+          alpha[[1]][[g]] <- fitSURV1co[alphaInd1]
+          alpha[[2]][[g]] <- fitSURV2co[alphaInd2]
+          allalphaInd1 <- c(allalphaInd1, alphaInd1)
+          allalphaInd2 <- c(allalphaInd2, alphaInd2)
+          index <- index + dimmi[g]
         }
+        
+        gamma1 <- fitSURV1co[-allalphaInd1]
+        gamma2 <- fitSURV2co[-allalphaInd2]
         
       } else {
         gamma1 <- initial.para$gamma1
@@ -182,7 +173,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
         
         survfmla.fixed <- surv.formula[3]
         survfmla.fixed <- gsub("\\(+$", "",survfmla.fixed)
-        
+        survfmla.comb <- survfmla.fixed
         allalphaInd1 <- c()
         alpha <- list(alpha1 = list())
         
@@ -199,57 +190,32 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
             
             mifmla <- paste0(names(cdata)[(length(all.vars(surv.formula))+1 + index):(length(all.vars(surv.formula)) + index + dimmi[g])], collapse = "+")
             index = index + dimmi[g]
-            survfmla.comb <- paste0(survfmla.fixed, "+", mifmla)
-            
-            survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
-            survfmla <- as.formula(paste(survfmla.out1, survfmla.comb, sep = "~"))
-            fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
-            
-            if (survinitial) {
-              fitSURV1co <- fitSURV1$coefficients
-              
-              alphaInd1 <- (length(all.vars(surv.formula[[3]]))+1):(length(all.vars(surv.formula[[3]]))+dimmi[g])
-              alpha[[1]][[g]] <- fitSURV1co[alphaInd1]
-              allalphaInd1 <- c(allalphaInd1, alphaInd1)
-              
-              
-              gamma1 <- fitSURV1co[-allalphaInd1]
-            } else {
-              gamma1 = rep(0, length(fitSURV1co[-allalphaInd1]))
-              names(gamma1) <- names(fitSURV1co)
-
-              alpha[[1]][[g]] <- rep(0, dimmi[g])
-              
-              
-            }
+            survfmla.comb <- paste0(survfmla.comb, "+", mifmla)
           }
+          survfmla.out1 <- paste0("survival::Surv(", survival[1], ", ", survival[2], "==1)")
+          survfmla <- as.formula(paste(survfmla.out1, survfmla.comb, sep = "~"))
+          fitSURV1 <- survival::coxph(formula = survfmla, data = cdata, x = TRUE)
+          
+          allalphaInd1 <- c()
+          alpha <- list(alpha1 = list())
+          fitSURV1co <- fitSURV1$coefficients
+          index <- 0
+          for (g in 1:numBio) {
+            alphaInd1 <- (length(all.vars(surv.formula[[3]]))+index+1):(length(all.vars(surv.formula[[3]]))+index+dimmi[g])
+            alpha[[1]][[g]] <- fitSURV1co[alphaInd1]
+            allalphaInd1 <- c(allalphaInd1, alphaInd1)
+            index <- index + dimmi[g]
+          }
+          gamma1 <- fitSURV1co[-allalphaInd1]
+          
         }
-        
-
-        
-        
+          
       } else {
         gamma1 <- initial.para$gamma1
-        gamma2 <- initial.para$gamma2
         alpha <- initial.para$alpha
-        
       }
-    
-      
-      # alpha <- list()
-      # for(g in 1:numBio){
-      #   if (model[[g]] == "intercept") {
-      #     alpha1[[g]] = as.vector(0)
-      #     # Sig <- D
-      #   } else {
-      #     alpha1[[g]] = as.vector(rep(0, p1a))
-      #     # Sig <- D
-      #   }
-      #   alpha[[g]] <- list(alpha1)
-      # }
-
-      
     }
+
     
     ## extract covariates
     X <- Y <- list()

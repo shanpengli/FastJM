@@ -38,8 +38,7 @@
 ##'   # Fit joint model with two biomarkers
 ##'   fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
 ##'                 random = list(~time| ID, ~1|ID),
-##'                 surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001, 
-##'                 model = "interslope", method = "normApprox")
+##'                 surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001)
 ##'   fit
 ##'   
 ##'   # Obtain the variance-variance matrix of all parameter estimates
@@ -131,8 +130,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
                        surv.formula = surv.formula,
-                       model = model, ID = ID, RE = RE, survinitial = TRUE,
-                       REML = TRUE, random = random, opt = "nlminb", initial.para)
+                       model = model, ID = ID, RE = RE,
+                       REML = TRUE, random = random, opt = opt, initial.para)
   
   if (is.null(getinit)) {
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
@@ -269,7 +268,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       beta = data$beta,
       gamma1 = data$gamma1,
       gamma2 = data$gamma2,
-      alpha = getinit$alpha,
+      alpha = data$alpha,
       sigma = data$sigma,
       Z = subZ[[j]],
       X1 = subX1[[j]],
