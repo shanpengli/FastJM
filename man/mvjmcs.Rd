@@ -14,7 +14,9 @@ mvjmcs(
   opt = "nlminb",
   tol = 0.005,
   print.para = TRUE,
-  initial.para = NULL
+  initial.para = NULL,
+  Gamma1Cal,
+  Gamma2Cal
 )
 }
 \arguments{

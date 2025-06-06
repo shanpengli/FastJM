@@ -62,6 +62,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::MatrixXd SS  = Eigen::MatrixXd::Zero(d,d);
   Eigen::MatrixXd SSinv  = Eigen::MatrixXd::Zero(d,d);
   Eigen::VectorXd S = Eigen::VectorXd::Zero(d);
+  Eigen::MatrixXd Smatrix = Eigen::MatrixXd::Zero(numSubj,d);
 
 
   int risk1_index;
@@ -113,6 +114,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
   Eigen::VectorXd X = Eigen::VectorXd::Zero(gamma1.size());
   Eigen::VectorXd SX = Eigen::VectorXd::Zero(gamma1.size());
+  Eigen::VectorXd SX2 = Eigen::VectorXd::Zero(gamma1.size());
   Eigen::VectorXd SX1 = Eigen::VectorXd::Zero(gamma1.size());
   Eigen::VectorXd SRX = Eigen::VectorXd::Zero(gamma1.size());
   Eigen::VectorXd SRXX = Eigen::VectorXd::Zero(gamma1.size());
@@ -319,24 +321,39 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         {
           if (i2 == numSubj-1)
           {
-            SX*= H01(risk1_index, 1)/pow(temp, 2);
-            SXX1.col(a-1-risk1_index) = SX;
-            SRXX += SX;
-            SX/= H01(risk1_index, 1)/pow(temp, 2);
-            SX/=temp;
-            SXX11.col(a-1-risk1_index) = SX;
-            SX*=temp;
+            // SX*= H01(risk1_index, 1)/pow(temp, 2);
+            // SXX1.col(a-1-risk1_index) = SX;
+            // SRXX += SX;
+            // SX/= H01(risk1_index, 1)/pow(temp, 2);
+            // SX/=temp;
+            // SXX11.col(a-1-risk1_index) = SX;
+            // SX*=temp;
+            // risk1_index--;
+            
+            SX2 = H01(risk1_index, 1)/pow(temp, 2)*SX;
+            SXX1.col(a-1-risk1_index) = SX2;
+            SRXX += SX2;
+            SX2 = 1/temp*SX;
+            SXX11.col(a-1-risk1_index) = SX2;
             risk1_index--;
+            
           }
           else if (survtime(i2+1) != survtime(i2))
           {
-            SX*= H01(risk1_index, 1)/pow(temp, 2);
-            SXX1.col(a-1-risk1_index) = SX;
-            SRXX += SX;
-            SX/= H01(risk1_index, 1)/pow(temp, 2);
-            SX/=temp;
-            SXX11.col(a-1-risk1_index) = SX;
-            SX*=temp;
+            // SX*= H01(risk1_index, 1)/pow(temp, 2);
+            // SXX1.col(a-1-risk1_index) = SX;
+            // SRXX += SX;
+            // SX/= H01(risk1_index, 1)/pow(temp, 2);
+            // SX/=temp;
+            // SXX11.col(a-1-risk1_index) = SX;
+            // SX*=temp;
+            // risk1_index--;
+            
+            SX2 = H01(risk1_index, 1)/pow(temp, 2)*SX;
+            SXX1.col(a-1-risk1_index) = SX2;
+            SRXX += SX2;
+            SX2 = 1/temp*SX;
+            SXX11.col(a-1-risk1_index) = SX2;
             risk1_index--;
           }
           else
@@ -351,25 +368,39 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
               if (i2 == numSubj-1)
               {
-                SX*= H01(risk1_index, 1)/pow(temp, 2);
-                SXX1.col(a-1-risk1_index) = SX;
-                SRXX += SX;
-                SX/= H01(risk1_index, 1)/pow(temp, 2);
-                SX/=temp;
-                SXX11.col(a-1-risk1_index) = SX;
-                SX*=temp;
+                // SX*= H01(risk1_index, 1)/pow(temp, 2);
+                // SXX1.col(a-1-risk1_index) = SX;
+                // SRXX += SX;
+                // SX/= H01(risk1_index, 1)/pow(temp, 2);
+                // SX/=temp;
+                // SXX11.col(a-1-risk1_index) = SX;
+                // SX*=temp;
+                // risk1_index--;
+                
+                SX2 = H01(risk1_index, 1)/pow(temp, 2)*SX;
+                SXX1.col(a-1-risk1_index) = SX2;
+                SRXX += SX2;
+                SX2 = 1/temp*SX;
+                SXX11.col(a-1-risk1_index) = SX2;
                 risk1_index--;
                 break;
               }
               else if (survtime(i2+1) != survtime(i2))
               {
-                SX*= H01(risk1_index, 1)/pow(temp, 2);
-                SXX1.col(a-1-risk1_index) = SX;
-                SRXX += SX;
-                SX/= H01(risk1_index, 1)/pow(temp, 2);
-                SX/=temp;
-                SXX11.col(a-1-risk1_index) = SX;
-                SX*=temp;
+                // SX*= H01(risk1_index, 1)/pow(temp, 2);
+                // SXX1.col(a-1-risk1_index) = SX;
+                // SRXX += SX;
+                // SX/= H01(risk1_index, 1)/pow(temp, 2);
+                // SX/=temp;
+                // SXX11.col(a-1-risk1_index) = SX;
+                // SX*=temp;
+                // risk1_index--;
+                
+                SX2 = H01(risk1_index, 1)/pow(temp, 2)*SX;
+                SXX1.col(a-1-risk1_index) = SX2;
+                SRXX += SX2;
+                SX2 = 1/temp*SX;
+                SXX11.col(a-1-risk1_index) = SX2;
                 risk1_index--;
                 break;
               }
@@ -480,6 +511,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
       temp=0;
 
       SX = Eigen::VectorXd::Zero(gamma2.size());
+      SX2 = Eigen::VectorXd::Zero(gamma2.size());
       SRXX = Eigen::VectorXd::Zero(gamma2.size());
 
       risk2_index=risk2_index_temp;
@@ -494,24 +526,38 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
         {
           if (i2 == numSubj-1)
           {
-            SX*= H02(risk2_index, 1)/pow(temp, 2);
-            SXX2.col(b-1-risk2_index) = SX;
-            SRXX += SX;
-            SX/= H02(risk2_index, 1)/pow(temp, 2);
-            SX/=temp;
-            SXX22.col(b-1-risk2_index) = SX;
-            SX*=temp;
+            // SX*= H02(risk2_index, 1)/pow(temp, 2);
+            // SXX2.col(b-1-risk2_index) = SX;
+            // SRXX += SX;
+            // SX/= H02(risk2_index, 1)/pow(temp, 2);
+            // SX/=temp;
+            // SXX22.col(b-1-risk2_index) = SX;
+            // SX*=temp;
+            // risk2_index--;
+            
+            SX2 = H02(risk2_index, 1)/pow(temp, 2)*SX;
+            SXX2.col(b-1-risk2_index) = SX2;
+            SRXX += SX2;
+            SX2 = 1/temp*SX;
+            SXX22.col(b-1-risk2_index) = SX2;
             risk2_index--;
           }
           else if (survtime(numSubj+1) != survtime(numSubj))
           {
-            SX*= H02(risk2_index, 1)/pow(temp, 2);
-            SXX2.col(b-1-risk2_index) = SX;
-            SRXX += SX;
-            SX/= H02(risk2_index, 1)/pow(temp, 2);
-            SX/=temp;
-            SXX22.col(b-1-risk2_index) = SX;
-            SX*=temp;
+            // SX*= H02(risk2_index, 1)/pow(temp, 2);
+            // SXX2.col(b-1-risk2_index) = SX;
+            // SRXX += SX;
+            // SX/= H02(risk2_index, 1)/pow(temp, 2);
+            // SX/=temp;
+            // SXX22.col(b-1-risk2_index) = SX;
+            // SX*=temp;
+            // risk2_index--;
+            
+            SX2 = H02(risk2_index, 1)/pow(temp, 2)*SX;
+            SXX2.col(b-1-risk2_index) = SX2;
+            SRXX += SX2;
+            SX2 = 1/temp*SX;
+            SXX22.col(b-1-risk2_index) = SX2;
             risk2_index--;
           }
           else
@@ -524,25 +570,39 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
               if (i2 == numSubj-1)
               {
-                SX*= H02(risk2_index, 1)/pow(temp, 2);
-                SXX2.col(b-1-risk2_index) = SX;
-                SRXX += SX;
-                SX/= H02(risk2_index, 1)/pow(temp, 2);
-                SX/=temp;
-                SXX22.col(b-1-risk2_index) = SX;
-                SX*=temp;
+                // SX*= H02(risk2_index, 1)/pow(temp, 2);
+                // SXX2.col(b-1-risk2_index) = SX;
+                // SRXX += SX;
+                // SX/= H02(risk2_index, 1)/pow(temp, 2);
+                // SX/=temp;
+                // SXX22.col(b-1-risk2_index) = SX;
+                // SX*=temp;
+                // risk2_index--;
+                
+                SX2 = H02(risk2_index, 1)/pow(temp, 2)*SX;
+                SXX2.col(b-1-risk2_index) = SX2;
+                SRXX += SX2;
+                SX2 = 1/temp*SX;
+                SXX22.col(b-1-risk2_index) = SX2;
                 risk2_index--;
                 break;
               }
               else if (survtime(i2+1) != survtime(i2))
               {
-                SX*= H02(risk2_index, 1)/pow(temp, 2);
-                SXX2.col(b-1-risk2_index) = SX;
-                SRXX += SX;
-                SX/= H02(risk2_index, 1)/pow(temp, 2);
-                SX/=temp;
-                SXX22.col(b-1-risk2_index) = SX;
-                SX*=temp;
+                // SX*= H02(risk2_index, 1)/pow(temp, 2);
+                // SXX2.col(b-1-risk2_index) = SX;
+                // SRXX += SX;
+                // SX/= H02(risk2_index, 1)/pow(temp, 2);
+                // SX/=temp;
+                // SXX22.col(b-1-risk2_index) = SX;
+                // SX*=temp;
+                // risk2_index--;
+                
+                SX2 = H02(risk2_index, 1)/pow(temp, 2)*SX;
+                SXX2.col(b-1-risk2_index) = SX2;
+                SRXX += SX2;
+                SX2 = 1/temp*SX;
+                SXX22.col(b-1-risk2_index) = SX2;
                 risk2_index--;
                 break;
               }
@@ -1069,6 +1129,8 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
 
     SS += MultVVoutprod(S);
+    
+    Smatrix.row(i) = S;
 
 
 
@@ -1140,6 +1202,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
                             Rcpp::Named("seSig")=seSig,
                             Rcpp::Named("FUNBS")= FUNBS,
                             Rcpp::Named("FUNBEC")= FUNBEC,
-                            Rcpp::Named("S")=SS);
+                            Rcpp::Named("FisherInfo")=SS,
+                            Rcpp::Named("Score")=Smatrix);
   
 }

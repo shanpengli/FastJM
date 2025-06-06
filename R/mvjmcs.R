@@ -53,7 +53,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
                    maxiter = 10000, opt = "nlminb", tol = 0.005,
                    print.para = TRUE, 
-                   initial.para = NULL){
+                   initial.para = NULL, Gamma1Cal, Gamma2Cal){
   
   start_time <- Sys.time()
   
@@ -510,12 +510,21 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
   } else {
     convergence = 1
-    SEest <- getmvCov(beta, gamma1, gamma2, 
-                      alpha1, alpha2, 
-                      H01, H02, pos.cov, Sig, sigma, 
-                      subX1, subY, subZ, getinit$W, 
+    SEest <- getmvCov(beta, gamma1, gamma2,
+                      alpha1, alpha2,
+                      H01, H02, pos.cov, Sig, sigma,
+                      subX1, subY, subZ, getinit$W,
                       getinit$survtime,getinit$cmprsk,
                       mdataM, mdataSM, pos.mode)
+    
+    # SEest <- getmvCovTest(beta, gamma1, gamma2,
+    #                   alpha1, alpha2,
+    #                   H01, H02, pos.cov, Sig, sigma,
+    #                   subX1, subY, subZ, getinit$W,
+    #                   getinit$survtime,getinit$cmprsk,
+    #                   mdataM, mdataSM, pos.mode, Gamma1Cal, Gamma2Cal)
+    
+    
     
     sebeta <- SEest$sebeta
     sesigma <- SEest$sesigma
@@ -541,7 +550,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
               alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
               Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
               vcov = vcov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
-              sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov, runtime = runtime))
+              sealpha1 = sealpha1, sealpha1 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, 
+              pos.cov = pos.cov, runtime = runtime))
   } else {
   # ~~~~~~~~~~~~~
   # SINGLE FAILURE
