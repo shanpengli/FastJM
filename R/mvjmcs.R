@@ -550,7 +550,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
               alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
               Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
               vcov = vcov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
-              sealpha1 = sealpha1, sealpha1 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, 
+              sealpha1 = sealpha1, sealpha2 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, 
               pos.cov = pos.cov, runtime = runtime))
   } else {
   # ~~~~~~~~~~~~~
