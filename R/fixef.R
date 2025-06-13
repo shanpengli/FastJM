@@ -23,8 +23,8 @@
 ##' 
 
 fixef <- function(object, process = c("Longitudinal", "Event"), ...) {
-  if (!inherits(object, "jmcs"))
-    stop("Use only with 'jmcs' objects.\n")
+  if (!inherits(object, "jmcs") && !inherits(object, "mvjmcs"))
+    stop("Use only with 'mvjmcs' or jmcs' objects.\n")
   
   if (process == "Longitudinal") {
     vars <- object$beta

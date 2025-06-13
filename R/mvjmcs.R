@@ -33,14 +33,28 @@
 ##' 
 ##' 
 ##'   require(FastJM)
-##'   require(survival
+##'   data(mvcdata)
+##'   data(mvydata)
 ##' 
+##'   \donttest{
 ##'   # Fit joint model with two biomarkers
 ##'   fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
 ##'                 random = list(~time| ID, ~1|ID),
 ##'                 surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001)
 ##'   fit
 ##'   
+##'   # Extract the parameter estimates of longitudinal sub-model fixed effects
+##'   fixef(fit, process = "Longitudinal")
+##'   
+##'   # Extract the parameter estimates of survival sub-model fixed effects
+##'   fixef(fit, process = "Event")
+##'   
+##'   # Obtain the random effects estimates for first 6 subjects 
+##'   head(ranef(fit))
+##'   
+##'   # Print parameter estimates
+##'   print.mvjmcs(fit)
+##'   }
 ##'   # Obtain the variance-variance matrix of all parameter estimates
 ##'   
 
@@ -56,13 +70,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    initial.para = NULL){
   
   start_time <- Sys.time()
-  
-  #
-  # if(numBio == 1){
-  #   mvjmcsSB()
-  # }
-  
-  
   
   if(is.list(long.formula)){
     numBio = length(long.formula)
