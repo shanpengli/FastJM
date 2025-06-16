@@ -15,24 +15,55 @@
 ##' @param print.para Logical; if \code{TRUE}, prints parameter values at each iteration.
 ##' @param initial.para Optional list of initialized parameters. Default is \code{NULL}.
 ##'
-##' @return A list containing:
-##' \item{output}{EM algorithm output from final iteration}
-##' \item{re}{Estimated random effects for each subject}
-##' \item{sigi}{Estimated random effects covariance matrices (posterior) for each subject}
-##' \item{beta}{Estimated fixed effects for longitudinal models}
-##' \item{sigmaout}{Biomarker error variance estimates}
-##' \item{gamma1}{Fixed effects for cause 1}
-##' \item{gamma2}{Fixed effects for cause 2 (if \code{CompetingRisk = TRUE})}
-##' \item{alpha1}{Association parameters for cause 1}
-##' \item{alpha2}{Association parameters for cause 2}
-##' \item{SEest}{Estimated standard errors of all parameters}
-##' \item{runtime}{Elapsed run time}
-##' \item{iter}{Number of EM iterations run}
+##' @return  Object of class \code{mvjmcs} with elements
+##' \item{beta}{the vector of all biomarker-specific fixed effects for the linear mixed effects sub-models.} 
+##' \item{betaList}{the list of biomarker-specific fixed effects for the linear mixed effects sub-model.} 
+##' \item{gamma1}{the vector of fixed effects for type 1 failure for the survival model.}
+##' \item{gamma2}{the vector of fixed effects for type 2 failure for the survival model. 
+##' Valid only if \code{CompetingRisk = TRUE}.}
+##' \item{alpha1}{the vector of association parameter(s) for type 1 failure.}
+##' \item{alpha2}{the vector of association parameter(s) for type 2 failure. Valid only if \code{CompetingRisk = TRUE}.}
+##' \item{H01}{the matrix that collects baseline hazards evaluated at each uncensored event time for type 1 failure. 
+##' The first column denotes uncensored event times, the second column the number of events, and the third columns 
+##' the hazards obtained by Breslow estimator.}
+##' \item{H02}{the matrix that collects baseline hazards evaluated at each uncensored event time for type 2 failure. 
+##' The data structure is the same as \code{H01}. Valid only if \code{CompetingRisk = TRUE}.}
+##' \item{Sig}{the variance-covariance matrix of the random effects.}
+##' \item{sigma}{the vector of the variance of the biomarker-specific measurement error for the linear mixed effects sub-models.}
+##' \item{iter}{the total number of iterations until convergence.}
+##' \item{convergence}{convergence identifier: 1 corresponds to successful convergence, 
+##' whereas 0 to a problem (i.e., when 0, usually more iterations are required).}
+##' \item{vcov}{the variance-covariance matrix of all the fixed effects for both models.}
+##' \item{sebeta}{the standard error of \code{beta}.}
+##' \item{segamma1}{the standard error of \code{gamma1}.}
+##' \item{segamma2}{the standard error of \code{gamma2}. 
+##' Valid only if \code{CompetingRisk = TRUE}.}
+##' \item{sealpha1}{the standard error of \code{nu1}.}
+##' \item{sealpha2}{the standard error of \code{nu2}. Valid only if \code{CompetingRisk = TRUE}.}
+##' \item{seSig}{the vector of standard errors of covariance of random effects.}
+##' \item{sesigma}{the standard error of variance of biomarker-specific measurement error for the linear mixed effects sub-models.}
+##' \item{pos.mode}{the posterior mode of the conditional distribution of random effects.}
+##' \item{pos.cov}{the posterior covariance of the conditional distribution of random effects.}
+##' \item{CompetingRisk}{logical value; TRUE if a competing event are accounted for.}
+##' \item{ydata}{the input longitudinal dataset for fitting a joint model.
+##' It has been re-ordered in accordance with descending observation times in \code{cdata}.}
+##' \item{cdata}{the input survival dataset for fitting a joint model.
+##' It has been re-ordered in accordance with descending observation times.}
+##' \item{PropEventType}{a frequency table of number of events.}
+##' \item{LongitudinalSubmodel}{the component of the \code{long.formula}.}
+##' \item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
+##' \item{random}{the component of the \code{random}.}
+##' \item{call}{the matched call.}
+##' \item{id}{the grouping vector for the longitudinal outcome.}
+##' \item{opt}{the numerical optimizer for obtaining the initial guess of the parameters in the linear mixed effects sub-models.}
+##' \item{runtime}{the total computation time.}
 ##'
 ##' @examples
 ##' 
 ##' 
 ##'   require(FastJM)
+##'   require(survival)
+##'   
 ##'   data(mvcdata)
 ##'   data(mvydata)
 ##' 
@@ -52,15 +83,8 @@
 ##'   # Obtain the random effects estimates for first 6 subjects 
 ##'   head(ranef(fit))
 ##'   
-##'   # Print parameter estimates
-##'   print.mvjmcs(fit)
 ##'   }
-##'   # Obtain the variance-variance matrix of all parameter estimates
 ##'   
-
-
-
-##' @seealso \code{\link{jmcs}}, \code{\link{survfitjmcs}}, \code{\link{AUCjmcs}}, \code{\link{MAEQjmcs}}, \code{\link{PEjmcs}}
 ##' @export
 
 mvjmcs <- function(ydata, cdata, long.formula,
@@ -200,8 +224,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   if(CompetingRisk == TRUE){
     
-    
-    
     CUH01 <- rep(0, n)
     CUH02 <- rep(0, n)
     HAZ01 <- rep(0, n)
@@ -251,6 +273,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
     pos.cov <- list()
     submdataM <- vector("list", numBio)
     submdataSM <- vector("list", numBio)
+    namesbeta <- vector("list", numBio)
+    pbeta <- c()
+    for (g in 1:numBio) {
+      namesbeta[[g]] <- paste0(names(getinit$beta[[g]]), "_bio", g)
+      pbeta[g] <- length(getinit$beta[[g]])
+    }
+    namesgamma <- names(getinit$gamma1)
     
     for(j in 1:numSubj) {
       subX1[[j]] <- vector("list", numBio)
@@ -307,21 +336,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
     survtime <- getinit$survtime
     cmprsk <- getinit$cmprsk
     
-    # if(method == "quad"){
-    #   output <- getQuadMix(subX1,subY, subZ, getinit$W,
-    #                        mdataM, mdataSM,
-    #                        pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
-    #                        H01, H02, getinit$survtime, getinit$cmprsk,
-    #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
-    #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-    # } else {
     output <- normalApprox(subX1,subY, subZ, getinit$W,
                            mdataM, mdataSM,
                            pos.mode,  getinit$sigma, pos.cov,
                            H01, H02, getinit$survtime, getinit$cmprsk,
                            getinit$gamma1, getinit$gamma2, getinit$alpha,
                            CUH01, CUH02,HAZ01,HAZ02, Sig, subdata$beta)
-    # }
     
     # PAR UPDATE HERE
     
@@ -542,18 +562,27 @@ mvjmcs <- function(ydata, cdata, long.formula,
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
     call <- match.call()
     
+    names(gamma1) <- paste0(namesgamma, "_1")
+    names(gamma2) <- paste0(namesgamma, "_2")
+    betaList <- vector("list", numBio)
+    betacount <- 0
+    for (g in 1:numBio) {
+      betaList[[g]] <- beta[(betacount+1):(betacount+pbeta[g])]
+      names(betaList[[g]]) <- namesbeta[[g]]
+      betacount <- betacount + pbeta[g]
+    }
+    
     # return(list(output = output, re = pos.mode, sigi = pos.cov, 
     #             beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
     #             SEest = SEest, runtime = runtime, iter = iter))
+    names(beta) <- unlist(namesbeta)
     
-    
-    result <- list(beta = beta, gamma1 = gamma1, gamma2 = gamma2, 
+    result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, gamma2 = gamma2, 
                    alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
                    Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
                    vcov = vcov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
                    sealpha1 = sealpha1, sealpha2 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
-                   # fitted, fittedSurv
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
                    runtime = runtime)
@@ -612,6 +641,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
     pos.cov <- list()
     submdataM <- vector("list", numBio)
     submdataSM <- vector("list", numBio)
+    namesbeta <- vector("list", numBio)
+    pbeta <- c()
+    for (g in 1:numBio) {
+      namesbeta[[g]] <- paste0(names(getinit$beta[[g]]), "_bio", g)
+      pbeta[g] <- length(getinit$beta[[g]])
+    }
+    namesgamma <- names(getinit$gamma1)
     
     for(j in 1:numSubj) {
       subX1[[j]] <- vector("list", numBio)
@@ -663,26 +699,14 @@ mvjmcs <- function(ydata, cdata, long.formula,
     survtime <- getinit$survtime
     cmprsk <- getinit$cmprsk
     
-    # if(method == "quad"){
-    #   output <- getQuadMix(subX1,subY, subZ, getinit$W,
-    #                        mdataM, mdataSM,
-    #                        pos.mode,  getinit$sigma, pos.cov, weight.c, abscissas.c,
-    #                        H01, H02, getinit$survtime, getinit$cmprsk,
-    #                        getinit$gamma1, getinit$gamma2, getinit$alpha,
-    #                        CUH01, CUH02,HAZ01,HAZ02,Sig, subdata$beta)
-    # } else {
     output <- normalApproxSF(subX1,subY, subZ, getinit$W,
                              mdataM, mdataSM,
                              pos.mode,  getinit$sigma, pos.cov, 
                              H01, getinit$survtime, getinit$cmprsk,
                              getinit$gamma1, getinit$alpha,
                              CUH01,HAZ01,Sig, subdata$beta)
-    # }
-    
-    # PAR UPDATE HERE
     
     tempbeta <- output$beta
-    # tempsigma <- c(output$sigma1, output$sigma2)
     tempphi1 <- output$phi1
     
     it <- 1
@@ -858,15 +882,25 @@ mvjmcs <- function(ydata, cdata, long.formula,
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
     call <- match.call()
     
+    names(gamma1) <- paste0(namesgamma, "_1")
+    betaList <- vector("list", numBio)
+    betacount <- 0
+    for (g in 1:numBio) {
+      betaList[[g]] <- beta[(betacount+1):(betacount+pbeta[g])]
+      names(betaList[[g]]) <- namesbeta[[g]]
+      betacount <- betacount + pbeta[g]
+    }
     
-    result <- list(beta = beta, gamma1 = gamma1, 
+    names(beta) <- unlist(namesbeta)
+    
+    
+    result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, 
                    alpha1 = alpha1, H01 = H01, 
                    Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
                    vcov = vcov, sebeta = sebeta, segamma1 = segamma1,
                    sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, 
                    pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
-                   # fitted, fittedSurv
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
                    runtime = runtime)

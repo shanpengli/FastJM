@@ -7,15 +7,6 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
   
   survival <- all.vars(surv.formula)
   
-  # if (is.null(RE) & model == "interslope") {
-  #   stop("Random effects covariates must be specified.")
-  # }
-  # yID <- unique(ydata[, ID])
-  # cID <- cdata[, ID]
-  # if (prod(yID == cID) == 0) {
-  #   stop("The order of subjects in ydata doesn't match with cdata.")
-  # }
-  
   ydim = dim(ydata)
   cdim = dim(cdata)
   
@@ -168,7 +159,7 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
       
     } else {
       
- 
+      
       if (is.null(initial.para)) {
         
         survfmla.fixed <- surv.formula[3]
@@ -209,13 +200,13 @@ Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
           gamma1 <- fitSURV1co[-allalphaInd1]
           
         }
-          
+        
       } else {
         gamma1 <- initial.para$gamma1
         alpha <- initial.para$alpha
       }
     }
-
+    
     
     ## extract covariates
     X <- Y <- list()
