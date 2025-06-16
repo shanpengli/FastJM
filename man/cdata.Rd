@@ -3,7 +3,7 @@
 \docType{data}
 \name{cdata}
 \alias{cdata}
-\title{Simulated competing risks data}
+\title{Simulated competing risks data correlated with ydata}
 \format{
 This data frame contains the following columns:
 

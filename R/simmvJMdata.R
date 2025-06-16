@@ -1,3 +1,33 @@
+##' Data simulation from the joint model of multivariate longitudinal biomarkers and time-to-event data
+##' @title Joint modeling of multivariate longitudinal and competing risks data
+##' @name simmvJMdata
+##' @param seed a random seed number specified for simulating a joint model dataset.
+##' @param N an integer to specify the sample size.
+##' @param increment a scalar to specify the increment of visit time for longituidnal measurements.
+##' @param beta a list of true parameters for the linear mixed effects sub-models. 
+##' Each component of the list correspond to a specific biomarker.
+##' @param sigma a vector of true error variance for all biomarkers.
+##' @param gamma1 a vector of true parameters of survival fixed effects for failure 1.
+##' @param gamma2 a vector of true parameters of survival fixed effects for failure 2.
+##' @param alpha1 a list of true parameters for the association parameters for failure 1. 
+##' Each component of the list correspond to a specific biomarker. 
+##' @param alpha2 a list of true parameters for the association parameters for failure 2. 
+##' Each component of the list correspond to a specific biomarker. 
+##' @param lambda1 the baseline hazard rate of failure 1. 
+##' An exponential distribution with a rate parameter of \code{lambda1} is assumed.
+##' @param lambda2 the baseline hazard rate of failure 2. 
+##' An exponential distribution with a rate parameter of \code{lambda2} is assumed.
+##' @param CL a lower limit of a uniform distribution to be specified for the censoring time.
+##' @param CU an upper limit of a uniform distribution to be specified for the censoring time.
+##' @param covb a matrix of variance-covariance matrix of random effects.
+##' @param missprob a scalar (ranging from 0 to 1) to specify the probability of 
+##' missing longitudinal observations. Default is 0.
+##' @param CR logical; if \code{TRUE}, simulate competing risks time-to-event data with 2 failures.
+##' Default is \code{TRUE}.
+##' @return  a list of datasets for both longitudinal and survival data with the elements
+##' \item{mvydata}{a long-format data frame of longitudinal data.} 
+##' \item{mvcdata}{a dataframe of survival data.} 
+##' 
 ##' @export
 ##' 
 
@@ -271,7 +301,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   ydata <- dplyr::left_join(Ydata, X, by = "ID")
   cdata <- as.data.frame(cdata)
   a <- list(cdata, ydata)
-  names(a) <- c("cdata", "ydata")
+  names(a) <- c("mvcdata", "mvydata")
   return(a)
   }
 }

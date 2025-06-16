@@ -14,9 +14,7 @@ mvjmcs(
   opt = "nlminb",
   tol = 0.005,
   print.para = TRUE,
-  initial.para = NULL,
-  Gamma1Cal,
-  Gamma2Cal
+  initial.para = NULL
 )
 }
 \arguments{
@@ -41,19 +39,48 @@ mvjmcs(
 \item{initial.para}{Optional list of initialized parameters. Default is \code{NULL}.}
 }
 \value{
-A list containing:
-\item{output}{EM algorithm output from final iteration}
-\item{re}{Estimated random effects for each subject}
-\item{sigi}{Estimated random effects covariance matrices (posterior) for each subject}
-\item{beta}{Estimated fixed effects for longitudinal models}
-\item{sigmaout}{Biomarker error variance estimates}
-\item{gamma1}{Fixed effects for cause 1}
-\item{gamma2}{Fixed effects for cause 2 (if \code{CompetingRisk = TRUE})}
-\item{alpha1}{Association parameters for cause 1}
-\item{alpha2}{Association parameters for cause 2}
-\item{SEest}{Estimated standard errors of all parameters}
-\item{runtime}{Elapsed run time}
-\item{iter}{Number of EM iterations run}
+Object of class \code{mvjmcs} with elements
+\item{beta}{the vector of all biomarker-specific fixed effects for the linear mixed effects sub-models.} 
+\item{betaList}{the list of biomarker-specific fixed effects for the linear mixed effects sub-model.} 
+\item{gamma1}{the vector of fixed effects for type 1 failure for the survival model.}
+\item{gamma2}{the vector of fixed effects for type 2 failure for the survival model. 
+Valid only if \code{CompetingRisk = TRUE}.}
+\item{alpha1}{the vector of association parameter(s) for type 1 failure.}
+\item{alpha2}{the vector of association parameter(s) for type 2 failure. Valid only if \code{CompetingRisk = TRUE}.}
+\item{H01}{the matrix that collects baseline hazards evaluated at each uncensored event time for type 1 failure. 
+The first column denotes uncensored event times, the second column the number of events, and the third columns 
+the hazards obtained by Breslow estimator.}
+\item{H02}{the matrix that collects baseline hazards evaluated at each uncensored event time for type 2 failure. 
+The data structure is the same as \code{H01}. Valid only if \code{CompetingRisk = TRUE}.}
+\item{Sig}{the variance-covariance matrix of the random effects.}
+\item{sigma}{the vector of the variance of the biomarker-specific measurement error for the linear mixed effects sub-models.}
+\item{iter}{the total number of iterations until convergence.}
+\item{convergence}{convergence identifier: 1 corresponds to successful convergence, 
+whereas 0 to a problem (i.e., when 0, usually more iterations are required).}
+\item{vcov}{the variance-covariance matrix of all the fixed effects for both models.}
+\item{sebeta}{the standard error of \code{beta}.}
+\item{segamma1}{the standard error of \code{gamma1}.}
+\item{segamma2}{the standard error of \code{gamma2}. 
+Valid only if \code{CompetingRisk = TRUE}.}
+\item{sealpha1}{the standard error of \code{nu1}.}
+\item{sealpha2}{the standard error of \code{nu2}. Valid only if \code{CompetingRisk = TRUE}.}
+\item{seSig}{the vector of standard errors of covariance of random effects.}
+\item{sesigma}{the standard error of variance of biomarker-specific measurement error for the linear mixed effects sub-models.}
+\item{pos.mode}{the posterior mode of the conditional distribution of random effects.}
+\item{pos.cov}{the posterior covariance of the conditional distribution of random effects.}
+\item{CompetingRisk}{logical value; TRUE if a competing event are accounted for.}
+\item{ydata}{the input longitudinal dataset for fitting a joint model.
+It has been re-ordered in accordance with descending observation times in \code{cdata}.}
+\item{cdata}{the input survival dataset for fitting a joint model.
+It has been re-ordered in accordance with descending observation times.}
+\item{PropEventType}{a frequency table of number of events.}
+\item{LongitudinalSubmodel}{the component of the \code{long.formula}.}
+\item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
+\item{random}{the component of the \code{random}.}
+\item{call}{the matched call.}
+\item{id}{the grouping vector for the longitudinal outcome.}
+\item{opt}{the numerical optimizer for obtaining the initial guess of the parameters in the linear mixed effects sub-models.}
+\item{runtime}{the total computation time.}
 }
 \description{
 Joint modeling of multivariate longitudinal continuous data and competing risks
@@ -65,17 +92,30 @@ Function fits a joint model for multiple longitudinal outcomes and competing ris
 
 
   require(FastJM)
-  require(survival
+  require(survival)
+  
+  data(mvcdata)
+  data(mvydata)
 
+  \donttest{
   # Fit joint model with two biomarkers
-  fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
-                random = list(~time| ID, ~1|ID),
-                surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001)
+  fit <- mvjmcs(ydata = mvydata, cdata = mvcdata, 
+                long.formula = list(Y1 ~ X11 + X12 + time, 
+                                    Y2 ~ X11 + X12 + time),
+                random = list(~ time | ID,
+                              ~ 1 | ID),
+                surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 1000, opt = "optim", 
+                tol = 1e-3, print.para = FALSE)
   fit
   
-  # Obtain the variance-variance matrix of all parameter estimates
+  # Extract the parameter estimates of longitudinal sub-model fixed effects
+  fixef(fit, process = "Longitudinal")
   
-}
-\seealso{
-\code{\link{jmcs}}, \code{\link{survfitjmcs}}, \code{\link{AUCjmcs}}, \code{\link{MAEQjmcs}}, \code{\link{PEjmcs}}
+  # Extract the parameter estimates of survival sub-model fixed effects
+  fixef(fit, process = "Event")
+  
+  # Obtain the random effects estimates for first 6 subjects 
+  head(ranef(fit))
+  }
+  
 }
