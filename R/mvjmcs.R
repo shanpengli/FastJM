@@ -69,9 +69,13 @@
 ##' 
 ##'   \donttest{
 ##'   # Fit joint model with two biomarkers
-##'   fit <-mvjmcs(ydata, cdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time),
-##'                 random = list(~time| ID, ~1|ID),
-##'                 surv.formula =Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 50, opt = "nlminb", tol = 0.001)
+##'   fit <- mvjmcs(ydata = mvydata, cdata = mvcdata, 
+##'                 long.formula = list(Y1 ~ X11 + X12 + time, 
+##'                                     Y2 ~ X11 + X12 + time),
+##'                 random = list(~ time | ID,
+##'                               ~ 1 | ID),
+##'                 surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 1000, opt = "optim", 
+##'                 tol = 1e-3, print.para = FALSE)
 ##'   fit
 ##'   
 ##'   # Extract the parameter estimates of longitudinal sub-model fixed effects
@@ -82,7 +86,6 @@
 ##'   
 ##'   # Obtain the random effects estimates for first 6 subjects 
 ##'   head(ranef(fit))
-##'   
 ##'   }
 ##'   
 ##' @export
@@ -247,7 +250,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     index = 0
     if (is.null(initial.para)) {
       
-      SigList <- getinit$Sig # need to be 4x4
+      SigList <- getinit$Sig
       Sig <- matrix(rep(0, pREtotal), nrow = pREtotal, ncol = pREtotal)
       for(g in 1:length(pREvec)){
         Sig[(index+1):(index+pREvec[g]),(index+1):(index+pREvec[g])] <- SigList[[g]]
