@@ -1,6 +1,6 @@
 # Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
-name: R-CMD-check.yaml
+name: R-CMD-check
 
 on:
   push:
@@ -39,14 +39,17 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - name: Install dependencies
+      - name: Confirm R and Rscript available
         run: |
-          install.packages("rcmdcheck")
-          install.packages("remotes")
+          which R
+          which Rscript
+          Rscript -e 'sessionInfo()'
+
+      - name: Install dependencies manually
+        run: |
+          install.packages(c("remotes", "rcmdcheck"), repos = "https://cloud.r-project.org")
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
 
-      - uses: r-lib/actions/check-r-package@v2
-        with:
-          upload-snapshots: true
-          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+      - name: Run R CMD check
+        run: R CMD check --no-manual --as-cran .
