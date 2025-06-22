@@ -8,6 +8,7 @@ downloads](https://cranlogs.r-pkg.org/badges/FastJM)](https://cran.r-project.org
 [![](https://cranlogs.r-pkg.org/badges/grand-total/FastJM)](https://cran.r-project.org/package=FastJM)
 [![CRAN\_time\_from\_release](https://www.r-pkg.org/badges/ago/FastJM)](https://cran.r-project.org/package=FastJM)
 [![CRAN\_Status\_Badge\_version\_last\_release](https://www.r-pkg.org/badges/version-last-release/FastJM)](https://cran.r-project.org/package=FastJM)
+[![R-CMD-check](https://github.com/shanpengli/FastJM/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/shanpengli/FastJM/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The `FastJM` package implement efficient computation of semi-parametric
@@ -19,6 +20,11 @@ The `FastJM` package comes with several simulated datasets. To fit a
 joint model, we use `jmcs` function.
 
     require(FastJM)
+    #> Loading required package: FastJM
+    #> Loading required package: survival
+    #> Loading required package: MASS
+    #> Loading required package: statmod
+    #> Loading required package: magrittr
     require(survival)
     data(ydata)
     data(cdata)
@@ -230,7 +236,7 @@ risks, we can use the `mvjmcs` function.
                   surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, 
                   maxiter = 1000, opt = "optim",
                   tol = 1e-3, print.para = FALSE)
-    #> Time difference of 29.49028 secs
+    #> Time difference of 30.46499 secs
     mvfit
     #> 
     #> Call:
@@ -243,8 +249,6 @@ risks, we can use the `mvjmcs` function.
     #> Proportion of competing risks: 
     #> Risk 1 : 41.62 %
     #> Risk 2 : 11.25 %
-    #> 
-    #> Numerical intergration:
     #> 
     #> Model Type: joint modeling of multivariate longitudinal continuous and competing risks data 
     #> 
@@ -326,28 +330,28 @@ We can extract the components of the model as follows:
     #>      X21_2      X22_2 
     #> -0.2181847  0.4843826
     summary(mvfit, process = "Event")
-    #>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper 95%exp(Lower)
-    #> 1              X21_1  0.9333    2.5429   0.1344   0.6698   1.1968        1.9539
-    #> 2              X22_1  0.5107    1.6664   0.0316   0.4487   0.5727        1.5663
-    #> 3              X21_2 -0.2182    0.8040   0.2490  -0.7062   0.2698        0.4935
-    #> 4              X22_2  0.4844    1.6232   0.0592   0.3684   0.6004        1.4454
-    #> 5  (Intercept)_1bio1  0.4991    1.6472   0.0753   0.3514   0.6468        1.4211
-    #> 6         time_1bio1  0.7054    2.0247   0.0850   0.5388   0.8720        1.7140
-    #> 7  (Intercept)_1bio2 -0.5462    0.5791   0.0797  -0.7024  -0.3900        0.4954
-    #> 8  (Intercept)_2bio1  0.6319    1.8812   0.1334   0.3704   0.8934        1.4484
-    #> 9         time_2bio1  0.6606    1.9360   0.1672   0.3330   0.9883        1.3952
-    #> 10 (Intercept)_2bio2 -0.4837    0.6165   0.1588  -0.7949  -0.1725        0.4516
-    #>    95%exp(Upper) p-values
-    #> 1         3.3095   0.0000
-    #> 2         1.7730   0.0000
-    #> 3         1.3097   0.3809
-    #> 4         1.8229   0.0000
-    #> 5         1.9093   0.0000
-    #> 6         2.3917   0.0000
-    #> 7         0.6770   0.0000
-    #> 8         2.4435   0.0000
-    #> 9         2.6866   0.0001
-    #> 10        0.8416   0.0023
+    #>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper
+    #> 1              X21_1  0.9333    2.5429   0.1344   0.6698   1.1968
+    #> 2              X22_1  0.5107    1.6664   0.0316   0.4487   0.5727
+    #> 3              X21_2 -0.2182    0.8040   0.2490  -0.7062   0.2698
+    #> 4              X22_2  0.4844    1.6232   0.0592   0.3684   0.6004
+    #> 5  (Intercept)_1bio1  0.4991    1.6472   0.0753   0.3514   0.6468
+    #> 6         time_1bio1  0.7054    2.0247   0.0850   0.5388   0.8720
+    #> 7  (Intercept)_1bio2 -0.5462    0.5791   0.0797  -0.7024  -0.3900
+    #> 8  (Intercept)_2bio1  0.6319    1.8812   0.1334   0.3704   0.8934
+    #> 9         time_2bio1  0.6606    1.9360   0.1672   0.3330   0.9883
+    #> 10 (Intercept)_2bio2 -0.4837    0.6165   0.1588  -0.7949  -0.1725
+    #>    95%exp(Lower) 95%exp(Upper) p-values
+    #> 1         1.9539        3.3095   0.0000
+    #> 2         1.5663        1.7730   0.0000
+    #> 3         0.4935        1.3097   0.3809
+    #> 4         1.4454        1.8229   0.0000
+    #> 5         1.4211        1.9093   0.0000
+    #> 6         1.7140        2.3917   0.0000
+    #> 7         0.4954        0.6770   0.0000
+    #> 8         1.4484        2.4435   0.0000
+    #> 9         1.3952        2.6866   0.0001
+    #> 10        0.4516        0.8416   0.0023
 
     # Random effects for first few subjects
     head(ranef(mvfit))
