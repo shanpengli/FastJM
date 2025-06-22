@@ -3,7 +3,7 @@
 ##' @name simmvJMdata
 ##' @param seed a random seed number specified for simulating a joint model dataset.
 ##' @param N an integer to specify the sample size.
-##' @param increment a scalar to specify the increment of visit time for longituidnal measurements.
+##' @param increment a scalar to specify the increment of visit time for longitudinal measurements.
 ##' @param beta a list of true parameters for the linear mixed effects sub-models. 
 ##' Each component of the list correspond to a specific biomarker.
 ##' @param sigma a vector of true error variance for all biomarkers.

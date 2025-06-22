@@ -23,7 +23,6 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     for (i in 1:2) {
       cat("Risk", i, ":", round(x$PropEventType[i+1, 2]/nrow(x$cdata)*100, 2), "%\n")
     }
-    cat("\nNumerical intergration:\n")
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and competing risks data", "\n\n")
     cat("Model summary:\n")
     cat("Longitudinal process: linear mixed effects model\n")

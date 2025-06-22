@@ -149,10 +149,9 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     if (is.numeric(Last.time)) {
       if (length(Last.time) == 1) {
         Last.time <- rep(Last.time, nrow(cnewdata))
-      } else if (length(Last.time) < nrow(cnewdata)) {
+      } 
+      if (length(Last.time) < nrow(cnewdata)) {
         stop("The last.time vector does not match cnewdata.")
-      } else {
-        next
       }
     }
   } else {

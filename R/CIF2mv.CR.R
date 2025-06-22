@@ -49,7 +49,7 @@ CIF2mv.CR <- function(data, H01, H02, stime, u, bl, numBio, pREvec) {
       }
       
       
-    } else next
+    }
   }
   CIF2
 }

@@ -1,4 +1,4 @@
-##' @title Time-dependent AUC  for joint models
+##' @title Time-dependent AUC/Cindex for joint models
 ##' @name AUCjmcs
 ##' @aliases AUCjmcs
 ##' @param seed a numeric value of seed to be specified for cross validation.
@@ -54,6 +54,9 @@ AUCjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NUL
   }
   if (is.null(maxiter)) {
     maxiter <- 10000
+  }
+  if (length(metric) != 1 || !metric %in% c("AUC", "Cindex")) {
+    stop("Please choose one of the following options: 'AUC' or 'Cindex'.")
   }
   CompetingRisk <- object$CompetingRisk
   set.seed(seed)
@@ -140,7 +143,7 @@ AUCjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NUL
                 CIF[k, 3] <- survfit$Pred[[k]][j, 3]
               }
               
-            if (metric == "AUC") {
+            if (identical(metric, "AUC")) {
               ROC <- timeROC::timeROC(T = CIF$time, delta = CIF$status,
                                       weighting = "marginal",
                                       marker = CIF$CIF1, cause = 1,
@@ -185,7 +188,7 @@ AUCjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NUL
               Surv[k, 2] <- survfit$Pred[[k]][j, 2]
             }
             
-            if (metric == "AUC") {
+            if (identical(metric, "AUC")) {
               ROC <- timeROC::timeROC(T = Surv$time, delta = Surv$status,
                                       weighting = "marginal",
                                       marker = -Surv$Surv, cause = 1,
@@ -209,7 +212,7 @@ AUCjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NUL
   }
   result <- list(n.cv = n.cv, AUC.cv = AUC.cv, landmark.time = landmark.time,
                  horizon.time = horizon.time, method = method, quadpoint = quadpoint, 
-                 CompetingRisk = CompetingRisk, seed = seed)
+                 CompetingRisk = CompetingRisk, seed = seed, metric = metric)
   class(result) <- "AUCjmcs"
   
   return(result)

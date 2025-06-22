@@ -7,7 +7,7 @@
 fixef(object, process = c("Longitudinal", "Event"), ...)
 }
 \arguments{
-\item{object}{an object inheriting from class \code{jmcs}.}
+\item{object}{an object inheriting from class \code{jmcs} or \code{mvjmcs}.}
 
 \item{process}{for which sub-model to extract the estimated coefficients.}
 

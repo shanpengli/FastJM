@@ -1,8 +1,8 @@
 Package: FastJM
 Type: Package
 Title: Semi-Parametric Joint Modeling of Longitudinal and Survival Data
-Version: 1.4.2
-Date: 2024-02-29
+Version: 1.5.0
+Date: 2025-06-22
 Authors@R: c(
     person("Shanpeng", "Li", email = "lishanpeng0913@ucla.edu", 
         role = c("aut", "cre")),
@@ -19,7 +19,7 @@ Authors@R: c(
     )
 Maintainer: Shanpeng Li <lishanpeng0913@ucla.edu>
 Encoding: UTF-8
-Description: Maximum likelihood estimation for the semi-parametric joint modeling of competing risks and longitudinal data applying customized linear scan algorithms, proposed by Li and colleagues (2022) <doi:10.1155/2022/1362913>. 
+Description: Maximum likelihood estimation for the semi-parametric joint modeling of competing risks and (multivariate) longitudinal data applying customized linear scan algorithms, proposed by Li and colleagues (2022) <doi:10.1155/2022/1362913>. 
              The time-to-event data is modelled using a (cause-specific) Cox proportional hazards regression model with time-fixed covariates. The longitudinal 
              outcome is modelled using a linear mixed effects model. The association is captured by shared random effects. The model 
              is estimated using an Expectation Maximization algorithm.

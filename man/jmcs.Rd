@@ -168,8 +168,14 @@ APE
 ## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
 AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
                obs.time = "time", method = "GH",
-               quadpoint = NULL, maxiter = 1000, n.cv = 3)
+               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
 summary(AUC, digits = 3)
+
+## or using cross-validated mean C-index
+Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "Cindex")
+summary(Cindex, digits = 3)
 
 }
 

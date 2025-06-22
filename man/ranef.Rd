@@ -7,7 +7,7 @@
 ranef(object, ...)
 }
 \arguments{
-\item{object}{an object inheriting from class \code{jmcs}.}
+\item{object}{an object inheriting from class \code{jmcs} or \code{mvjmcs}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

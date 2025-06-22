@@ -25,7 +25,7 @@ The `FastJM` package implement efficient computation of semi-parametric joint mo
 
 The `FastJM` package comes with several simulated datasets. To fit a joint model, we use `jmcs` function. 
 
-```{r, eval=TRUE}
+```{r}
 require(FastJM)
 require(survival)
 data(ydata)
@@ -39,7 +39,7 @@ fit
 
 The `FastJM` package can make dynamic prediction given the longitudinal history information. Below is a toy example for competing risks data. Conditional cumulative incidence probabilities for each failure will be presented.
 
-```{r, eval=TRUE}
+```{r}
 ND <- ydata[ydata$ID %in% c(419, 218), ]
 ID <- unique(ND$ID)
 NDc <- cdata[cdata$ID  %in% ID, ]
@@ -53,7 +53,7 @@ survfit
 ```
 
 To assess the prediction accuracy of the fitted joint model, we may run `PEjmcs` to calculate the Brier score. 
-```{r, eval=TRUE}
+```{r}
 ## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
 PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
              obs.time = "time", method = "GH", 
@@ -63,7 +63,8 @@ summary(PE, error = "Brier")
 ```
 
 An alternative to assess the prediction accuracy is to run `MAEQjmcs` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
-```{r, eval=TRUE}
+
+```{r}
 ## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
 MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
                  obs.time = "time", method = "GH", 
@@ -73,10 +74,53 @@ summary(MAEQ, digits = 3)
 ```
 
 We may also calculate the area under the ROC curve (AUC) to assess the discrimination measure of joint models.
-```{r, eval=TRUE}
+```{r}
 ## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
 AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
                obs.time = "time", method = "GH",
-               quadpoint = NULL, maxiter = 1000, n.cv = 3)
+               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
 summary(AUC, digits = 3)
 ```
+
+Alternatively, we can also calculate concordance index (Cindex) as another discrimination measure.
+```{r}
+## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
+Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               maxiter = 1000, n.cv = 3, metric = "Cindex")
+summary(Cindex, digits = 3)
+```
+
+To fit a joint model with multiple longitudinal outcomes and competing risks, we can use the `mvjmcs` function.
+
+```{r, eval=TRUE}
+data(mvydata)
+data(mvcdata)
+library(FastJM)
+mvfit <- mvjmcs(ydata = mvydata, cdata = mvcdata,
+              long.formula = list(Y1 ~ X11 + X12 + time,
+                                  Y2 ~ X11 + X12 + time),
+              random = list(~ time | ID,
+                            ~ 1 | ID),
+              surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, 
+              maxiter = 1000, opt = "optim",
+              tol = 1e-3, print.para = FALSE)
+mvfit
+```
+
+We can extract the components of the model as follows:
+
+```{r, eval=TRUE}
+# Longitudinal fixed effects
+fixef(mvfit, process = "Longitudinal")
+summary(mvfit, process = "Longitudinal")
+
+# Survival fixed effects
+fixef(mvfit, process = "Event")
+summary(mvfit, process = "Event")
+
+# Random effects for first few subjects
+head(ranef(mvfit))
+```
+
+Currently, prediction and validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to mvjmcs is under active development and will be available later this year.

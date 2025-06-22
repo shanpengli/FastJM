@@ -2,7 +2,7 @@
 % Please edit documentation in R/AUCjmcs.R
 \name{AUCjmcs}
 \alias{AUCjmcs}
-\title{Time-dependent AUC  for joint models}
+\title{Time-dependent AUC/Cindex for joint models}
 \usage{
 AUCjmcs(
   seed = 100,
@@ -64,7 +64,7 @@ which time-dependent survival covariates are included for dynamic prediction. De
 a list of matrices with conditional probabilities for subjects.
 }
 \description{
-Time-dependent AUC  for joint models
+Time-dependent AUC/Cindex for joint models
 }
 \seealso{
 \code{\link{jmcs}, \link{survfitjmcs}}

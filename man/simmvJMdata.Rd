@@ -28,7 +28,7 @@ simmvJMdata(
 
 \item{N}{an integer to specify the sample size.}
 
-\item{increment}{a scalar to specify the increment of visit time for longituidnal measurements.}
+\item{increment}{a scalar to specify the increment of visit time for longitudinal measurements.}
 
 \item{beta}{a list of true parameters for the linear mixed effects sub-models. 
 Each component of the list correspond to a specific biomarker.}

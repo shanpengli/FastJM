@@ -28,7 +28,8 @@ GetEmpiricalCIF <- function(data, time, status) {
   for (i in 1:nrow(table1)) {
     if (count > length(time1)) {
       break
-    } else if (table1[i, 1] != time1[count]) {
+    }
+    if (table1[i, 1] != time1[count]) {
       next
     } else {
       CIF <- CIF + table1[i, 2]*h1[count]
@@ -54,7 +55,8 @@ GetEmpiricalCIF <- function(data, time, status) {
   for (i in 1:nrow(table1)) {
     if (count > length(time2)) {
       break
-    } else if (table1[i, 1] != time2[count]) {
+    }
+    if (table1[i, 1] != time2[count]) {
       next
     } else {
       CIF <- CIF + table1[i, 2]*h2[count]

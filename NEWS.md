@@ -1,3 +1,8 @@
+# FastJM 1.5.0
+
+* Add a new function ```mvjmcs()``` to support multivariate joint modeling.
+
+
 # FastJM 1.4.2
 
 * Fix small bugs within C functions.

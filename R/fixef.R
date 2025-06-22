@@ -1,7 +1,7 @@
 ##' @title Estimated coefficients estimates for joint models
 ##' @name fixef
 ##' @description Extracts the fixed effects for a fitted joint model.
-##' @param object an object inheriting from class \code{jmcs}.
+##' @param object an object inheriting from class \code{jmcs} or \code{mvjmcs}.
 ##' @param process for which sub-model to extract the estimated coefficients.
 ##' @param ... further arguments passed to or from other methods.
 ##' @return A numeric vector or a list of the estimated parameters for the fitted model.

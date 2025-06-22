@@ -26,7 +26,7 @@ CIF2.CR <- function(data, H01, H02, s, u, bl) {
         CIF2 <- CIF2 + H02[i, 3]*exp(data$X2%*%data$gamma2 + data$nu2%*%bl)
       }
 
-    } else next
+    }
   }
   CIF2
 }

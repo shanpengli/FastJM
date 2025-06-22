@@ -50,7 +50,7 @@ CIF1mv.CR <- function(data, H01, H02, stime, u, bl, numBio, pREvec) {
         CIF1 <- CIF1 + H01[i, 3]*exp(data$W%*%data$gamma1 + sumalpha1b)
       }
       
-    } else next
+    }
   }
   CIF1
 }
