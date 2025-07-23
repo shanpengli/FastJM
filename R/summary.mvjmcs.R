@@ -33,6 +33,29 @@ summary.mvjmcs <- function(object, process = c("Longitudinal", "Event"), digits 
     out[, 2:ncol(out)] <- round(out[, 2:ncol(out)], digits = digits)
     out[, ncol(out)] <- format(out[, ncol(out)], scientific = FALSE)
     
+    tempName <- c()
+    numBio <- length(object$sigma)
+    for(g in 1:numBio){
+      tempName[g] <- paste0("sigma^2_","bio", g)
+    }
+    Estimate <- object$sigma
+    SE <- object$sesigma
+    LowerLimit <- Estimate - 1.96 * SE
+    UpperLimit <- Estimate + 1.96 * SE
+    zval = (Estimate/SE)
+    pval = 2 * pnorm(-abs(zval))
+    outsigma <- data.frame(Estimate, SE, LowerLimit, UpperLimit, pval)
+    rownames(outsigma) <- tempName
+    outsigma <- cbind(rownames(outsigma), outsigma)
+    rownames(outsigma) <- NULL
+    
+    names(outsigma) <- c("Longitudinal", "coef", "SE", "95%Lower", "95%Upper", "p-values")
+    
+    outsigma[, 2:ncol(outsigma)] <- round(outsigma[, 2:ncol(outsigma)], digits = digits)
+    outsigma[, ncol(outsigma)] <- format(outsigma[, ncol(outsigma)], scientific = FALSE)
+    
+    out <- rbind(out, outsigma)
+    
     return(out)
     
   } else if (process == "Event") {

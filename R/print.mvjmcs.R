@@ -208,6 +208,10 @@ print.mvjmcs <- function(x, digits = 4, ...) {
       tempName[g] <- paste0("sigma^2_","bio", g)
     }
     
+    rownames(dat) <- tempName
+    dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
+    print(dat)
+    
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")

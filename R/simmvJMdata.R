@@ -185,7 +185,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   ydata <- dplyr::left_join(Ydata, X, by = "ID")
   cdata <- as.data.frame(cdata)
   a <- list(cdata, ydata)
-  names(a) <- c("cdata", "ydata")
+  names(a) <- c("mvcdata", "mvydata")
   return(a)
   } else{
   
