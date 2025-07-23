@@ -1,3 +1,7 @@
+# FastJM 1.5.1
+
+* Fix small bugs and add the estimates and 95% confidence interval for the error variances of multivariate joint modeling.
+
 # FastJM 1.5.0
 
 * Add a new function ```mvjmcs()``` to support multivariate joint modeling.
@@ -24,6 +28,8 @@
 # FastJM 1.2.0
 
 * Correct the implementation of dynamic prediction in ```surviftjmcs()``` for the competing risk and add ```summary()``` for providing parameter estimates and SE for both sub-models.
+
+
 
 # FastJM 1.1.3
 
