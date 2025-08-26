@@ -14,11 +14,11 @@ Pkmv.us <- function(CIF, data, bl, numBio, pREvec) {
   for(g in 1:numBio){
     pRE <- pREvec[g]
     if(numBio == 1){
-      alpha1g <- data$alpha[[1]]
-      alpha2g <- data$alpha[[2]]
+      alpha1g <- data$alpha1
+      alpha2g <- data$alpha2
     }else{
-      alpha1g <- data$alpha[[1]][[g]]
-      alpha2g <- data$alpha[[2]][[g]]
+      alpha1g <- data$alpha1[[g]]
+      alpha2g <- data$alpha2[[g]]
     }
     b_ig <- bl[(index+1):(index+pRE)]
     sumalpha1b <- sumalpha1b + alpha1g%*%b_ig # need to double check structure of bl, might be [[i]][index:index+pRE]
