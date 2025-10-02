@@ -10,7 +10,7 @@ getbSig_grad <- function(bSig, data){
   names(data) <- c("beta", "gamma1", "gamma2", "alphaList",
                    "sigma", "Z", "X", "Y", "Sig", # "b", "Sig",
                    "CH01", "CH02",
-                   "HAZ01", "HAZ02", "mdata", "mdataS", "Wcmprsk", "Wx")
+                   "HAZ01", "HAZ02", "Wcmprsk", "Wx")
   
   # don't need mdata
   Y <- data$Y
@@ -36,12 +36,14 @@ getbSig_grad <- function(bSig, data){
   CH02 <- data$CH02
   HAZ01 <- data$HAZ01
   HAZ02 <- data$HAZ02
-  mdata <- data$mdata
-  mdataS <- data$mdataS
   Wcmprsk <- data$Wcmprsk
   Wx <- as.matrix(data$Wx)
   gamma1 <- as.matrix(data$gamma1) # vector
   gamma2 <- as.matrix(data$gamma2)
+  
+  if(ncol(Wx) ==1){
+    Wx <- t(Wx)
+  }
   
   # p12 <- nrow(Z[[1]])
   # p22<- nrow(Z[[2]])
@@ -54,6 +56,7 @@ getbSig_grad <- function(bSig, data){
       pREvec[g] <- ncol(Z[[g]])
     }
   }else{
+    g <- 1
     pREvec[g] <- ncol(Z)
   }
   
@@ -90,8 +93,6 @@ getbSig_grad <- function(bSig, data){
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[g]
-    mdatag <- mdata[[g]]
-    mdataSg <- mdataS[[g]]
     alpha1 <- alphaList[[1]] # risk 1
     alpha2 <- alphaList[[2]] # risk 2
     # gets for each biomarker
@@ -127,7 +128,7 @@ getbSig_grad <- function(bSig, data){
   
   total <- total + as.numeric(CH01 * exp(Wx%*% gamma1 + latent1))*unlist(alpha1) + ## part 2 change this part
     as.numeric(CH02 * exp(Wx %*% gamma2 + latent2))*unlist(alpha2) +
- + solve(Sig) %*% bfull  # part 3
+    + solve(Sig) %*% bfull  # part 3
   
   if (Wcmprsk == 1) {
     # should be HAZ?, double check though

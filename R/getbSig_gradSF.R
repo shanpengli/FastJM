@@ -10,7 +10,7 @@ getbSig_gradSF <- function(bSig, data){
   names(data) <- c("beta", "gamma1", "alphaList",
                    "sigma", "Z", "X", "Y", "Sig", # "b", "Sig",
                    "CH01", 
-                   "HAZ01", "mdata", "mdataS", "Wcmprsk", "Wx")
+                   "HAZ01", "Wcmprsk", "Wx")
   
   # don't need mdata
   Y <- data$Y
@@ -34,10 +34,13 @@ getbSig_gradSF <- function(bSig, data){
   # survival
   CH01 <- data$CH01
   HAZ01 <- data$HAZ01
-  mdata <- data$mdata
-  mdataS <- data$mdataS
   Wcmprsk <- data$Wcmprsk
   Wx <- as.matrix(data$Wx)
+  
+  if(ncol(Wx) ==1){
+    Wx <- t(Wx)
+  }
+  
   gamma1 <- as.matrix(data$gamma1) # vector
   
   # p12 <- nrow(Z[[1]])
@@ -87,8 +90,6 @@ getbSig_gradSF <- function(bSig, data){
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[g]
-    mdatag <- mdata[[g]]
-    mdataSg <- mdataS[[g]]
     alpha1 <- alphaList[[1]] # risk 1
     # gets for each biomarker
     

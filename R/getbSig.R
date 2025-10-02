@@ -8,11 +8,10 @@ getbSig <- function(bSig, data){
   # unique to each value
   
   names(data) <- c("beta", "gamma1", "gamma2", "alphaList",
-                   "sigma", "Z", "X", "Y", "Sig", # "b", "Sig",
+                   "sigma", "Z", "X", "Y", "Sig",
                    "CH01", "CH02",
-                   "HAZ01", "HAZ02", "mdata", "mdataS", "Wcmprsk", "Wx")
+                   "HAZ01", "HAZ02", "Wcmprsk", "Wx")
   
-  # don't need mdata
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for
   Z <- data$Z
@@ -36,16 +35,13 @@ getbSig <- function(bSig, data){
   CH02 <- data$CH02
   HAZ01 <- data$HAZ01
   HAZ02 <- data$HAZ02
-  mdata <- data$mdata
-  mdataS <- data$mdataS
   Wcmprsk <- data$Wcmprsk
   Wx <- as.matrix(data$Wx)
+  if(ncol(Wx) ==1){
+    Wx <- t(Wx)
+  }
   gamma1 <- as.matrix(data$gamma1) # vector
   gamma2 <- as.matrix(data$gamma2)
-  
-  # p12 <- nrow(Z[[1]])
-  # p22<- nrow(Z[[2]])
-  
   
   # turn into list/loop
   pREvec <- c()
@@ -54,6 +50,7 @@ getbSig <- function(bSig, data){
       pREvec[g] <- ncol(Z[[g]])
     }
   }else{
+    g <- 1
     pREvec[g] <- ncol(Z)
   }
   
@@ -89,8 +86,6 @@ getbSig <- function(bSig, data){
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[g]
-    mdatag <- mdata[[g]]
-    mdataSg <- mdataS[[g]]
     alpha1 <- alphaList[[1]] # risk 1
     alpha2 <- alphaList[[2]] # risk 2
     # gets for each biomarker
@@ -106,33 +101,40 @@ getbSig <- function(bSig, data){
     # log likelihood part 1
     total <- total + sum((Yi - Xi %*% betai - Zi %*% bi)^2 / (2 * sigmai) + 0.5 * log(sigmai))
     
+    
+    
     # double check if it is squared
     
     # sum alpha'b
     sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
     sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
   }
+
   
   # latent structure for each loop
   latent1 <- as.matrix(sum.alpha1i, nrow = 1)
   latent2 <- as.matrix(sum.alpha2i, nrow = 1)
   
-  total <- total + CH01 * exp(Wx%*% gamma1 + latent1) + ## part 2 change this part
+  
+  
+  total <- total + CH01 * exp(Wx %*% gamma1 + latent1) + ## part 2 change this part
     CH02 * exp(Wx %*% gamma2 + latent2) +
     0.5 * q *log(2*pi) +
     0.5*log(det(Sig)) + t(bfull) %*% solve(Sig) %*% bfull / 2  # part 3
   
+  
+  
   if (Wcmprsk == 1) {
     # should be HAZ?, double check though
     total <- total - log(HAZ01) - (Wx %*% gamma1 + latent1) # adjusts for status == 1
-    }
+  }
   
   if (Wcmprsk == 2) {
     total <- total - log(HAZ02) - (Wx %*% gamma2 + latent2)  # adjusts for status == 2
-     }
+  }
   
   total <- unname(total)
-
+  
   return(total)
   
 }
