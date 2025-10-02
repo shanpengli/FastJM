@@ -63,6 +63,8 @@
 ##' 
 ##'   require(FastJM)
 ##'   require(survival)
+##'   require(future)
+##'   require(future.apply)
 ##'   
 ##'   data(mvcdata)
 ##'   data(mvydata)
@@ -94,7 +96,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
                    maxiter = 10000, opt = "nlminb", tol = 0.005,
                    print.para = TRUE, 
-                   initial.para = NULL){
+                   initial.para = NULL, cpu.cores = NULL){
   
   start_time <- Sys.time()
   
@@ -105,8 +107,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
   }
   
   random.form <- RE  <- model <- vector("list", numBio)
-  
-  # <- ID
   
   if(is.list(random)){
     for(g in 1:numBio){
@@ -151,6 +151,17 @@ mvjmcs <- function(ydata, cdata, long.formula,
     longfmla[g] <- long.formula[g]
   }
   
+  if(is.null(cpu.cores)){
+    cpu.cores <- future::availableCores()
+  }
+  
+  
+  writeLines("number CPU Cores:")
+  print(cpu.cores)
+  
+  
+  
+  
   # survival <- all.vars(surv.formula)
   # random.form <- all.vars(random)
   # ID <- random.form[length(random.form)]
@@ -171,8 +182,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
   }
   
-  # need to rearrange this part
-  numBio = length(long.formula)
   
   mdataM <- mdataSM <- vector("list", numBio)
   
@@ -261,252 +270,92 @@ mvjmcs <- function(ydata, cdata, long.formula,
       Sig <- getinit$Sig
     }
     
-    data <- list(beta = getinit$beta, gamma1 = getinit$gamma1, gamma2 = getinit$gamma2,
-                 alpha = getinit$alpha, sigma = getinit$sigma,
-                 Z = getinit$Z, X1 = getinit$X1, Y = getinit$Y, Sig = Sig,
-                 CUH01 = CUH01, CUH02 = CUH02, HAZ01 = HAZ01, HAZ02 = HAZ02,
-                 mdataM = mdataM, mdataSM = mdataSM,
-                 cmprsk = getinit$cmprsk, W = getinit$W)
     
     numSubj <- n
-    numBio <- length(data$X1)
     opt <- list()
     pos.mode <- vector("list", numSubj)
     subX1 <- subY <- subZ <- vector("list", numSubj)
     pos.cov <- list()
-    submdataM <- vector("list", numBio)
-    submdataSM <- vector("list", numBio)
     namesbeta <- vector("list", numBio)
     pbeta <- c()
-    for (g in 1:numBio) {
-      namesbeta[[g]] <- paste0(names(getinit$beta[[g]]), "_bio", g)
-      pbeta[g] <- length(getinit$beta[[g]])
-    }
+    # for (g in 1:numBio) {
+    #   namesbeta[[g]] <- paste0(names(getinit$beta[[g]]), "_bio", g)
+    #   pbeta[g] <- length(getinit$beta[[g]])
+    # }
     namesgamma <- names(getinit$gamma1)
     
-    for(j in 1:numSubj) {
+    beta <- unlist(getinit$beta)
+    betaList <- getinit$beta
+    gamma1 <- getinit$gamma1
+    gamma2 <- getinit$gamma2
+    alphaList <- getinit$alpha
+    alpha1 <- unlist(alphaList[[1]])
+    alpha2 <- unlist(alphaList[[2]])
+    sigma <- getinit$sigma
+    
+    for(j in 1:numSubj){
       subX1[[j]] <- vector("list", numBio)
       for (g in 1:numBio) {
         
-        numRep <- data$mdataM[[g]][j]
-        indexStart <- data$mdataSM[[g]][j]
+        numRep <- mdataM[[g]][j]
+        indexStart <- mdataSM[[g]][j]
         
-        subX1[[j]][[g]] <- data$X1[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
-        subY[[j]][[g]] <- data$Y[[g]][indexStart:(indexStart+numRep-1)]
-        subZ[[j]][[g]] <- data$Z[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+        subX1[[j]][[g]] <- getinit$X1[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+        subY[[j]][[g]] <- getinit$Y[[g]][indexStart:(indexStart+numRep-1)]
+        subZ[[j]][[g]] <- getinit$Z[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
       }
-      
-      subCUH01 <- data$CUH01[j]
-      subCUH02 <- data$CUH02[j]
-      subHAZ01 <- data$HAZ01[j]
-      subHAZ02 <- data$HAZ02[j]
-      subcmprsk <- data$cmprsk[j]
-      subW <- t(data$W[j, ])
-      
-      subdata <- list(
-        beta = data$beta,
-        gamma1 = data$gamma1,
-        gamma2 = data$gamma2,
-        alpha = data$alpha,
-        sigma = data$sigma,
-        Z = subZ[[j]],
-        X1 = subX1[[j]],
-        Y = subY[[j]],
-        Sig = data$Sig,
-        CUH01 = subCUH01,
-        CUH02 = subCUH02,
-        HAZ01 = subHAZ01,
-        HAZ02 = subHAZ02,
-        mdataM = submdataM,
-        mdataSM = submdataSM,
-        cmprsk = subcmprsk,
-        W = subW
-      )
-      
-      opt <- optim(
-        par = c(rep(0, pREtotal)), # CHANGE THIS PART
-        getbSig,
-        getbSig_grad,
-        data = subdata,
-        method = "BFGS",
-        hessian = TRUE
-      )
-      pos.mode[[j]] <- opt$par
-      pos.cov[[j]] <- solve(opt$hessian)
-      
     }
     
     survtime <- getinit$survtime
     cmprsk <- getinit$cmprsk
-    
-    output <- normalApprox(subX1,subY, subZ, getinit$W,
-                           mdataM, mdataSM,
-                           pos.mode,  getinit$sigma, pos.cov,
-                           H01, H02, getinit$survtime, getinit$cmprsk,
-                           getinit$gamma1, getinit$gamma2, getinit$alpha,
-                           CUH01, CUH02,HAZ01,HAZ02, Sig, subdata$beta)
-    
-    # PAR UPDATE HERE
-    
-    tempbeta <- output$beta
-    # tempsigma <- c(output$sigma1, output$sigma2)
-    tempphi1 <- output$phi1
-    tempphi2 <- output$phi2
-    
-    it <- 1
-    tempSig <- list()
-    tempSig[[it]] <- output$Sig
-    ngamma <- ncol(data$W)
-    index = 0
-    gamma1 <- output$phi1[(index+1):ngamma]
-    gamma2 <- output$phi2[(index+1):ngamma]
-    
-    # gamma1 hiim<- c(1,0.5)
-    # gamma2 <- c(-0.5,0.5)
-    index = index + ngamma
-    #NEED TO ADJUST THIS PART
-    alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
-    alpha2 <- output$phi2[(ngamma+1):(length(output$phi2))]
-    
-    alpha1g <- alpha2g <- vector("list", numBio)
-    index = 0
-    for(g in 1:numBio){
-      alpha1g[[g]] <- alpha1[(index+1):(index + pREvec[g])]
-      alpha2g[[g]] <- alpha2[(index+1):(index + pREvec[g])]
-      index = index + pREvec[g]
-    }
+    W <- getinit$W
+    ngamma <- ncol(W)
     
     
-    alphaList <- list(alpha1g, alpha2g)
-    
-    iter=0
-    beta <- output$beta
-    sigma <- output$sigmaVec
-    Sig <- output$Sig
+    old_plan <- future::plan()
+    on.exit(future::plan(old_plan), add = TRUE)
+    future::plan(future::multisession, workers = cpu.cores)
     
     repeat{
-      
       iter <- iter + 1
+      
       prebeta <- beta
       pregamma1 <- gamma1
       pregamma2 <- gamma2
       
       prealphaList <- alphaList
-      prealpha1 <- alpha1 # 3 and 2 come from competing risk
+      prealpha1 <- alpha1
       prealpha2 <- alpha2
       preH01 <- H01
       preH02 <- H02
       preSig <- Sig
-      presigma <- sigma # for checking
+      presigma <- sigma
       
-      if (print.para) {
-        writeLines("iter is:")
-        print(iter)
-        writeLines("beta is:")
-        print(prebeta)
-        writeLines("sigma is:")
-        print(presigma)
-        writeLines("Sig is:")
-        print(preSig)
-        writeLines("gamma1 is:")
-        print(pregamma1)
-        writeLines("gamma2 is:")
-        print(pregamma2)
-        writeLines("alpha1 is:")
-        print(prealpha1)
-        writeLines("alpha2 is:")
-        print(prealpha2)
-      }
-      
-      CUH01 <- rep(0, n)
-      CUH02 <- rep(0, n)
-      HAZ01 <- rep(0, n)
-      HAZ02 <- rep(0, n)
-      
-      CumuH01 <- cumsum(output$H01[, 3])
-      CumuH02 <- cumsum(output$H02[, 3])
-      
-      getHazard(CumuH01, CumuH02, survtime, cmprsk, preH01, preH02, CUH01, CUH02, HAZ01, HAZ02)
-      
-      data <- list(beta = prebeta, gamma1 = pregamma1, gamma2 = pregamma2,
-                   alpha = prealphaList, sigma = presigma,
-                   Z = getinit$Z, X1 = getinit$X1, Y = getinit$Y, Sig = preSig,
+      data <- list(beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
+                   alpha = alphaList, sigma = sigma,
+                   Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
                    CUH01 = CUH01, CUH02 = CUH02, HAZ01 = HAZ01, HAZ02 = HAZ02,
-                   mdataM = mdataM, mdataSM = mdataSM,
-                   cmprsk = getinit$cmprsk, W = getinit$W)
+                   cmprsk = cmprsk, W = W)
       
-      for(j in 1:numSubj) {
-        
-        subCUH01 <- CUH01[j]
-        subCUH02 <- CUH02[j]
-        subHAZ01 <- HAZ01[j]
-        subHAZ02 <- HAZ02[j]
-        subcmprsk <- data$cmprsk[j]
-        subW <- t(data$W[j, ])
-        
-        subdata <- list(
-          beta = output$betaList,
-          gamma1 = data$gamma1,
-          gamma2 = data$gamma2,
-          alpha = data$alpha,
-          sigma = data$sigma,
-          Z = subZ[[j]],
-          X1 = subX1[[j]],
-          Y = subY[[j]],
-          Sig = data$Sig,
-          CUH01 = subCUH01,
-          CUH02 = subCUH02,
-          HAZ01 = subHAZ01,
-          HAZ02 = subHAZ02,
-          mdataM = submdataM,
-          mdataSM = submdataSM,
-          cmprsk = subcmprsk,
-          W = subW
-        )
-        
-        opt <- optim(
-          par = rep(0, pREtotal),
-          getbSig,
-          getbSig_grad,
-          data = subdata,
-          method = "BFGS",
-          hessian = TRUE
-        )
-        
-        pos.mode[[j]] <- opt$par
-        pos.cov[[j]] <- solve(opt$hessian)
-      }
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, data, pREtotal)
+      pos.mode <- lapply(res, `[[`, "mode")
+      pos.cov  <- lapply(res, `[[`, "cov")
       
-      
-      # if(method == "quad"){
-      #   output <- getQuadMix(subX1,subY, subZ, getinit$W,
-      #                        mdataM, mdataSM,
-      #                        pos.mode, presigma, pos.cov, weight.c, abscissas.c,
-      #                        H01, H02, getinit$survtime, getinit$cmprsk,
-      #                        data$gamma1, data$gamma2, data$alpha,
-      #                        CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
-      #   
-      # } else {
-      output <- normalApprox(subX1,subY, subZ, getinit$W,
+      output <- normalApprox(subX1,subY, subZ, W,
                              mdataM, mdataSM,
-                             pos.mode, presigma, pos.cov,
-                             H01, H02, getinit$survtime, getinit$cmprsk,
-                             data$gamma1, data$gamma2, data$alpha,
-                             CUH01, CUH02,HAZ01,HAZ02,preSig, subdata$beta)
-      # }
+                             pos.mode,  sigma, pos.cov,
+                             H01, H02, survtime, cmprsk,
+                             gamma1, gamma2, alphaList,
+                             CUH01, CUH02,HAZ01,HAZ02, Sig, beta)
       
-      # PAR UPDATE HERE - for debugging purposes
       beta <- output$beta
+      betaList <- output$betaList
       sigma <- output$sigmaVec
       Sig <- output$Sig
       
-      # tempsigma <- rbind(tempsigma, sigma)
-      # CHANGE THIS PART
       gamma1 <- output$phi1[1:ngamma]
       gamma2 <- output$phi2[1:ngamma]
-      # gamma1 <- c(1,0.5)
-      # gamma2 <- c(-0.5,0.5)
-      alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
+      alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))]
       alpha2 <- output$phi2[(ngamma+1):(length(output$phi2))]
       alpha1g <- alpha2g <- vector("list", numBio)
       index = 0
@@ -517,13 +366,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
       }
       
       alphaList <- list(alpha1g, alpha2g)
-      
-      it <- it + 1
-      tempSig[[it]] <- Sig
       H01 <- output$H01
       H02 <- output$H02
       
-      # leave condition
+      
+      
       if((mvDiff(beta, prebeta, sigma, presigma, gamma1, pregamma1, gamma2, pregamma2,
                  alpha1, prealpha1, alpha2, prealpha2,
                  Sig, preSig, H01, preH01, H02, preH02, tol) == 0) || (iter == maxiter) #|| (!is.list(GetEfun)) || (!is.list(GetMpara))
@@ -540,12 +387,25 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
     } else {
       convergence = 1
-      SEest <- getmvCov(beta, gamma1, gamma2, 
-                        alpha1, alpha2, 
-                        H01, H02, pos.cov, Sig, sigma, 
-                        subX1, subY, subZ, getinit$W, 
-                        getinit$survtime,getinit$cmprsk,
-                        mdataM, mdataSM, pos.mode)
+      ## run 1 estep here to get posterior mean and covariance --> use estimate to plug in to line47
+      data <- list(beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
+                   alpha = alphaList, sigma = sigma,
+                   Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
+                   CUH01 = CUH01,  HAZ01 = HAZ01,
+                   mdataM = mdataM, mdataSM = mdataSM,
+                   cmprsk = cmprsk, W = W)
+      
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, data, pREtotal)
+      pos.mode <- lapply(res, `[[`, "mode")
+      pos.cov  <- lapply(res, `[[`, "cov")
+      
+      
+      SEest <- getmvCovSF(beta, gamma1,
+                          alpha1, 
+                          H01, H02, pos.cov, Sig, sigma, 
+                          subX1, subY, subZ, getinit$W, 
+                          getinit$survtime,getinit$cmprsk,
+                          mdataM, mdataSM, pos.mode)
       
       sebeta <- SEest$sebeta
       sesigma <- SEest$sesigma
@@ -556,10 +416,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
       seSig <- SEest$seSig
       vcov <- SEest$vcov
       
-      
     }
     
     end_time <- Sys.time()
+    
+    writeLines("runtime is:")
     print(runtime <- end_time - start_time)
     
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
@@ -569,18 +430,18 @@ mvjmcs <- function(ydata, cdata, long.formula,
     names(gamma2) <- paste0(namesgamma, "_2")
     betaList <- vector("list", numBio)
     betacount <- 0
-    for (g in 1:numBio) {
-      betaList[[g]] <- beta[(betacount+1):(betacount+pbeta[g])]
-      names(betaList[[g]]) <- namesbeta[[g]]
-      betacount <- betacount + pbeta[g]
-    }
+    # for (g in 1:numBio) {
+    #   betaList[[g]] <- beta[(betacount+1):(betacount+pbeta[g])]
+    #   names(betaList[[g]]) <- namesbeta[[g]]
+    #   betacount <- betacount + pbeta[g]
+    # }
     
     # return(list(output = output, re = pos.mode, sigi = pos.cov, 
     #             beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
     #             SEest = SEest, runtime = runtime, iter = iter))
     names(beta) <- unlist(namesbeta)
     
-    result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, gamma2 = gamma2, 
+    result <- list(beta = beta, betaList = output$betaList, gamma1 = gamma1, gamma2 = gamma2, 
                    alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
                    Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
                    vcov = vcov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
@@ -629,21 +490,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
       Sig <- getinit$Sig
     }
     
-    data <- list(beta = getinit$beta, gamma1 = getinit$gamma1,
-                 alpha = getinit$alpha, sigma = getinit$sigma,
-                 Z = getinit$Z, X1 = getinit$X1, Y = getinit$Y, Sig = Sig,
-                 CUH01 = CUH01, HAZ01 = HAZ01, 
-                 mdataM = mdataM, mdataSM = mdataSM,
-                 cmprsk = getinit$cmprsk, W = getinit$W)
-    
     numSubj <- n
-    numBio <- length(data$X1)
     opt <- list()
     pos.mode <- vector("list", numSubj)
     subX1 <- subY <- subZ <- vector("list", numSubj)
     pos.cov <- list()
-    submdataM <- vector("list", numBio)
-    submdataSM <- vector("list", numBio)
     namesbeta <- vector("list", numBio)
     pbeta <- c()
     for (g in 1:numBio) {
@@ -651,94 +502,34 @@ mvjmcs <- function(ydata, cdata, long.formula,
       pbeta[g] <- length(getinit$beta[[g]])
     }
     namesgamma <- names(getinit$gamma1)
+    beta <- unlist(getinit$beta)
+    betaList <- getinit$beta
+    gamma1 <- getinit$gamma1
+    alphaList <- getinit$alpha
+    alpha1 <- unlist(alphaList[[1]])
+    sigma <- getinit$sigma
     
-    for(j in 1:numSubj) {
+    for(j in 1:numSubj){
       subX1[[j]] <- vector("list", numBio)
       for (g in 1:numBio) {
         
-        numRep <- data$mdataM[[g]][j]
-        indexStart <- data$mdataSM[[g]][j]
+        numRep <- mdataM[[g]][j]
+        indexStart <- mdataSM[[g]][j]
         
-        subX1[[j]][[g]] <- data$X1[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
-        subY[[j]][[g]] <- data$Y[[g]][indexStart:(indexStart+numRep-1)]
-        subZ[[j]][[g]] <- data$Z[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+        subX1[[j]][[g]] <- getinit$X1[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+        subY[[j]][[g]] <- getinit$Y[[g]][indexStart:(indexStart+numRep-1)]
+        subZ[[j]][[g]] <- getinit$Z[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
       }
-      
-      subCUH01 <- data$CUH01[j]
-      subHAZ01 <- data$HAZ01[j]
-      subcmprsk <- data$cmprsk[j]
-      subW <- t(data$W[j, ])
-      
-      subdata <- list(
-        beta = data$beta,
-        gamma1 = data$gamma1,
-        alpha = getinit$alpha,
-        sigma = data$sigma,
-        Z = subZ[[j]],
-        X1 = subX1[[j]],
-        Y = subY[[j]],
-        Sig = data$Sig,
-        CUH01 = subCUH01,
-        HAZ01 = subHAZ01,
-        mdataM = submdataM,
-        mdataSM = submdataSM,
-        cmprsk = subcmprsk,
-        W = subW
-      )
-      
-      opt <- optim(
-        par = c(rep(0, pREtotal)), # CHANGE THIS PART
-        getbSigSF,
-        getbSig_gradSF,
-        data = subdata,
-        method = "BFGS",
-        hessian = TRUE
-      )
-      pos.mode[[j]] <- opt$par
-      pos.cov[[j]] <- solve(opt$hessian)
-      
     }
     
     survtime <- getinit$survtime
     cmprsk <- getinit$cmprsk
+    W <- getinit$W
+    ngamma <- ncol(W)
     
-    output <- normalApproxSF(subX1,subY, subZ, getinit$W,
-                             mdataM, mdataSM,
-                             pos.mode,  getinit$sigma, pos.cov, 
-                             H01, getinit$survtime, getinit$cmprsk,
-                             getinit$gamma1, getinit$alpha,
-                             CUH01,HAZ01,Sig, subdata$beta)
-    
-    tempbeta <- output$beta
-    tempphi1 <- output$phi1
-    
-    it <- 1
-    tempSig <- list()
-    tempSig[[it]] <- output$Sig
-    ngamma <- ncol(data$W)
-    index = 0
-    gamma1 <- output$phi1[(index+1):ngamma]
-    
-    # gamma1 hiim<- c(1,0.5)
-    # gamma2 <- c(-0.5,0.5)
-    index = index + ngamma
-    #NEED TO ADJUST THIS PART
-    alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
-    
-    alpha1g <- vector("list", numBio)
-    index = 0
-    for(g in 1:numBio){
-      alpha1g[[g]] <- alpha1[(index+1):(index + pREvec[g])]
-      index = index + pREvec[g]
-    }
-    
-    
-    alphaList <- list(alpha1g)
-    
-    iter=0
-    beta <- output$beta
-    sigma <- output$sigmaVec
-    Sig <- output$Sig
+    old_plan <- future::plan()
+    on.exit(future::plan(old_plan), add = TRUE)
+    future::plan(future::multisession, workers = cpu.cores)
     
     repeat{
       
@@ -746,94 +537,37 @@ mvjmcs <- function(ydata, cdata, long.formula,
       prebeta <- beta
       pregamma1 <- gamma1
       prealphaList <- alphaList
-      prealpha1 <- alpha1
+      prealpha1 <- alpha1 
       preH01 <- H01
       preSig <- Sig
-      presigma <- sigma # for checking
+      presigma <- sigma
       
-      if (print.para) {
-        writeLines("iter is:")
-        print(iter)
-        writeLines("beta is:")
-        print(prebeta)
-        writeLines("sigma is:")
-        print(presigma)
-        writeLines("Sig is:")
-        print(preSig)
-        writeLines("gamma1 is:")
-        print(pregamma1)
-        writeLines("alpha1 is:")
-        print(prealpha1)
-      }
+      data <- list(beta = betaList, gamma1 = gamma1,
+                   alpha = alphaList, sigma = sigma,
+                   Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
+                   CUH01 = CUH01, HAZ01 = HAZ01, 
+                   cmprsk = cmprsk, W = W)
       
-      CUH01 <- rep(0, n)
-      HAZ01 <- rep(0, n)
+      # specify cpu amounts
       
-      CumuH01 <- cumsum(output$H01[, 3])
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, data, pREtotal)
+      pos.mode <- lapply(res, `[[`, "mode")
+      pos.cov  <- lapply(res, `[[`, "cov")
       
-      getHazardSF(CumuH01, survtime, cmprsk, preH01, CUH01, HAZ01)
-      
-      data <- list(beta = prebeta, gamma1 = pregamma1,
-                   alpha = prealphaList, sigma = presigma,
-                   Z = getinit$Z, X1 = getinit$X1, Y = getinit$Y, Sig = preSig,
-                   CUH01 = CUH01, HAZ01 = HAZ01,
-                   mdataM = mdataM, mdataSM = mdataSM,
-                   cmprsk = getinit$cmprsk, W = getinit$W)
-      
-      for(j in 1:numSubj) {
-        
-        subCUH01 <- CUH01[j]
-        subHAZ01 <- HAZ01[j]
-        subcmprsk <- data$cmprsk[j]
-        subW <- t(data$W[j, ])
-        
-        subdata <- list(
-          beta = output$betaList,
-          gamma1 = data$gamma1,
-          alpha = data$alpha,
-          sigma = data$sigma,
-          Z = subZ[[j]],
-          X1 = subX1[[j]],
-          Y = subY[[j]],
-          Sig = data$Sig,
-          CUH01 = subCUH01,
-          HAZ01 = subHAZ01,
-          mdataM = submdataM,
-          mdataSM = submdataSM,
-          cmprsk = subcmprsk,
-          W = subW
-        )
-        
-        opt <- optim(
-          par = rep(0, pREtotal),
-          getbSigSF,
-          getbSig_gradSF,
-          data = subdata,
-          method = "BFGS",
-          hessian = TRUE
-        )
-        
-        pos.mode[[j]] <- opt$par
-        pos.cov[[j]] <- solve(opt$hessian)
-      }
-      
-      output <- normalApproxSF(subX1,subY, subZ, getinit$W,
+      output <- normalApproxSF(subX1,subY, subZ, W,
                                mdataM, mdataSM,
-                               pos.mode, presigma, pos.cov,
-                               H01, getinit$survtime, getinit$cmprsk,
-                               data$gamma1, data$alpha,
-                               CUH01,HAZ01, preSig, subdata$beta)
-      # }
+                               pos.mode,  sigma, pos.cov,
+                               H01, survtime, cmprsk,
+                               gamma1, alphaList,
+                               CUH01,HAZ01, Sig, beta)
       
-      # PAR UPDATE HERE - for debugging purposes
       beta <- output$beta
+      betaList <- output$betaList
       sigma <- output$sigmaVec
       Sig <- output$Sig
       
-      # tempsigma <- rbind(tempsigma, sigma)
-      # CHANGE THIS PART
       gamma1 <- output$phi1[1:ngamma]
-      alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))] # 3 and 2 come from competing risk
+      alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))]
       alpha1g <- vector("list", numBio)
       index = 0
       for(g in 1:numBio){
@@ -843,9 +577,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
       alphaList <- list(alpha1g)
       
-      it <- it + 1
-      tempSig[[it]] <- Sig
       H01 <- output$H01
+      
       
       # leave condition
       if((mvDiffSF(beta, prebeta, sigma, presigma, gamma1, pregamma1, 
@@ -864,6 +597,17 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
     } else {
       convergence = 1
+      
+      data <- list(beta = betaList, gamma1 = gamma1,
+                   alpha = alphaList, sigma = sigma,
+                   Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
+                   CUH01 = CUH01, HAZ01 = HAZ01,
+                   cmprsk = cmprsk, W = W)
+      
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, data, pREtotal)
+      pos.mode <- lapply(res, `[[`, "mode")
+      pos.cov  <- lapply(res, `[[`, "cov")
+      
       SEest <- getmvCovSF(beta, gamma1,
                           alpha1,  
                           H01, pos.cov, Sig, sigma, 
