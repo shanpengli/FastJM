@@ -342,8 +342,8 @@ Rcpp::List normalApproxSF(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, 
 		Eigen::MatrixXd  llT = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
 		Eigen::MatrixXd  SwwT = Eigen::MatrixXd::Zero(dimW, dimW);
 		Eigen::MatrixXd  SllT = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
-		Eigen::VectorXd  Sw = Eigen::MatrixXd::Zero(dimW, dimW);
-		Eigen::VectorXd  Sl = Eigen::MatrixXd::Zero(pREtotal, pREtotal);
+		Eigen::VectorXd  Sw = Eigen::VectorXd::Zero(dimW);
+		Eigen::VectorXd  Sl = Eigen::VectorXd::Zero(pREtotal);
 		Eigen::MatrixXd Swl = Eigen::MatrixXd::Zero(dimW, pREtotal);
 		
 		index = 0;
