@@ -96,10 +96,11 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
                    maxiter = 10000, opt = "nlminb", tol = 0.005,
                    print.para = TRUE, 
-                   initial.para = NULL, cpu.cores = NULL){
+                   initial.para = NULL, cpu.cores = NULL, quiet = TRUE){
   
   start_time <- Sys.time()
   
+  # ---- Longitudinal setup ----
   if(is.list(long.formula)){
     numBio = length(long.formula)
   } else {
@@ -118,20 +119,18 @@ mvjmcs <- function(ydata, cdata, long.formula,
         RE[[g]] <- random.form[[g]][-length(all.vars(random[[g]]))]
         model[[g]] <- "interslope"
       }
-      # ID[[g]] <- random.form[[g]][length(all.vars(random[[g]]))]
     }
     ID <- random.form[[g]][length(all.vars(random[[g]]))]
   } else {
     for(g in 1:numBio){
       random.form[[g]] <- all.vars(random)
-      if(length(random) == 1){
+      if(!is.list(random)){
         # RE[[g]] <- NULL
         model[[g]] <- "intercept"
       } else {
         RE[[g]] <- random.form[[g]][-length(all.vars(random))]
         model[[g]] <- "interslope"
       }
-      # ID[[g]] <- random.form[[g]][length(all.vars(random))]
     }
     ID <- random.form[[g]][length(all.vars(random))]
   }
@@ -139,7 +138,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   lengthb <- length(long.formula)
   long <- list()
   
-  # check for every biomarker
+  # ---- Formula checks for each biomarker ----
   for(g in 1:lengthb){
     if (!inherits(long.formula[[g]], "formula") || length(long.formula[[g]]) != 3) {
       stop("\nLinear mixed effects model must be a formula of the form \"resp ~ pred\"")
@@ -151,6 +150,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
     longfmla[g] <- long.formula[g]
   }
   
+  
+  # ---- CPU setup ----
   if(is.null(cpu.cores)){
     cpu.cores <- future::availableCores()
   }
@@ -234,26 +235,16 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   iter=0
   
+  # ======================== #
+  # ~~~~ Competing Risk ~~~~ #
+  # ======================== #
   if(CompetingRisk == TRUE){
-    
-    CUH01 <- rep(0, n)
-    CUH02 <- rep(0, n)
-    HAZ01 <- rep(0, n)
-    HAZ02 <- rep(0, n)
-    
-    CumuH01 <- cumsum(H01[, 3])
-    CumuH02 <- cumsum(H02[, 3])
-    
-    getHazard(CumuH01, CumuH02, getinit$survtime, getinit$cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
-    
-    HAZ0 <- list(HAZ01, HAZ02)
     
     pREvec <- c()
     
     for(g in 1:numBio){
       pREvec[g] <- ncol(getinit$Z[[g]])
     }
-    
     pREtotal <- sum(pREvec)
     
     index = 0
@@ -319,10 +310,17 @@ mvjmcs <- function(ydata, cdata, long.formula,
     repeat{
       iter <- iter + 1
       
+      CUH01 <- rep(0, n) 
+      CUH02 <- rep(0, n) 
+      HAZ01 <- rep(0, n) 
+      HAZ02 <- rep(0, n) 
+      CumuH01 <- cumsum(H01[, 3]) 
+      CumuH02 <- cumsum(H02[, 3]) 
+      getHazard(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02) 
+      
       prebeta <- beta
       pregamma1 <- gamma1
       pregamma2 <- gamma2
-      
       prealphaList <- alphaList
       prealpha1 <- alpha1
       prealpha2 <- alpha2
@@ -331,22 +329,27 @@ mvjmcs <- function(ydata, cdata, long.formula,
       preSig <- Sig
       presigma <- sigma
       
-      data <- list(beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
-                   alpha = alphaList, sigma = sigma,
-                   Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
-                   CUH01 = CUH01, CUH02 = CUH02, HAZ01 = HAZ01, HAZ02 = HAZ02,
-                   cmprsk = cmprsk, W = W)
+      data <- list(
+        beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
+        alpha = alphaList, sigma = sigma,
+        Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
+        CUH01 = CUH01, CUH02 = CUH02, HAZ01 = HAZ01, HAZ02 = HAZ02,
+        cmprsk = cmprsk, W = W
+      )
       
-      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, data, pREtotal)
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, future.scheduling = 2,
+                                         data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
-      pos.cov  <- lapply(res, `[[`, "cov")
+      pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
       
-      output <- normalApprox(subX1,subY, subZ, W,
-                             mdataM, mdataSM,
-                             pos.mode,  sigma, pos.cov,
-                             H01, H02, survtime, cmprsk,
-                             gamma1, gamma2, alphaList,
-                             CUH01, CUH02,HAZ01,HAZ02, Sig, beta)
+      output <- normalApprox(
+        subX1, subY, subZ, W,
+        mdataM, mdataSM,
+        pos.mode, sigma, pos.cov,
+        H01, H02, survtime, cmprsk,
+        gamma1, gamma2, alphaList,
+        CUH01, CUH02, HAZ01, HAZ02, Sig, betaList
+      )
       
       beta <- output$beta
       betaList <- output$betaList
@@ -383,25 +386,31 @@ mvjmcs <- function(ydata, cdata, long.formula,
     if (iter == maxiter) {
       writeLines("program stops because of nonconvergence")
       convergence = 0
-      sebeta <- sesigma <- segamma1 <- segamma2 <- sealpha1 <- sealpha2 <- seSig <- NULL
+      sebeta <- sesigma <- segamma1 <- segamma2 <- sealpha1 <- sealpha2 <- seSig <- vcov <- NULL
       
     } else {
       convergence = 1
       ## run 1 estep here to get posterior mean and covariance --> use estimate to plug in to line47
+      
+      CUH01 <- CUH02 <- HAZ01 <- HAZ02 <- rep(0, n)
+      CumuH01 <- cumsum(H01[, 3])
+      CumuH02 <- cumsum(H02[, 3])
+      getHazard(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
+      
       data <- list(beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
                    alpha = alphaList, sigma = sigma,
                    Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
-                   CUH01 = CUH01,  HAZ01 = HAZ01,
+                   CUH01 = CUH01,  HAZ01 = HAZ01, CUH02 = CUH02,  HAZ02 = HAZ02,
                    mdataM = mdataM, mdataSM = mdataSM,
                    cmprsk = cmprsk, W = W)
       
-      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, data, pREtotal)
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE,future.scheduling = 2,
+                                         data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
-      pos.cov  <- lapply(res, `[[`, "cov")
+      pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
       
-      
-      SEest <- getmvCovSF(beta, gamma1,
-                          alpha1, 
+      SEest <- getmvCov(beta, gamma1, gamma2,
+                          alpha1, alpha2,
                           H01, H02, pos.cov, Sig, sigma, 
                           subX1, subY, subZ, getinit$W, 
                           getinit$survtime,getinit$cmprsk,
@@ -457,17 +466,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
     return(result)
     
   } else {
-    # ~~~~~~~~~~~~~
-    # SINGLE FAILURE
-    # ~~~~~~~~~~~~~
-    
-    CUH01 <- rep(0, n)
-    HAZ01 <- rep(0, n)
-    CumuH01 <- cumsum(H01[, 3])
-    
-    getHazardSF(CumuH01, getinit$survtime, getinit$cmprsk, H01,  CUH01, HAZ01)
-    
-    HAZ0 <- list(HAZ01)
+    # ======================== #
+    # ~~~~ Single Failure ~~~~ #
+    # ======================== #
     
     pREvec <- c()
     
@@ -534,6 +535,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
     repeat{
       
       iter <- iter + 1
+      
+      CUH01 <- rep(0, n) 
+      HAZ01 <- rep(0, n) 
+      CumuH01 <- cumsum(H01[, 3]) 
+      getHazardSF(CumuH01,  survtime, cmprsk, H01, CUH01, HAZ01) 
+      
       prebeta <- beta
       pregamma1 <- gamma1
       prealphaList <- alphaList
@@ -550,9 +557,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
       # specify cpu amounts
       
-      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, data, pREtotal)
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, future.scheduling = 2,
+                                         data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
-      pos.cov  <- lapply(res, `[[`, "cov")
+      pos.cov <- lapply(res, function(x) crossprod(x$ccov)) 
       
       output <- normalApproxSF(subX1,subY, subZ, W,
                                mdataM, mdataSM,
@@ -593,10 +601,15 @@ mvjmcs <- function(ydata, cdata, long.formula,
     if (iter == maxiter) {
       writeLines("program stops because of nonconvergence")
       convergence = 0
-      sebeta <- sesigma <- segamma1 <- sealpha1 <- seSig <- NULL
+      sebeta <- sesigma <- segamma1 <- sealpha1 <- seSig <- vcov <- NULL
       
     } else {
       convergence = 1
+      
+      CUH01 <- rep(0, n)
+      HAZ01 <- rep(0, n)
+      CumuH01 <- cumsum(H01[, 3])
+      getHazardSF(CumuH01, survtime, cmprsk, H01, CUH01, HAZ01)
       
       data <- list(beta = betaList, gamma1 = gamma1,
                    alpha = alphaList, sigma = sigma,
@@ -604,9 +617,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    CUH01 = CUH01, HAZ01 = HAZ01,
                    cmprsk = cmprsk, W = W)
       
-      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, data, pREtotal)
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, future.scheduling = 2, data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
-      pos.cov  <- lapply(res, `[[`, "cov")
+      pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
       
       SEest <- getmvCovSF(beta, gamma1,
                           alpha1,  
