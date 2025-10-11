@@ -9,6 +9,6 @@
 #' @importFrom timeROC timeROC
 #' @importFrom magrittr %>%
 #' @importFrom stats as.formula median na.omit rexp rnorm optim pnorm qqline qqnorm quantile vcov model.matrix model.frame runif pchisq complete.cases rbeta
-#' @importFrom future 
-#' @importFrom 
+#' @importFrom future plan multisession
+#' @importFrom future.apply future_lapply
 NULL

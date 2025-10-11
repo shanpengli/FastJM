@@ -14,6 +14,8 @@
 ##' @param tol Convergence tolerance for EM algorithm. Default is 0.0001.
 ##' @param print.para Logical; if \code{TRUE}, prints parameter values at each iteration.
 ##' @param initial.para Optional list of initialized parameters. Default is \code{NULL}.
+##' @param cpu.cores Number of CPU cores for parallel computation. Default is \code{NULL}, 
+##' i.e., the maximum number of CPU cores available.
 ##'
 ##' @return  Object of class \code{mvjmcs} with elements
 ##' \item{beta}{the vector of all biomarker-specific fixed effects for the linear mixed effects sub-models.} 
@@ -34,6 +36,8 @@
 ##' \item{convergence}{convergence identifier: 1 corresponds to successful convergence, 
 ##' whereas 0 to a problem (i.e., when 0, usually more iterations are required).}
 ##' \item{vcov}{the variance-covariance matrix of all the fixed effects for both models.}
+##' \item{FisherInfo}{the Empirical Fisher information matrix.}
+##' \item{Score}{a matrix of the score function for all subjects.}
 ##' \item{sebeta}{the standard error of \code{beta}.}
 ##' \item{segamma1}{the standard error of \code{gamma1}.}
 ##' \item{segamma2}{the standard error of \code{gamma2}. 
@@ -96,7 +100,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
                    maxiter = 10000, opt = "nlminb", tol = 0.005,
                    print.para = TRUE, 
-                   initial.para = NULL, cpu.cores = NULL, quiet = TRUE){
+                   initial.para = NULL, cpu.cores = NULL){
   
   start_time <- Sys.time()
   
@@ -269,10 +273,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
     pos.cov <- list()
     namesbeta <- vector("list", numBio)
     pbeta <- c()
-    # for (g in 1:numBio) {
-    #   namesbeta[[g]] <- paste0(names(getinit$beta[[g]]), "_bio", g)
-    #   pbeta[g] <- length(getinit$beta[[g]])
-    # }
+    for (g in 1:numBio) {
+      namesbeta[[g]] <- paste0(names(getinit$beta[[g]]), "_bio", g)
+      pbeta[g] <- length(getinit$beta[[g]])
+    }
     namesgamma <- names(getinit$gamma1)
     
     beta <- unlist(getinit$beta)
@@ -392,7 +396,10 @@ mvjmcs <- function(ydata, cdata, long.formula,
       convergence = 1
       ## run 1 estep here to get posterior mean and covariance --> use estimate to plug in to line47
       
-      CUH01 <- CUH02 <- HAZ01 <- HAZ02 <- rep(0, n)
+      CUH01 <- rep(0, n)
+      CUH02 <- rep(0, n)
+      HAZ01 <- rep(0, n)
+      HAZ02 <- rep(0, n)
       CumuH01 <- cumsum(H01[, 3])
       CumuH02 <- cumsum(H02[, 3])
       getHazard(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
@@ -404,7 +411,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    mdataM = mdataM, mdataSM = mdataSM,
                    cmprsk = cmprsk, W = W)
       
-      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE,future.scheduling = 2,
+      res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, future.scheduling = 2,
                                          data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
       pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
@@ -424,6 +431,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
       sealpha2 <- SEest$sealpha2
       seSig <- SEest$seSig
       vcov <- SEest$vcov
+      FisherInfo <- SEest$FisherInfo
+      Score <- SEest$Score
       
     }
     
@@ -439,21 +448,18 @@ mvjmcs <- function(ydata, cdata, long.formula,
     names(gamma2) <- paste0(namesgamma, "_2")
     betaList <- vector("list", numBio)
     betacount <- 0
-    # for (g in 1:numBio) {
-    #   betaList[[g]] <- beta[(betacount+1):(betacount+pbeta[g])]
-    #   names(betaList[[g]]) <- namesbeta[[g]]
-    #   betacount <- betacount + pbeta[g]
-    # }
+    for (g in 1:numBio) {
+      betaList[[g]] <- beta[(betacount+1):(betacount+pbeta[g])]
+      names(betaList[[g]]) <- namesbeta[[g]]
+      betacount <- betacount + pbeta[g]
+    }
     
-    # return(list(output = output, re = pos.mode, sigi = pos.cov, 
-    #             beta = beta, sigmaout = sigma, gamma1 = gamma1, gamma2 = gamma2, alpha1 = alpha1, alpha2 = alpha2,
-    #             SEest = SEest, runtime = runtime, iter = iter))
     names(beta) <- unlist(namesbeta)
     
     result <- list(beta = beta, betaList = output$betaList, gamma1 = gamma1, gamma2 = gamma2, 
                    alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
                    Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
-                   vcov = vcov, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
+                   vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
                    sealpha1 = sealpha1, sealpha2 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
@@ -634,6 +640,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
       sealpha1 <- SEest$sealpha1
       seSig <- SEest$seSig
       vcov <- SEest$vcov
+      FisherInfo <- SEest$FisherInfo
+      Score <- SEest$Score
     }
     
     end_time <- Sys.time()
@@ -657,7 +665,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, 
                    alpha1 = alpha1, H01 = H01, 
                    Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
-                   vcov = vcov, sebeta = sebeta, segamma1 = segamma1,
+                   vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1,
                    sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, 
                    pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 

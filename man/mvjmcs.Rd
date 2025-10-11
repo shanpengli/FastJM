@@ -14,7 +14,8 @@ mvjmcs(
   opt = "nlminb",
   tol = 0.005,
   print.para = TRUE,
-  initial.para = NULL
+  initial.para = NULL,
+  cpu.cores = NULL
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ mvjmcs(
 \item{print.para}{Logical; if \code{TRUE}, prints parameter values at each iteration.}
 
 \item{initial.para}{Optional list of initialized parameters. Default is \code{NULL}.}
+
+\item{cpu.cores}{Number of CPU cores for parallel computation. Default is \code{NULL}, 
+i.e., the maximum number of CPU cores available.}
 }
 \value{
 Object of class \code{mvjmcs} with elements
@@ -58,6 +62,8 @@ The data structure is the same as \code{H01}. Valid only if \code{CompetingRisk 
 \item{convergence}{convergence identifier: 1 corresponds to successful convergence, 
 whereas 0 to a problem (i.e., when 0, usually more iterations are required).}
 \item{vcov}{the variance-covariance matrix of all the fixed effects for both models.}
+\item{FisherInfo}{the Empirical Fisher information matrix.}
+\item{Score}{a matrix of the score function for all subjects.}
 \item{sebeta}{the standard error of \code{beta}.}
 \item{segamma1}{the standard error of \code{gamma1}.}
 \item{segamma2}{the standard error of \code{gamma2}. 
@@ -93,6 +99,8 @@ Function fits a joint model for multiple longitudinal outcomes and competing ris
 
   require(FastJM)
   require(survival)
+  require(future)
+  require(future.apply)
   
   data(mvcdata)
   data(mvydata)

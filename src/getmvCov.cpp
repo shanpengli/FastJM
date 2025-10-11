@@ -156,7 +156,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   // 
   int index = 0;
   int pREindex = 0;
-  int agIndex = 0;
   double num;
   int SEindex = 0;
 
@@ -166,7 +165,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   Eigen::MatrixXd FUNB = Eigen::MatrixXd::Zero(pREtotal,numSubj);
   Eigen::MatrixXd FUNBS = Eigen::MatrixXd::Zero(pREtotal*(pREtotal+1)/2,numSubj); //bbt
   // Eigen::VectorXd bifull = Eigen::VectorXd::Zero(pREtotal);
-  Eigen::MatrixXd bVeci  = Eigen::VectorXd::Zero(pREtotal);
+  Eigen::VectorXd bVeci  = Eigen::VectorXd::Zero(pREtotal);
   Eigen::MatrixXd BAssociation = Eigen::MatrixXd::Zero(pREtotal,pREtotal);
   Eigen::MatrixXd FUNEC = Eigen::MatrixXd::Zero(2, numSubj); //exp(alpha*b)
   //     //bexp(alpha*b)
@@ -363,7 +362,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
               Eigen::VectorXd w = W.row(i2);
               temp += exp(MultVV(w, gamma1))*FUNEC(0,i2);
-              SX += exp(MultVV(w,gamma1))*FUNEC*w;
+              SX += exp(MultVV(w,gamma1))*FUNEC(0,i2)*w;
 
 
               if (i2 == numSubj-1)
@@ -542,7 +541,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
             SXX22.col(b-1-risk2_index) = SX2;
             risk2_index--;
           }
-          else if (survtime(numSubj+1) != survtime(numSubj))
+          else if (survtime(i2+1) != survtime(i2))
           {
             // SX*= H02(risk2_index, 1)/pow(temp, 2);
             // SXX2.col(b-1-risk2_index) = SX;
@@ -736,7 +735,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
         temp += exp(MultVV(W.row(i2), gamma1))*FUNEC(0, i2);
 
-        N = FUNBEC.col(i2).segment(agIndex, pREtotal);
+        N = FUNBEC.col(i2).segment(0, pREtotal);
 
 
         TN += exp(MultVV(W.row(i2), gamma1))*N; // E(bTexp(aTb))xexp(WTgamma)
@@ -1080,7 +1079,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
     // std::cout << "alpha2full " << S << std::endl;
 
 
-    agIndex+= numBio;
+    //agIndex+= numBio;
     pREindex +=pRE;
     index += pREtotal;
 
@@ -1136,8 +1135,9 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
   }
 
-  SSinv = SS.inverse();
-
+  //SSinv = SS.inverse();
+  Eigen::LLT<Eigen::MatrixXd> llt(SS);
+  SSinv = llt.solve(Eigen::MatrixXd::Identity(d, d));
 
   Eigen::VectorXd sebeta = Eigen::VectorXd::Zero(ptotal);
   Eigen::VectorXd segamma1 = Eigen::VectorXd::Zero(gamma1.size());
