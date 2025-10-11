@@ -333,6 +333,25 @@ mvjmcs <- function(ydata, cdata, long.formula,
       preSig <- Sig
       presigma <- sigma
       
+      if (print.para) {
+        writeLines("iter is:")
+        print(iter)
+        writeLines("beta is:")
+        print(prebeta)
+        writeLines("sigma is:")
+        print(presigma)
+        writeLines("Sig is:")
+        print(preSig)
+        writeLines("gamma1 is:")
+        print(pregamma1)
+        writeLines("gamma2 is:")
+        print(pregamma2)
+        writeLines("alpha1 is:")
+        print(prealpha1)
+        writeLines("alpha2 is:")
+        print(prealpha2)
+      }
+      
       data <- list(
         beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
         alpha = alphaList, sigma = sigma,
@@ -554,6 +573,21 @@ mvjmcs <- function(ydata, cdata, long.formula,
       preH01 <- H01
       preSig <- Sig
       presigma <- sigma
+      
+      if (print.para) {
+        writeLines("iter is:")
+        print(iter)
+        writeLines("beta is:")
+        print(prebeta)
+        writeLines("sigma is:")
+        print(presigma)
+        writeLines("Sig is:")
+        print(preSig)
+        writeLines("gamma1 is:")
+        print(pregamma1)
+        writeLines("alpha1 is:")
+        print(prealpha1)
+      }
       
       data <- list(beta = betaList, gamma1 = gamma1,
                    alpha = alphaList, sigma = sigma,
