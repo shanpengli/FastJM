@@ -267,7 +267,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     
     numSubj <- n
-    opt <- list()
+    # opt <- list()
     pos.mode <- vector("list", numSubj)
     subX1 <- subY <- subZ <- vector("list", numSubj)
     pos.cov <- list()
@@ -306,10 +306,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
     W <- getinit$W
     ngamma <- ncol(W)
     
-    
+    old_parallelly <- options(
+      parallelly.makeNodePSOCK.rscript_args = c("--vanilla")
+    )
+    on.exit(options(old_parallelly), add = TRUE)
     old_plan <- future::plan()
-    on.exit(future::plan(old_plan), add = TRUE)
     future::plan(future::multisession, workers = cpu.cores)
+    on.exit(future::plan(old_plan), add = TRUE)
     
     repeat{
       iter <- iter + 1
@@ -517,7 +520,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     }
     
     numSubj <- n
-    opt <- list()
+    # opt <- list()
     pos.mode <- vector("list", numSubj)
     subX1 <- subY <- subZ <- vector("list", numSubj)
     pos.cov <- list()
@@ -553,9 +556,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
     W <- getinit$W
     ngamma <- ncol(W)
     
+    old_parallelly <- options(
+      parallelly.makeNodePSOCK.rscript_args = c("--vanilla")
+    )
+    on.exit(options(old_parallelly), add = TRUE)
     old_plan <- future::plan()
-    on.exit(future::plan(old_plan), add = TRUE)
     future::plan(future::multisession, workers = cpu.cores)
+    on.exit(future::plan(old_plan), add = TRUE)
     
     repeat{
       
