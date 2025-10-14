@@ -400,7 +400,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
       
       
-      if((mvDiff(beta, prebeta, sigma, presigma, gamma1, pregamma1, gamma2, pregamma2,
+      if((mvDiffrelative(beta, prebeta, sigma, presigma, gamma1, pregamma1, gamma2, pregamma2,
                  alpha1, prealpha1, alpha2, prealpha2,
                  Sig, preSig, H01, preH01, H02, preH02, tol) == 0) || (iter == maxiter) #|| (!is.list(GetEfun)) || (!is.list(GetMpara))
       ) {
@@ -636,7 +636,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
       
       # leave condition
-      if((mvDiffSF(beta, prebeta, sigma, presigma, gamma1, pregamma1, 
+      if((mvDiffrelativeSF(beta, prebeta, sigma, presigma, gamma1, pregamma1, 
                    alpha1, prealpha1,
                    Sig, preSig, H01, preH01, tol) == 0) || (iter == maxiter) #|| (!is.list(GetEfun)) || (!is.list(GetMpara))
       ) {
