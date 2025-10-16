@@ -682,6 +682,9 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
   // std::cout<< "info " << info.inverse() << std::endl;
   phi1 << gamma1, alpha1;
   phi1 += info.inverse() * (Sfull_inter - Sfull_new);
+  // gamma1 += Sww_new.inverse()*(Sw_inter - Sw_new);
+  // alpha1 += Sll_new.inverse()*(Sl_inter - Sl_new);
+  // phi1 << gamma1, alpha1;
 
   Sw_new = Eigen::VectorXd::Zero(dimW);
   Sw_inter = Eigen::VectorXd::Zero(dimW);
@@ -800,8 +803,10 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
   // NR update
   Eigen::VectorXd phi2 = Eigen::VectorXd::Zero(dimW + pREtotal);
   phi2 << gamma2, alpha2;
-
   phi2 += info.inverse() * (Sfull_inter - Sfull_new);
+  // gamma2 += Sww_new.inverse()*(Sw_inter - Sw_new);
+  // alpha2 += Sll_new.inverse()*(Sl_inter - Sl_new);
+  // phi2 << gamma2, alpha2;
 
 
   // Rcpp::Named("FUNB") = FUNB,
