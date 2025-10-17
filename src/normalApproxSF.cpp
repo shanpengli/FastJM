@@ -349,9 +349,9 @@ Rcpp::List normalApproxSF(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, 
 		index = 0;
 
 		for (int i = 0; i < numSubj; i++) {
-			//scalef = 0;
-			// Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
-
+		  //scalef = 0;
+		  // Rcpp::List bListElement = Rcpp::as<Rcpp::List>(bList[i]);
+		  
 		  // for(int g = 0; g < numBio; g++){
 		  //   Eigen::VectorXd bVec = Rcpp::as<Eigen::VectorXd>(bList[i]);
 		  //   pRE = pREVec(g);
@@ -361,223 +361,190 @@ Rcpp::List normalApproxSF(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, 
 		  Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
 		  
 		  // index = 0;
-
-			Eigen::MatrixXd BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
-			Eigen::VectorXd latent = bVeci;
-			double mu1, tausq;
-			tausq = alpha1.transpose() * BAssociation * alpha1;
-
-			Eigen::VectorXd w = W.row(i);
-			Eigen::VectorXd l = BAssociation * alpha1 + bVeci;
-
-			Eigen::MatrixXd wl = Eigen::MatrixXd::Zero(dimW, pREtotal);
-
-			wl = w * l.transpose(); //iT
-
-			mu1 = MultVV(w, gamma1) + MultVV(alpha1, bVeci);
-			wwT = MultVVoutprod(w);
-			//llT = MultVVoutprod(l);
-			llT = MultVVoutprod(BAssociation * alpha1 + bVeci) + BAssociation;
-
-			scalef = exp(mu1 + 0.5 * tausq);
-
-			// for I
-			wwT *= scalef; //exp(mu+tau)wwT
-			llT *= scalef; //exp(mu) bbT
-			SwwT += wwT; //sum exp(mu)wwT
-			SllT += llT; //sum exp(mu)bbT
-			wl *= scalef; //exp(mu)bTwT
-			Swl += wl; // sum exp(mu)bTwT
-
-			// for S
-			w *= scalef; //exp(mu)wT
-			l *= scalef; //exp(mu)bT
-			Sw += w; //sum exp(mu)wT
-			Sl += l; //sum exp(mu)
-
-
-			if (cmprsk(i) == 1)
-			{
-
-				scalefH01 = H01(risk1_index, 2);
-				//SXX *= scalefH01;
-				// i
-				SwwT *= scalefH01; //haz*exp(mu)wwT
-				SllT *= scalefH01; //haz*mm * exp(mu)
-				Swl *= scalefH01;
-				Sww_new += SwwT;
-				Sll_new += SllT;
-				Swl_new += Swl;
-
-				SwwT /= scalefH01;
-				SllT /= scalefH01;
-				Swl /= scalefH01;
-
-				// s
-				Sw *= scalefH01;
-				Sl *= scalefH01;
-				Sw_new += Sw;
-				Sl_new += Sl;
-				Sw /= scalefH01;
-				Sl /= scalefH01;
-
-				risk1_index--;
-				//     if (i == numSubj - 1)
-				//     {
-				//         scalefH01 = H01(risk1_index, 2);
-				//         //SXX *= scalefH01;
-				//         // i
-				//         SwwT *= scalefH01; //haz*exp(mu)wwT
-				//         SllT *= scalefH01; //haz*exp(mu) bbT
-				//         Swl *= scalefH01;
-				//         Sww_new += SwwT;
-				//         Sll_new += SllT;
-				//         Swl_new += Swl;
-				// 
-				//         SwwT /= scalefH01;
-				//         SllT /= scalefH01;
-				//         Swl /= scalefH01;
-				// 
-				//          // s
-				//        Sw *= scalefH01;
-				//        Sl *= scalefH01;
-				//         Sw_new += Sw;
-				//         Sl_new += Sl;
-				//         Sw /= scalefH01;
-				//         Sl /= scalefH01;
-				// 
-				// 
-				//         risk1_index--;
-				// 
-				//     }
-				// 
-				//     else if (survtime(i + 1) != survtime(i))
-				//     {
-				//         scalefH01 = H01(risk1_index, 2);
-				// 
-				//         // i
-				//         SwwT *= scalefH01;
-				//         SllT *= scalefH01;
-				//         Swl *= scalefH01;
-				//         Sww_new += SwwT;
-				//         Sll_new += SllT;
-				//         Swl_new += Swl;
-				//         SwwT /= scalefH01;
-				//         SllT /= scalefH01;
-				//         Swl /= scalefH01;
-				// 
-				//          // s
-				//        Sw *= scalefH01;
-				//        Sl *= scalefH01;
-				//         Sw_new += Sw;
-				//         Sl_new += Sl;
-				//         Sw /= scalefH01;
-				//         Sl /= scalefH01;
-				//         risk1_index--;
-				//     }
-				//     else
-				//     {
-				//         // for (i = i + 1; i < numSubj; i++)
-				//         // {
-				//         // 
-				//         //     bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
-				//         //     latent = bVeci;
-				//         //     w = W.row(i);
-				//         //     l = latent;
-				//         // 
-				//         // 
-				//         //     mu1 = MultVV(w, gamma1) + MultVV(alpha1, l);
-				//         //     wwT =  MultVVoutprod(W.row(i));
-				//         //     llT = MultVVoutprod(latent);
-				// 
-				// //             scalef = exp(mu1);
-				// 
-				// //             wl = Eigen::MatrixXd::Zero(dimW, p1a+p2a);
-				// 
-				// //             wl = w * l.transpose();
-				// 
-				// // // for I
-				// // wwT *= scalef;
-				// // llT *= scalef;
-				// // wl *= scalef;
-				// // SwwT += wwT;
-				// // SllT += llT;
-				// // Swl += wl;
-				// 
-				// 
-				// // // // for S
-				// // // wwT *= scalef;
-				// // // llT *= scalef;
-				// // // SwwT += wwT;
-				// // // SllT += llT;
-				// 
-				// 
-				// // // for S
-				// // w *= scalef;
-				// // l *= scalef;
-				// // Sw += w;
-				// // Sl += l;
-				// 
-				// 
-				// //             if (i == numSubj - 1)
-				// //             {
-				// //                 scalefH01 = H01(risk1_index, 2);
-				// //         SwwT *= scalefH01;
-				// //         SllT *= scalefH01;
-				// //         Swl *= scalefH01;
-				// //         Sww_new += SwwT;
-				// //         Sll_new += SllT;
-				// //         Swl_new += Swl;
-				// //         SwwT /= scalefH01;
-				// //         SllT /= scalefH01;
-				// //         Swl /= scalefH01;
-				// 
-				// //          // s
-				// //        Sw *= scalefH01;
-				// //        Sl *= scalefH01;
-				// //         Sw_new += Sw;
-				// //         Sl_new += Sl;
-				// //         Sw /= scalefH01;
-				// //         Sl /= scalefH01;
-				// 
-				// //         risk1_index--;
-				// //                 break;
-				// //             }
-				// //             else if (survtime(i + 1) != survtime(i))
-				// //             {
-				// //                 scalefH01 = H01(risk1_index, 2);
-				// 
-				// //                 // i
-				// //         SwwT *= scalefH01;
-				// //         SllT *= scalefH01;
-				// //         Swl *= scalefH01;
-				// //         Sww_new += SwwT;
-				// //         Sll_new += SllT;
-				// //         Swl_new += Swl;
-				// //         SwwT /= scalefH01;
-				// //         SllT /= scalefH01;
-				// //         Swl /= scalefH01;
-				// 
-				// //          // s
-				// //        Sw *= scalefH01;
-				// //        Sl *= scalefH01;
-				// //         Sw_new += Sw;
-				// //         Sl_new += Sl;
-				// //         Sw /= scalefH01;
-				// //         Sl /= scalefH01;
-				// //         risk1_index--;
-				// //                 break;
-				// //             }
-				// //             else continue;
-				// //         }
-				// //     }
-				// }
-				// // else continue;
-			}
-
+		  
+		  Eigen::MatrixXd BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
+		  Eigen::VectorXd latent = bVeci;
+		  double mu1, tausq;
+		  tausq = alpha1.transpose() * BAssociation * alpha1;
+		  
+		  Eigen::VectorXd w = W.row(i);
+		  Eigen::VectorXd l = BAssociation * alpha1 + bVeci;
+		  
+		  Eigen::MatrixXd wl = Eigen::MatrixXd::Zero(dimW, pREtotal);
+		  
+		  wl = w * l.transpose(); //iT
+		  
+		  mu1 = MultVV(w, gamma1) + MultVV(alpha1, bVeci);
+		  wwT = MultVVoutprod(w);
+		  //llT = MultVVoutprod(l);
+		  llT = MultVVoutprod(BAssociation * alpha1 + bVeci) + BAssociation;
+		  
+		  scalef = exp(mu1 + 0.5 * tausq);
+		  
+		  // for I
+		  wwT *= scalef; //exp(mu+tau)wwT
+		  llT *= scalef; //exp(mu) bbT
+		  SwwT += wwT; //sum exp(mu)wwT
+		  SllT += llT; //sum exp(mu)bbT
+		  wl *= scalef; //exp(mu)bTwT
+		  Swl += wl; // sum exp(mu)bTwT
+		  
+		  // for S
+		  w *= scalef; //exp(mu)wT
+		  l *= scalef; //exp(mu)bT
+		  Sw += w; //sum exp(mu)wT
+		  Sl += l; //sum exp(mu)
+		  
+		  
+		  if (cmprsk(i) == 1)
+		  {
+		    
+		    if (i == numSubj - 1)
+		    {
+		      scalefH01 = H01(risk1_index, 2);
+		      //SXX *= scalefH01;
+		      // i
+		      SwwT *= scalefH01; //haz*exp(mu)wwT
+		      SllT *= scalefH01; //haz*exp(mu) bbT
+		      Swl *= scalefH01;
+		      Sww_new += SwwT;
+		      Sll_new += SllT;
+		      Swl_new += Swl;
+		      
+		      SwwT /= scalefH01;
+		      SllT /= scalefH01;
+		      Swl /= scalefH01;
+		      
+		      // s
+		      Sw *= scalefH01;
+		      Sl *= scalefH01;
+		      Sw_new += Sw;
+		      Sl_new += Sl;
+		      Sw /= scalefH01;
+		      Sl /= scalefH01;
+		      
+		      
+		      risk1_index--;
+		      
+		    }
+		    
+		    else if (survtime(i + 1) != survtime(i))
+		    {
+		      scalefH01 = H01(risk1_index, 2);
+		      
+		      // i
+		      SwwT *= scalefH01;
+		      SllT *= scalefH01;
+		      Swl *= scalefH01;
+		      Sww_new += SwwT;
+		      Sll_new += SllT;
+		      Swl_new += Swl;
+		      SwwT /= scalefH01;
+		      SllT /= scalefH01;
+		      Swl /= scalefH01;
+		      
+		      // s
+		      Sw *= scalefH01;
+		      Sl *= scalefH01;
+		      Sw_new += Sw;
+		      Sl_new += Sl;
+		      Sw /= scalefH01;
+		      Sl /= scalefH01;
+		      risk1_index--;
+		    }
+		    else
+		    {
+		      for (i = i + 1; i < numSubj; i++)
+		      {
+		        
+		        BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
+		        bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
+		        latent = bVeci;
+		        w = W.row(i);
+		        l = BAssociation * alpha1 + bVeci;
+		        
+		        
+		        wl = w * l.transpose(); //iT
+		        mu1 = MultVV(w, gamma1) + MultVV(alpha1, bVeci);
+		        wwT =  MultVVoutprod(W.row(i));
+		        llT = MultVVoutprod(BAssociation * alpha1 + bVeci) + BAssociation;
+		        
+		        tausq = alpha1.transpose() * BAssociation * alpha1;
+		        scalef = exp(mu1 + 0.5 * tausq);
+		        
+		        // for I
+		        wwT *= scalef; //exp(mu+tau)wwT
+		        llT *= scalef; //exp(mu) bbT
+		        SwwT += wwT; //sum exp(mu)wwT
+		        SllT += llT; //sum exp(mu)bbT
+		        wl *= scalef; //exp(mu)bTwT
+		        Swl += wl; // sum exp(mu)bTwT
+		        
+		        // for S
+		        w *= scalef; //exp(mu)wT
+		        l *= scalef; //exp(mu)bT
+		        Sw += w; //sum exp(mu)wT
+		        Sl += l; //sum exp(mu)
+		        
+		        
+		        if (i == numSubj - 1)
+		        {
+		          scalefH01 = H01(risk1_index, 2);
+		          
+		          // i
+		          SwwT *= scalefH01;
+		          SllT *= scalefH01;
+		          Swl *= scalefH01;
+		          Sww_new += SwwT;
+		          Sll_new += SllT;
+		          Swl_new += Swl;
+		          SwwT /= scalefH01;
+		          SllT /= scalefH01;
+		          Swl /= scalefH01;
+		          
+		          // s
+		          Sw *= scalefH01;
+		          Sl *= scalefH01;
+		          Sw_new += Sw;
+		          Sl_new += Sl;
+		          Sw /= scalefH01;
+		          Sl /= scalefH01;
+		          risk1_index--;
+		          break;
+		        }
+		        else if (survtime(i + 1) != survtime(i))
+		        {
+		          scalefH01 = H01(risk1_index, 2);
+		          
+		          // i
+		          SwwT *= scalefH01;
+		          SllT *= scalefH01;
+		          Swl *= scalefH01;
+		          Sww_new += SwwT;
+		          Sll_new += SllT;
+		          Swl_new += Swl;
+		          SwwT /= scalefH01;
+		          SllT /= scalefH01;
+		          Swl /= scalefH01;
+		          
+		          // s
+		          Sw *= scalefH01;
+		          Sl *= scalefH01;
+		          Sw_new += Sw;
+		          Sl_new += Sl;
+		          Sw /= scalefH01;
+		          Sl /= scalefH01;
+		          risk1_index--;
+		          break;
+		        }
+		        else continue;
+		      }
+		    }
+		  }
+		  else continue;
+		  
+		  
 		}
-		
-		index = 0;
 
 		for (int i = 0; i < numSubj; i++)
 		{
