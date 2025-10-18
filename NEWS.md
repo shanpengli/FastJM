@@ -1,3 +1,7 @@
+# FastJM 1.5.2
+
+* Fix small bug in ```mvjmcs()``` to support ties in obtaining the estimator of the baseline hazards.
+
 # FastJM 1.5.1
 
 * Fix small bugs and add the estimates and 95% confidence interval for the error variances of multivariate joint modeling.

@@ -39,8 +39,7 @@ mvjmcs(
 
 \item{initial.para}{Optional list of initialized parameters. Default is \code{NULL}.}
 
-\item{cpu.cores}{Number of CPU cores for parallel computation. Default is \code{NULL}, 
-i.e., the maximum number of CPU cores available.}
+\item{cpu.cores}{Number of CPU cores for parallel computation. Default is 1.}
 }
 \value{
 Object of class \code{mvjmcs} with elements

@@ -14,8 +14,7 @@
 ##' @param tol Convergence tolerance for EM algorithm. Default is 0.0001.
 ##' @param print.para Logical; if \code{TRUE}, prints parameter values at each iteration.
 ##' @param initial.para Optional list of initialized parameters. Default is \code{NULL}.
-##' @param cpu.cores Number of CPU cores for parallel computation. Default is \code{NULL}, 
-##' i.e., the maximum number of CPU cores available.
+##' @param cpu.cores Number of CPU cores for parallel computation. Default is 1. 
 ##'
 ##' @return  Object of class \code{mvjmcs} with elements
 ##' \item{beta}{the vector of all biomarker-specific fixed effects for the linear mixed effects sub-models.} 
@@ -157,19 +156,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   # ---- CPU setup ----
   if(is.null(cpu.cores)){
-    cpu.cores <- future::availableCores()
+    cpu.cores <- 1
   }
-  
-  
-  writeLines("number CPU Cores:")
-  print(cpu.cores)
-  
-  
-  
-  
-  # survival <- all.vars(surv.formula)
-  # random.form <- all.vars(random)
-  # ID <- random.form[length(random.form)]
+
   cnames <- colnames(cdata)
   ynames <- colnames(ydata)
   
