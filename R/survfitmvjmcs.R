@@ -209,14 +209,20 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   nsig <- nrow(object$Sig)
   
   cID <- cnewdata2[, ID]
+  yID <- vector("list", numBio)
   for(g in 1:numBio){
-    yID <- unique((ynewdata2[[g]])[, ID])
-    N.ID <- length(yID)
-    
-    if (prod(yID == cID) == 0) {
-      stop("The order of subjects in ydata doesn't match with cnewdata.")
-    }
+    yID[[g]] <- unique((ynewdata2[[g]])[, ID])
   }
+  commonyID <- Reduce(intersect, yID)
+  
+  cnewdata2 <- cnewdata2 %>%
+    dplyr::filter(.data[[ID]] %in% commonyID)
+  
+  for(g in 1:numBio){
+    ynewdata2[[g]] <- ynewdata2[[g]] %>%
+      dplyr::filter(.data[[ID]] %in% commonyID)
+  }
+  N.ID <- length(commonyID)
   
   if (!is.null(Last.time)) {
     if (is.character(Last.time)) {
