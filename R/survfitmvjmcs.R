@@ -286,8 +286,8 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
 
     for (j in 1:N.ID) {
       for(g in 1:numBio){
-        subNDy[[g]] <- ynewdata2[[g]][ynewdata2[[g]][, ID] == yID[j], ]
-        y.obs[[g]][[j]] <- data.frame(ynewdata[ynewdata[, ID] == yID[j], c(obs.time, Yvar[[g]][1])])
+        subNDy[[g]] <- ynewdata2[[g]][ynewdata2[[g]][, ID] == commonyID[j], ]
+        y.obs[[g]][[j]] <- data.frame(ynewdata[ynewdata[, ID] == commonyID[j], c(obs.time, Yvar[[g]][1])])
         YList[[g]] <- subNDy[[g]][, Yvar[[g]][1]]
         XList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, Yvar[[g]][-1]]))
         if (pRE[g] == 1) {
@@ -295,10 +295,10 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         } else {
           ZList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, bvar1[[g]]]))
         }
-
+        
       }
 
-      subNDc <- cnewdata2[cnewdata2[, ID] == yID[j], ]
+      subNDc <- cnewdata2[cnewdata2[, ID] == commonyID[j], ]
     
       stime <-  as.numeric(Last.time[j])
       CH01 <- CH(H01, stime)
@@ -430,15 +430,19 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   #   }
   # }
   for(g in 1:numBio){
-    names(y.obs[[g]]) <- yID
+    names(y.obs[[g]]) <- commonyID
   }
   
-  names(Pred) <- yID
-  Last.time <- data.frame(cID, Last.time)
-  sum <- list(Pred = Pred, Last.time = Last.time, y.obs = y.obs, #method = method, 
+  cnewdata <- cnewdata %>%
+    dplyr::filter(.data[[ID]] %in% commonyID)
+  Last.time <- cnewdata[, Cvar[1]]
+  
+  names(Pred) <- commonyID
+  Last.time <- data.frame(commonyID, Last.time)
+  colnames(Last.time) <- c(ID, "Last.time")
+  sum <- list(Pred = Pred, Last.time = Last.time, y.obs = y.obs,
               CompetingRisk = CompetingRisk)
   class(sum) <- "survfitmvjmcs"
   sum
-  
 }
 
