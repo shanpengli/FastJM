@@ -4,7 +4,7 @@
 ##' @description This function computes the conditional probability of 
 ##' surviving later times than the last observed time for which a longitudinal 
 ##' measurement was available.
-##' @param object an object inheriting from class \code{jmcs}.
+##' @param object an object inheriting from class \code{mvjmcs}.
 ##' @param seed a random seed number to proceed Monte Carlo simulation. Default is 100.
 ##' @param ynewdata a data frame that contains the longitudinal and covariate information for the subjects 
 ##' for which prediction of survival probabilities is required.
@@ -145,6 +145,14 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   nc <- nrow(cnewdata)
   
   if(numBio == 1){
+    
+    bvar1 <- vector("list", 1)
+    if (length(bvar) > 1) {
+      bvar1[[1]] <- bvar[-length(bvar)]
+    } else {
+      bvar1[[1]] <- character(0)
+    }
+    
     getdum <- getdummy(long.formula = object$LongitudinalSubmodel,
                        surv.formula = object$SurvivalSubmodel,
                        random = object$random, ydata = ydata2, cdata = cdata2)
@@ -187,8 +195,12 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       Yvar[[g]] <- colnames(ydata2temp)[-1]
       Cvar <- colnames(cdata2temp)[-1]
 
-      if (length(bvar[[g]]) > 1){
+      if (length(bvar[[g]]) > 1) {
+        # RE covariates (drop id)
         bvar1[[g]] <- bvar[[g]][-(length(bvar[[g]]))]
+      } else {
+        # no RE covariates
+        bvar1[[g]] <- character(0)
       }
         
       ny[g] <- nrow(ynewdatasplit[[g]])
@@ -249,14 +261,15 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   CompetingRisk <- object$CompetingRisk
   
   if (CompetingRisk) {
-    betaFlat <- object$beta
-    betaList <- vector("list",numBio)
-    index <- 1
-    for(g in 1:numBio){
-      p <- length(all.vars(object$LongitudinalSubmodel[[g]]))
-      betaList[[g]] <- betaFlat[index:(index + p-1)]
-      index <- index + g
-    }
+    # betaFlat <- object$beta
+    # betaList <- vector("list",numBio)
+    # index <- 1
+    # for(g in 1:numBio){
+    #   p <- length(all.vars(object$LongitudinalSubmodel[[g]]))
+    #   betaList[[g]] <- betaFlat[index:(index + p-1)]
+    #   index <- index + g
+    # }
+    betaList <- object$betaList
     sigma <- object$sigma
     gamma1 <- object$gamma1
     gamma2 <- object$gamma2
@@ -293,7 +306,7 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         if (pRE[g] == 1) {
           ZList[[g]] <- matrix(1, ncol = 1, nrow = length(YList[[g]]))
         } else {
-          ZList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, bvar1[[g]]]))
+          ZList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, bvar1[[g]], drop = FALSE]))
         }
         
       }
@@ -352,15 +365,89 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       #   quadpoint = NULL
       # }
       
-      for (jj in 1:N.ID) {
-        Pred[[jj]] <- data.frame(u, Predraw1[jj, ], Predraw2[jj, ])
-        colnames(Pred[[jj]]) <- c("times", "CIF1", "CIF2")
-      }
-     
+      # for (jj in 1:N.ID) {
+      #   Pred[[jj]] <- data.frame(u, Predraw1[jj, ], Predraw2[jj, ])
+      #   colnames(Pred[[jj]]) <- c("times", "CIF1", "CIF2")
+      # }
+      
+        Pred[[j]] <- data.frame(times = u, CIF1 = Predraw1[j, ], CIF2 = Predraw2[j, ])
+        
     } 
     } else{
     
-    stop("TBD")
+      betaList <- object$betaList
+      sigma <- object$sigma
+      gamma1 <- object$gamma1
+      
+      alpha1flat <- object$alpha1
+      alpha1 <- vector("list", numBio)
+      index = 1
+      for(g in 1:numBio){
+        alpha1[[g]] <- alpha1flat[index:(index+pRE[g]-1)] 
+        index = index + pRE[g]
+      }
+      
+      H01 <- object$H01
+      Sig <- object$Sig
+      
+      Predraw1 <- matrix(0, nrow = nrow(cnewdata2), ncol = length(u))
+      lengthu <- length(u)
+      
+      subNDy <- YList <- XList <- y.obs <-  ZList<- vector("list", numBio)
+      
+      # n <- nrow(cnewdata2)
+      
+      
+      for (j in 1:N.ID) {
+        for(g in 1:numBio){
+          subNDy[[g]] <- ynewdata2[[g]][ynewdata2[[g]][, ID] == commonyID[j], ]
+          y.obs[[g]][[j]] <- data.frame(ynewdata[ynewdata[, ID] == commonyID[j], c(obs.time, Yvar[[g]][1])])
+          YList[[g]] <- subNDy[[g]][, Yvar[[g]][1]]
+          XList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, Yvar[[g]][-1]]))
+          if (pRE[g] == 1) {
+            ZList[[g]] <- matrix(1, ncol = 1, nrow = length(YList[[g]]))
+          } else {
+            ZList[[g]] <- as.matrix(data.frame(1, subNDy[[g]][, bvar1[[g]], drop = FALSE]))
+          }
+          
+        }
+        
+        subNDc <- cnewdata2[cnewdata2[, ID] == commonyID[j], ]
+        
+        stime <-  as.numeric(Last.time[j])
+        CH01 <- CH(H01, stime)
+        
+        W <- as.matrix(subNDc[1, Cvar[3:length(Cvar)]])
+        
+        
+        data <- list(YList, XList, ZList, W = W, CH01 = CH01,  betaList, gamma1,  alpha1,  sigma, Sig)
+        names(data) <- c("YList", "XList", "ZList", "W", "CH01",  "beta",
+                         "gamma1","alpha1",   "sigma", "Sig")
+        
+        opt <- optim(rep(0, nsig), logLikSFmv, data = data, method = "BFGS", hessian = TRUE)
+        meanb <- opt$par
+        Poscov <- solve(opt$hessian)
+        
+        pREvec <- c()
+        
+        for(g in 1:numBio){
+          pREvec[g] <- ncol(ZList[[g]])
+        }
+        
+        for (jj in 1:lengthu) {
+          ## calculate the CIF
+          CIF1 <- CIF1mv.SF(data, H01, stime, u[jj], opt$par, numBio, pREvec)
+          P1us <- Pkmv.us_SF(CIF1, data, opt$par, numBio = numBio, pREvec)
+          Predraw1[j, jj] <- P1us
+        }
+        
+        # for (jj in 1:N.ID) {
+        #   Pred[[jj]] <- data.frame(u, Predraw1[jj, ])
+        #   colnames(Pred[[jj]]) <- c("times", "CIF1")
+        # }
+        Pred[[j]] <- data.frame(times = u, CIF1  = Predraw1[j, ])
+        
+      } 
     
   
   }
