@@ -237,7 +237,7 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   
   if (!is.null(Last.time)) {
     if (is.character(Last.time)) {
-      if (Last.time %in% colnames(cnewdata)) {
+      if (Last.time %in% colnames(cnewdata2)) {
         Last.time <- cnewdata2[, Last.time]
       } else {
         stop(paste(Last.time, "is not found in cnewdata."))
@@ -245,8 +245,8 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
     }
     if (is.numeric(Last.time)) {
       if (length(Last.time) == 1) {
-        Last.time <- rep(Last.time, nrow(cnewdata))
-      } else if (length(Last.time) < nrow(cnewdata)) {
+        Last.time <- rep(Last.time, nrow(cnewdata2))
+      } else if (length(Last.time) < nrow(cnewdata2)) {
         stop("The last.time vector does not match cnewdata.")
       } else {
       }
@@ -430,10 +430,6 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
   for(g in 1:numBio){
     names(y.obs[[g]]) <- commonyID
   }
-  
-  cnewdata <- cnewdata %>%
-    dplyr::filter(.data[[ID]] %in% commonyID)
-  Last.time <- cnewdata[, Cvar[1]]
   
   names(Pred) <- commonyID
   Last.time <- data.frame(commonyID, Last.time)
