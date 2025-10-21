@@ -19,7 +19,7 @@ survfitmvjmcs(
 )
 }
 \arguments{
-\item{object}{an object inheriting from class \code{jmcs}.}
+\item{object}{an object inheriting from class \code{mvjmcs}.}
 
 \item{seed}{a random seed number to proceed Monte Carlo simulation. Default is 100.}
 

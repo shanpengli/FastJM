@@ -416,7 +416,7 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
           ## calculate the CIF
           CIF1 <- CIF1mv.SF(data, H01, stime, u[jj], meanb, numBio, pREvec)
           P1us <- Pkmv.us_SF(CIF1, data, meanb, numBio = numBio, pREvec)
-          Predraw1[j, jj] <- P1us
+          Predraw1[j, jj] <- 1 - P1us
         }
         
       } 
