@@ -123,4 +123,24 @@ summary(mvfit, process = "Event")
 head(ranef(mvfit))
 ```
 
-Currently, prediction and validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to mvjmcs is under active development and will be available later this year.
+The `FastJM` package can now make dynamic prediction in the presence of multiple longitudinal outcomes. Below is a toy example for competing risks data. Conditional cumulative incidence probabilities for each failure will be presented.
+
+```{r}
+require(dplyr)
+set.seed(08252025)
+sampleID <- sample(mvcdata$ID, 5, replace = FALSE)
+
+subcdata <- mvcdata %>%
+  dplyr::filter(ID %in% sampleID)
+
+subydata <- mvydata %>%
+  dplyr::filter(ID %in% sampleID)
+
+### Set up a landmark time of 4.75 and make predictions at time u
+survmvfit <- survfitmvjmcs(mvfit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+                         u = c(7, 8, 9), Last.time = 4.75, obs.time = "time")
+
+survmvfit
+
+```
+Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to mvjmcs is under active development and will be available later this year.

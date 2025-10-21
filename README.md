@@ -245,7 +245,7 @@ mvfit <- mvjmcs(ydata = mvydata, cdata = mvcdata,
               maxiter = 1000, opt = "optim",
               tol = 1e-3, print.para = FALSE)
 #> runtime is:
-#> Time difference of 56.90911 secs
+#> Time difference of 41.65209 secs
 mvfit
 #> 
 #> Call:
@@ -316,8 +316,10 @@ We can extract the components of the model as follows:
 ``` r
 # Longitudinal fixed effects
 fixef(mvfit, process = "Longitudinal")
-#> (Intercept)_bio1         X11_bio1         X12_bio1        time_bio1 (Intercept)_bio2         X11_bio2         X12_bio2        time_bio2 
-#>        4.9740592        1.4653916        1.9979294        0.8427526        9.9754651        0.9796637        2.0095547        0.9937970
+#> (Intercept)_bio1         X11_bio1         X12_bio1        time_bio1 
+#>        4.9740592        1.4653916        1.9979294        0.8427526 
+#> (Intercept)_bio2         X11_bio2         X12_bio2        time_bio2 
+#>        9.9754651        0.9796637        2.0095547        0.9937970
 summary(mvfit, process = "Longitudinal")
 #>        Longitudinal   coef     SE 95%Lower 95%Upper p-values
 #> 1  (Intercept)_bio1 4.9741 0.0539   4.8685   5.0797        0
@@ -341,17 +343,28 @@ fixef(mvfit, process = "Event")
 #>      X21_2      X22_2 
 #> -0.2168317  0.4848128
 summary(mvfit, process = "Event")
-#>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper 95%exp(Lower) 95%exp(Upper) p-values
-#> 1              X21_1  0.9362    2.5502   0.1348   0.6720   1.2004        1.9581        3.3214   0.0000
-#> 2              X22_1  0.5115    1.6677   0.0317   0.4494   0.5735        1.5674        1.7746   0.0000
-#> 3              X21_2 -0.2168    0.8051   0.2492  -0.7053   0.2716        0.4940        1.3121   0.3843
-#> 4              X22_2  0.4848    1.6239   0.0592   0.3687   0.6009        1.4459        1.8238   0.0000
-#> 5  (Intercept)_1bio1  0.4998    1.6484   0.0754   0.3521   0.6475        1.4221        1.9108   0.0000
-#> 6         time_1bio1  0.7082    2.0304   0.0850   0.5416   0.8749        1.7187        2.3986   0.0000
-#> 7  (Intercept)_1bio2 -0.5468    0.5788   0.0797  -0.7030  -0.3905        0.4951        0.6767   0.0000
-#> 8  (Intercept)_2bio1  0.6322    1.8817   0.1334   0.3706   0.8937        1.4487        2.4442   0.0000
-#> 9         time_2bio1  0.6623    1.9392   0.1673   0.3344   0.9901        1.3972        2.6915   0.0001
-#> 10 (Intercept)_2bio2 -0.4838    0.6165   0.1588  -0.7950  -0.1725        0.4516        0.8415   0.0023
+#>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper
+#> 1              X21_1  0.9362    2.5502   0.1348   0.6720   1.2004
+#> 2              X22_1  0.5115    1.6677   0.0317   0.4494   0.5735
+#> 3              X21_2 -0.2168    0.8051   0.2492  -0.7053   0.2716
+#> 4              X22_2  0.4848    1.6239   0.0592   0.3687   0.6009
+#> 5  (Intercept)_1bio1  0.4998    1.6484   0.0754   0.3521   0.6475
+#> 6         time_1bio1  0.7082    2.0304   0.0850   0.5416   0.8749
+#> 7  (Intercept)_1bio2 -0.5468    0.5788   0.0797  -0.7030  -0.3905
+#> 8  (Intercept)_2bio1  0.6322    1.8817   0.1334   0.3706   0.8937
+#> 9         time_2bio1  0.6623    1.9392   0.1673   0.3344   0.9901
+#> 10 (Intercept)_2bio2 -0.4838    0.6165   0.1588  -0.7950  -0.1725
+#>    95%exp(Lower) 95%exp(Upper) p-values
+#> 1         1.9581        3.3214   0.0000
+#> 2         1.5674        1.7746   0.0000
+#> 3         0.4940        1.3121   0.3843
+#> 4         1.4459        1.8238   0.0000
+#> 5         1.4221        1.9108   0.0000
+#> 6         1.7187        2.3986   0.0000
+#> 7         0.4951        0.6767   0.0000
+#> 8         1.4487        2.4442   0.0000
+#> 9         1.3972        2.6915   0.0001
+#> 10        0.4516        0.8415   0.0023
 
 # Random effects for first few subjects
 head(ranef(mvfit))
@@ -364,7 +377,78 @@ head(ranef(mvfit))
 #> 6       -0.1187828 -0.0254132       0.06451794
 ```
 
-Currently, prediction and validation features (e.g., survfitjmcs,
-PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to
-mvjmcs is under active development and will be available later this
-year.
+The `FastJM` package can now make dynamic prediction in the presence of
+multiple longitudinal outcomes. Below is a toy example for competing
+risks data. Conditional cumulative incidence probabilities for each
+failure will be presented.
+
+``` r
+require(dplyr)
+#> Loading required package: dplyr
+#> 
+#> Attaching package: 'dplyr'
+#> The following object is masked from 'package:MASS':
+#> 
+#>     select
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
+set.seed(08252025)
+sampleID <- sample(mvcdata$ID, 5, replace = FALSE)
+
+subcdata <- mvcdata %>%
+  dplyr::filter(ID %in% sampleID)
+
+subydata <- mvydata %>%
+  dplyr::filter(ID %in% sampleID)
+
+### Set up a landmark time of 4.75 and make predictions at time u
+survmvfit <- survfitmvjmcs(mvfit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+                         u = c(7, 8, 9), Last.time = 4.75, obs.time = "time")
+
+survmvfit
+#> 
+#> Prediction of Conditional Probabilities of Event
+#> based on the first order approximation
+#> $`177`
+#>   times       CIF1        CIF2
+#> 1  4.75 0.00000000 0.000000000
+#> 2  7.00 0.01835440 0.003145087
+#> 3  8.00 0.02632333 0.004747017
+#> 4  9.00 0.02939841 0.005963632
+#> 
+#> $`182`
+#>   times      CIF1       CIF2
+#> 1  4.75 0.0000000 0.00000000
+#> 2  7.00 0.2463582 0.03393494
+#> 3  8.00 0.3325719 0.04805378
+#> 4  9.00 0.3630881 0.05807832
+#> 
+#> $`260`
+#>   times       CIF1       CIF2
+#> 1  4.75 0.00000000 0.00000000
+#> 2  7.00 0.03315209 0.01750073
+#> 3  8.00 0.04724973 0.02623700
+#> 4  9.00 0.05262962 0.03281393
+#> 
+#> $`305`
+#>   times       CIF1       CIF2
+#> 1  4.75 0.00000000 0.00000000
+#> 2  7.00 0.02876153 0.01545058
+#> 3  8.00 0.04104952 0.02319795
+#> 4  9.00 0.04574922 0.02904055
+#> 
+#> $`800`
+#>   times       CIF1        CIF2
+#> 1  4.75 0.00000000 0.000000000
+#> 2  7.00 0.01293233 0.002102670
+#> 3  8.00 0.01857301 0.003178285
+#> 4  9.00 0.02075384 0.003996402
+```
+
+Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are
+implemented for models of class jmcs. Extension to mvjmcs is under
+active development and will be available later this year.
