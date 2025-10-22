@@ -184,7 +184,7 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
             for (i in 1:groups) {
               subquant <- CIF[CIF$CIF2 > quant2[i] &
                                 CIF$CIF2 <= quant2[i+1], c(1, 3)]
-              quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
+              quantsubdata <- val.cdata[val.cdata[, ID] %in% subquant$ID, surv.var]
               
               quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
                                              time = surv.var[1],
@@ -235,7 +235,7 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
             for (i in 1:groups) {
               subquant <- Surv[Surv$Surv > quant[i] &
                                  Surv$Surv <= quant[i+1], c(1, 2)]
-              quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
+              quantsubdata <- val.cdata[val.cdata[, ID] %in% subquant$ID, surv.var]
               colnames(quantsubdata) <- c("time", "status")
               fitKM <- survfit(Surv(time, status) ~ 1, data = quantsubdata)
               fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
