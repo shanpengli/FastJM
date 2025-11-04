@@ -72,10 +72,16 @@ summary.jmcs <- function(object, process = c("Longitudinal", "Event"), digits = 
                          "95%exp(Lower)", "95%exp(Upper)", "p-values")
     
     ##nu
-    Estimate <- object$nu1
-    if (length(Estimate) == 2) names(Estimate) <- c("nu1_1", "nu1_2")
-    if (length(Estimate) == 1) names(Estimate) <- c("nu1_1")
-    SE <- object$senu1
+    Estimate <- as.numeric(object$nu1)
+    SE       <- as.numeric(object$senu1)
+    
+    stopifnot(length(Estimate) == length(SE))
+    
+    # Ensure names: keep existing if present; otherwise assign nu1_1, nu1_2, ...
+    if (is.null(names(Estimate)) || any(names(Estimate) == "")) {
+      names(Estimate) <- paste0("nu1_", seq_along(Estimate))
+    }
+    
     LowerLimit <- Estimate - 1.96 * SE
     expLL <- exp(LowerLimit)
     UpperLimit <- Estimate + 1.96 * SE
@@ -90,10 +96,17 @@ summary.jmcs <- function(object, process = c("Longitudinal", "Event"), digits = 
     outnu <- out
     
     if(object$CompetingRisk) {
-      Estimate <- object$nu2
-      if (length(Estimate) == 2) names(Estimate) <- c("nu2_1", "nu2_2")
-      if (length(Estimate) == 1) names(Estimate) <- c("nu2_1")
-      SE <- object$senu2
+      
+      Estimate <- as.numeric(object$nu2)
+      SE       <- as.numeric(object$senu2)
+      
+      stopifnot(length(Estimate) == length(SE))
+      
+      # Ensure names: keep existing if present; otherwise assign nu1_1, nu1_2, ...
+      if (is.null(names(Estimate)) || any(names(Estimate) == "")) {
+        names(Estimate) <- paste0("nu2_", seq_along(Estimate))
+      }
+      
       LowerLimit <- Estimate - 1.96 * SE
       expLL <- exp(LowerLimit)
       UpperLimit <- Estimate + 1.96 * SE
