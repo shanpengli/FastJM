@@ -11,16 +11,29 @@ downloads](https://cranlogs.r-pkg.org/badges/FastJM)](https://cran.r-project.org
 [![CRAN_Status_Badge_version_last_release](https://www.r-pkg.org/badges/version-last-release/FastJM)](https://cran.r-project.org/package=FastJM)
 <!-- badges: end -->
 
-The `FastJM` package implement efficient computation of semi-parametric
-joint model of longitudinal and competing risks data.
+The `FastJM` package implements efficient computation of semi-parametric
+joint model of longitudinal and competing risks data. To view a brief
+guide on the purpose and use of this package, please refer to our
+[introductory video](https://youtu.be/sspYjUATICM?si=idTbVgT5DswN-yhe).
 
-# Example
+# Examples
+
+## Single-biomarker joint model (`jmcs`)
 
 The `FastJM` package comes with several simulated datasets. To fit a
-joint model, we use `jmcs` function.
+joint model, we use `jmcs` function. In the example below, we are using
+the following built-in data sets:
+
+- ydata: longitudinal data for a **single** biomarker per patient
+- cdata: competing risks time-to-event data per patient
 
 ``` r
 require(FastJM)
+#> Loading required package: FastJM
+#> Loading required package: survival
+#> Loading required package: MASS
+#> Loading required package: statmod
+#> Loading required package: magrittr
 require(survival)
 data(ydata)
 data(cdata)
@@ -229,8 +242,14 @@ summary(Cindex, digits = 3)
 #> 3          4.4 0.6862253 0.6757857
 ```
 
+## Multi-biomarker Joint Model (`mvjmcs`)
+
 To fit a joint model with multiple longitudinal outcomes and competing
-risks, we can use the `mvjmcs` function.
+risks, we can use the `mvjmcs` function. In the example below, we are
+using the following built-in data sets:
+
+- mvydata: longitudinal data for **multiple** biomarkers per patient
+- mvcdata: competing risks time-to-event data per patient
 
 ``` r
 data(mvydata)
@@ -245,7 +264,7 @@ mvfit <- mvjmcs(ydata = mvydata, cdata = mvcdata,
               maxiter = 1000, opt = "optim",
               tol = 1e-3, print.para = FALSE)
 #> runtime is:
-#> Time difference of 41.65209 secs
+#> Time difference of 40.09689 secs
 mvfit
 #> 
 #> Call:
@@ -316,10 +335,10 @@ We can extract the components of the model as follows:
 ``` r
 # Longitudinal fixed effects
 fixef(mvfit, process = "Longitudinal")
-#> (Intercept)_bio1         X11_bio1         X12_bio1        time_bio1 
-#>        4.9740592        1.4653916        1.9979294        0.8427526 
-#> (Intercept)_bio2         X11_bio2         X12_bio2        time_bio2 
-#>        9.9754651        0.9796637        2.0095547        0.9937970
+#> (Intercept)_bio1         X11_bio1         X12_bio1        time_bio1 (Intercept)_bio2         X11_bio2 
+#>        4.9740592        1.4653916        1.9979294        0.8427526        9.9754651        0.9796637 
+#>         X12_bio2        time_bio2 
+#>        2.0095547        0.9937970
 summary(mvfit, process = "Longitudinal")
 #>        Longitudinal   coef     SE 95%Lower 95%Upper p-values
 #> 1  (Intercept)_bio1 4.9741 0.0539   4.8685   5.0797        0
@@ -343,28 +362,17 @@ fixef(mvfit, process = "Event")
 #>      X21_2      X22_2 
 #> -0.2168317  0.4848128
 summary(mvfit, process = "Event")
-#>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper
-#> 1              X21_1  0.9362    2.5502   0.1348   0.6720   1.2004
-#> 2              X22_1  0.5115    1.6677   0.0317   0.4494   0.5735
-#> 3              X21_2 -0.2168    0.8051   0.2492  -0.7053   0.2716
-#> 4              X22_2  0.4848    1.6239   0.0592   0.3687   0.6009
-#> 5  (Intercept)_1bio1  0.4998    1.6484   0.0754   0.3521   0.6475
-#> 6         time_1bio1  0.7082    2.0304   0.0850   0.5416   0.8749
-#> 7  (Intercept)_1bio2 -0.5468    0.5788   0.0797  -0.7030  -0.3905
-#> 8  (Intercept)_2bio1  0.6322    1.8817   0.1334   0.3706   0.8937
-#> 9         time_2bio1  0.6623    1.9392   0.1673   0.3344   0.9901
-#> 10 (Intercept)_2bio2 -0.4838    0.6165   0.1588  -0.7950  -0.1725
-#>    95%exp(Lower) 95%exp(Upper) p-values
-#> 1         1.9581        3.3214   0.0000
-#> 2         1.5674        1.7746   0.0000
-#> 3         0.4940        1.3121   0.3843
-#> 4         1.4459        1.8238   0.0000
-#> 5         1.4221        1.9108   0.0000
-#> 6         1.7187        2.3986   0.0000
-#> 7         0.4951        0.6767   0.0000
-#> 8         1.4487        2.4442   0.0000
-#> 9         1.3972        2.6915   0.0001
-#> 10        0.4516        0.8415   0.0023
+#>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper 95%exp(Lower) 95%exp(Upper) p-values
+#> 1              X21_1  0.9362    2.5502   0.1348   0.6720   1.2004        1.9581        3.3214   0.0000
+#> 2              X22_1  0.5115    1.6677   0.0317   0.4494   0.5735        1.5674        1.7746   0.0000
+#> 3              X21_2 -0.2168    0.8051   0.2492  -0.7053   0.2716        0.4940        1.3121   0.3843
+#> 4              X22_2  0.4848    1.6239   0.0592   0.3687   0.6009        1.4459        1.8238   0.0000
+#> 5  (Intercept)_1bio1  0.4998    1.6484   0.0754   0.3521   0.6475        1.4221        1.9108   0.0000
+#> 6         time_1bio1  0.7082    2.0304   0.0850   0.5416   0.8749        1.7187        2.3986   0.0000
+#> 7  (Intercept)_1bio2 -0.5468    0.5788   0.0797  -0.7030  -0.3905        0.4951        0.6767   0.0000
+#> 8  (Intercept)_2bio1  0.6322    1.8817   0.1334   0.3706   0.8937        1.4487        2.4442   0.0000
+#> 9         time_2bio1  0.6623    1.9392   0.1673   0.3344   0.9901        1.3972        2.6915   0.0001
+#> 10 (Intercept)_2bio2 -0.4838    0.6165   0.1588  -0.7950  -0.1725        0.4516        0.8415   0.0023
 
 # Random effects for first few subjects
 head(ranef(mvfit))
@@ -452,3 +460,49 @@ survmvfit
 Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are
 implemented for models of class jmcs. Extension to mvjmcs is under
 active development and will be available later this year.
+
+### Simulate Data (Optional)
+
+In order to create simulated data for `mvjmcs`, we can use the
+`simmvJMdata` function, which creates longitudinal and survival data as
+a nested list (which are unpacked the this example). When first calling
+the function, it provides censoring and risk rates.
+
+``` r
+# Simulate data
+  sim <- simmvJMdata(seed = 100, N = 50) # returns list of cdata and ydata for a sample size of 50
+#> The censoring rate is: 44%
+#> The risk 1 rate is: 48%
+#> The risk 2 rate is: 8%
+  c_data <- sim$mvcdata # survival-side data, one row per ID
+  y_data <- sim$mvydata # longitudinal measurements (multiple rows per ID)
+```
+
+Below is the simulated longitudinal data for **multiple** biomarkers,
+wherein Y1 and Y2 represent our biomarkers and X11 and X12 represent
+measurement-level predictors for the longitudinal submodel.
+
+``` r
+head(y_data)
+#>   ID time       Y1       Y2 X11       X12
+#> 1  1  0.0 2.325975 3.493627   0 -2.347892
+#> 2  1  0.7 2.328122 4.649502   0 -2.347892
+#> 3  1  1.4 2.793674 6.112850   0 -2.347892
+#> 4  1  2.1 2.221392 5.375753   0 -2.347892
+#> 5  1  2.8 1.864348 4.481401   0 -2.347892
+#> 6  1  3.5 3.988955 5.496069   0 -2.347892
+```
+
+Below is the simulated survival data wherein X21 and X22 represent
+patient-level predictors for the survival model.
+
+``` r
+head(c_data)
+#>   ID   survtime cmprsk X21        X22
+#> 1  1 6.10116281      0   0 -2.3478921
+#> 2  2 0.05456028      1   1  0.1826885
+#> 3  3 6.52978656      0   1  2.3791087
+#> 4  4 0.04942950      1   1  2.7961091
+#> 5  5 6.96785721      0   0 -3.8530560
+#> 6  6 7.20378227      0   0  1.1237335
+```

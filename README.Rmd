@@ -9,6 +9,7 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-"
 )
 ```
+
 # FastJM
 
 <!-- badges: start -->
@@ -19,11 +20,16 @@ knitr::opts_chunk$set(
 [![CRAN_Status_Badge_version_last_release](https://www.r-pkg.org/badges/version-last-release/FastJM)](https://cran.r-project.org/package=FastJM)
 <!-- badges: end -->
 
-The `FastJM` package implement efficient computation of semi-parametric joint model of longitudinal and competing risks data.
+The `FastJM` package implements efficient computation of semi-parametric joint model of longitudinal and competing risks data. To view a brief guide on the purpose and use of this package, please refer to our [introductory video](https://youtu.be/sspYjUATICM?si=idTbVgT5DswN-yhe).
 
-# Example
+# Examples
 
-The `FastJM` package comes with several simulated datasets. To fit a joint model, we use `jmcs` function. 
+## Single-biomarker joint model (`jmcs`)
+
+The `FastJM` package comes with several simulated datasets. To fit a joint model, we use `jmcs` function. In the example below, we are using the following built-in data sets:
+
+- ydata: longitudinal data for a **single** biomarker per patient
+- cdata: competing risks time-to-event data per patient
 
 ```{r}
 require(FastJM)
@@ -91,7 +97,12 @@ Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4
 summary(Cindex, digits = 3)
 ```
 
-To fit a joint model with multiple longitudinal outcomes and competing risks, we can use the `mvjmcs` function.
+## Multi-biomarker Joint Model (`mvjmcs`)
+
+To fit a joint model with multiple longitudinal outcomes and competing risks, we can use the `mvjmcs` function. In the example below, we are using the following built-in data sets:
+
+- mvydata: longitudinal data for **multiple** biomarkers per patient
+- mvcdata: competing risks time-to-event data per patient
 
 ```{r, eval=TRUE}
 data(mvydata)
@@ -144,3 +155,25 @@ survmvfit
 
 ```
 Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to mvjmcs is under active development and will be available later this year.
+
+### Simulate Data (Optional)
+
+In order to create simulated data for `mvjmcs`, we can use the `simmvJMdata` function, which creates longitudinal and survival data as a nested list (which are unpacked the this example). When first calling the function, it provides censoring and risk rates. 
+
+```{r}
+# Simulate data
+  sim <- simmvJMdata(seed = 100, N = 50) # returns list of cdata and ydata for a sample size of 50
+  c_data <- sim$mvcdata # survival-side data, one row per ID
+  y_data <- sim$mvydata # longitudinal measurements (multiple rows per ID)
+```
+Below is the simulated longitudinal data for **multiple** biomarkers, wherein Y1 and Y2 represent our biomarkers and X11 and X12 represent measurement-level predictors for the longitudinal submodel. 
+
+```{r}
+head(y_data)
+```
+
+Below is the simulated survival data wherein X21 and X22 represent patient-level predictors for the survival model.  
+
+```{r}
+head(c_data)
+```
