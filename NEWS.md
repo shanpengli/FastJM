@@ -1,3 +1,8 @@
+# FastJM 1.5.3
+
+* Fix small bug in ```survfitmvjmcs()```.
+
+
 # FastJM 1.5.2
 
 * Fix small bug in ```mvjmcs()``` to support ties in obtaining the estimator of the baseline hazards.

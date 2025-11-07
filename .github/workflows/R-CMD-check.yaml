@@ -27,7 +27,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      # Ensure install.packages() etc. available (attaches utils)
+      # Ensure install.packages() etc. are available
       R_DEFAULT_PACKAGES: "base,utils,stats,graphics,grDevices,methods"
 
     steps:
@@ -47,12 +47,13 @@ jobs:
           which Rscript
           Rscript -e 'sessionInfo()'
 
-      # ✅ Install all deps (including Suggests if required for check)
+      # ✅ Install all package deps automatically (including Suggests if needed)
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
 
-      # ✅ Run checks
-      - name: Run R CMD check
-        run: R CMD check --no-manual --as-cran .
+      # ✅ Run R CMD check (safe on Windows/macOS/Linux)
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual", "--as-cran")'
