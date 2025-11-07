@@ -27,6 +27,8 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # Ensure install.packages() etc. available (attaches utils)
+      R_DEFAULT_PACKAGES: "base,utils,stats,graphics,grDevices,methods"
 
     steps:
       - uses: actions/checkout@v4
@@ -45,11 +47,12 @@ jobs:
           which Rscript
           Rscript -e 'sessionInfo()'
 
-      - name: Install dependencies manually
-        run: |
-          install.packages(c("remotes", "rcmdcheck"), repos = "https://cloud.r-project.org")
-          remotes::install_deps(dependencies = TRUE)
-        shell: Rscript {0}
+      # ✅ Install all deps (including Suggests if required for check)
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
 
+      # ✅ Run checks
       - name: Run R CMD check
         run: R CMD check --no-manual --as-cran .

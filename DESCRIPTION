@@ -33,7 +33,7 @@ Description: A joint model for large-scale, competing risks time-to-event data w
              datasets.
 License: GPL (>= 3)
 NeedsCompilation: yes
-Imports: Rcpp (>= 1.0.7), dplyr, nlme, caret, timeROC, future, future.apply
+Imports: Rcpp (>= 1.0.7), dplyr, nlme, caret, timeROC, future, future.apply, rlang (>= 0.4.11)
 LinkingTo: Rcpp, RcppEigen
 Depends: R (>= 3.5.0), survival, utils, MASS, statmod, magrittr
 RoxygenNote: 7.3.2

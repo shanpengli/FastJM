@@ -12,4 +12,5 @@
 #' @importFrom future plan multisession
 #' @importFrom future.apply future_lapply
 #' @importFrom utils combn head
+#' @importFrom rlang .data
 NULL
