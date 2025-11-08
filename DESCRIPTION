@@ -2,12 +2,14 @@ Package: FastJM
 Type: Package
 Title: Semi-Parametric Joint Modeling of Longitudinal and Survival Data
 Version: 1.5.3
-Date: 2025-11-07
+Date: 2025-11-08
 Authors@R: c(
     person("Shanpeng", "Li", email = "lishanpeng0913@ucla.edu", 
         role = c("aut", "cre")),
     person("Ning", "Li", email = "liningpv@gmail.com", 
         role = "ctb"),
+    person("Emily", "Ouyang", email = "eouya001@ucr.edu", 
+        role = "ctb"),   
     person("Hong", "Wang", email = "wh@csu.edu.cn", 
         role = "ctb"),
     person("Jin", "Zhou", email = "jinjinzhou@g.ucla.edu", 
@@ -19,7 +21,7 @@ Authors@R: c(
     )
 Maintainer: Shanpeng Li <lishanpeng0913@ucla.edu>
 Encoding: UTF-8
-Description: A joint model for large-scale, competing risks time-to-event data with singular or multiple longitudinal biomarkers, implemented with the efficient algorithms developed by Li and colleagues (2022) <doi:10.1155/2022/1362913> and <arXiv.2506.12741>.
+Description: A joint model for large-scale, competing risks time-to-event data with singular or multiple longitudinal biomarkers, implemented with the efficient algorithms developed by Li and colleagues (2022) <doi:10.1155/2022/1362913> and <doi:10.48550/arXiv.2506.12741>.
              The time-to-event data is modelled using a (cause-specific) Cox 
              proportional hazards regression model with time-fixed covariates. 
              The longitudinal biomarkers are modelled using a linear mixed 
