@@ -1,0 +1,206 @@
+---
+title: "Introduction to FastJM"
+author: "FastJM Team"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+package: "`r packageVersion('FastJM')`"
+vignette: >
+  %\VignetteIndexEntry{FastJM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    theme: cerulean
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r, echo=FALSE, results="hide", warning=FALSE}
+suppressPackageStartupMessages({
+  library(FastJM)
+})
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", warning=FALSE, message=FALSE, eval=TRUE)
+```
+
+# FastJM
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/shanpengli/FastJM/workflows/R-CMD-check/badge.svg)](https://github.com/shanpengli/FastJM/actions)
+[![metacran downloads](https://cranlogs.r-pkg.org/badges/FastJM)](https://cran.r-project.org/package=FastJM)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/FastJM)](https://cran.r-project.org/package=FastJM)
+[![CRAN_time_from_release](https://www.r-pkg.org/badges/ago/FastJM)](https://cran.r-project.org/package=FastJM)
+[![CRAN_Status_Badge_version_last_release](https://www.r-pkg.org/badges/version-last-release/FastJM)](https://cran.r-project.org/package=FastJM)
+<!-- badges: end -->
+
+The `FastJM` package implements efficient computation of semi-parametric joint model of longitudinal and competing risks data. To view a brief guide on the purpose and use of this package, please refer to our [introductory video](https://youtu.be/sspYjUATICM?si=idTbVgT5DswN-yhe).
+
+# Installation
+
+To download the CRAN version of the FastJM package, please refer to the code chunk below. 
+
+```{r, eval=FALSE}
+# install.packages("FastJM")
+```
+
+Use the following in order to install the development version of the package. 
+
+```{r, eval=FALSE}
+# install.packages("remotes")
+remotes::install_github("shanpengli/FastJM")
+```
+
+# Examples
+
+## Single-biomarker joint model (`jmcs`)
+
+The `FastJM` package comes with several simulated datasets. To fit a joint model, we use `jmcs` function. In the example below, we are using the following built-in data sets:
+
+- ydata: longitudinal data for a **single** biomarker per patient
+- cdata: competing risks time-to-event data per patient
+
+```{r}
+require(FastJM)
+require(survival)
+data(ydata)
+data(cdata)
+fit <- jmcs(ydata = ydata, cdata = cdata, 
+            long.formula = response ~ time + gender + x1 + race, 
+            surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
+            random =  ~ time| ID)
+fit
+```
+
+The `FastJM` package can make dynamic prediction given the longitudinal history information. Below is a toy example for competing risks data. Conditional cumulative incidence probabilities for each failure will be presented.
+
+```{r}
+ND <- ydata[ydata$ID %in% c(419, 218), ]
+ID <- unique(ND$ID)
+NDc <- cdata[cdata$ID  %in% ID, ]
+survfit <- survfitjmcs(fit, 
+                       ynewdata = ND, 
+                       cnewdata = NDc, 
+                       u = seq(3, 4.8, by = 0.2), 
+                       method = "GH",
+                       obs.time = "time")
+survfit
+```
+
+To assess the prediction accuracy of the fitted joint model, we may run `PEjmcs` to calculate the Brier score. 
+```{r}
+## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
+PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+             obs.time = "time", method = "GH", 
+             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+             survinitial = TRUE)
+summary(PE, error = "Brier")
+```
+
+An alternative to assess the prediction accuracy is to run `MAEQjmcs` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
+
+```{r}
+## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
+MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
+                 obs.time = "time", method = "GH", 
+                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
+                 survinitial = TRUE)
+summary(MAEQ, digits = 3)
+```
+
+We may also calculate the area under the ROC curve (AUC) to assess the discrimination measure of joint models.
+```{r}
+## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
+AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
+summary(AUC, digits = 3)
+```
+
+Alternatively, we can also calculate concordance index (Cindex) as another discrimination measure.
+```{r}
+## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
+Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
+               obs.time = "time", method = "GH",
+               maxiter = 1000, n.cv = 3, metric = "Cindex")
+summary(Cindex, digits = 3)
+```
+
+## Multi-biomarker Joint Model (`mvjmcs`)
+
+To fit a joint model with multiple longitudinal outcomes and competing risks, we can use the `mvjmcs` function. In the example below, we are using the following built-in data sets:
+
+- mvydata: longitudinal data for **multiple** biomarkers per patient
+- mvcdata: competing risks time-to-event data per patient
+
+```{r, eval=TRUE}
+data(mvydata)
+data(mvcdata)
+library(FastJM)
+mvfit <- mvjmcs(ydata = mvydata, cdata = mvcdata,
+              long.formula = list(Y1 ~ X11 + X12 + time,
+                                  Y2 ~ X11 + X12 + time),
+              random = list(~ time | ID,
+                            ~ 1 | ID),
+              surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, 
+              maxiter = 1000, opt = "optim",
+              tol = 1e-3, print.para = FALSE)
+mvfit
+```
+
+We can extract the components of the model as follows:
+
+```{r, eval=TRUE}
+# Longitudinal fixed effects
+fixef(mvfit, process = "Longitudinal")
+summary(mvfit, process = "Longitudinal")
+
+# Survival fixed effects
+fixef(mvfit, process = "Event")
+summary(mvfit, process = "Event")
+
+# Random effects for first few subjects
+head(ranef(mvfit))
+```
+
+The `FastJM` package can now make dynamic prediction in the presence of multiple longitudinal outcomes. Below is a toy example for competing risks data. Conditional cumulative incidence probabilities for each failure will be presented.
+
+```{r, eval=FALSE}
+require(dplyr)
+set.seed(08252025)
+sampleID <- sample(mvcdata$ID, 5, replace = FALSE)
+
+subcdata <- mvcdata %>%
+  dplyr::filter(ID %in% sampleID)
+
+subydata <- mvydata %>%
+  dplyr::filter(ID %in% sampleID)
+
+### Set up a landmark time of 4.75 and make predictions at time u
+survmvfit <- survfitmvjmcs(mvfit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+                         u = c(7, 8, 9), Last.time = 4.75, obs.time = "time")
+
+survmvfit
+
+```
+Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to mvjmcs is under active development and will be available later this year.
+
+### Simulate Data (Optional)
+
+In order to create simulated data for `mvjmcs`, we can use the `simmvJMdata` function, which creates longitudinal and survival data as a nested list (which are unpacked the this example). When first calling the function, it provides censoring and risk rates. 
+
+```{r}
+# Simulate data
+  sim <- simmvJMdata(seed = 100, N = 50) # returns list of cdata and ydata for a sample size of 50
+  c_data <- sim$mvcdata # survival-side data, one row per ID
+  y_data <- sim$mvydata # longitudinal measurements (multiple rows per ID)
+```
+Below is the simulated longitudinal data for **multiple** biomarkers, wherein Y1 and Y2 represent our biomarkers and X11 and X12 represent measurement-level predictors for the longitudinal submodel. 
+
+```{r}
+head(y_data)
+```
+
+Below is the simulated survival data wherein X21 and X22 represent patient-level predictors for the survival model.  
+
+```{r}
+head(c_data)
+```
