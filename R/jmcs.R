@@ -68,6 +68,7 @@
 ##' \item{LongitudinalSubmodel}{the component of the \code{long.formula}.}
 ##' \item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
 ##' \item{random}{the component of the \code{random}.}
+##' \item{tol}{the convergence parameter.}
 ##' \item{call}{the matched call.}
 ##' \item{Quad.method}{the quadrature rule used for integration. 
 ##' If pseudo-adaptive quadrature rule is used, then return \code{pseudo-adaptive}. 
@@ -465,7 +466,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      segamma2, sealpha1, sealpha2, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
                      quadpoint, rawydata, rawcdata, PropComp, FunCall_long,
-                     FunCall_survival, random, mycall, method, id, opt)
+                     FunCall_survival, random, tol, mycall, method, id, opt)
       
       names(result) <- c("beta", "gamma1", "gamma2", "nu1", "nu2", "H01", "H02", "Sig", 
                          "sigma", "iter", "convergence", "vcov",
@@ -473,7 +474,7 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                           "seSig", "sesigma", "loglike", "fitted", "fittedSurv", 
                          "FUNB", "CompetingRisk", "quadpoint",
                          "ydata", "cdata", "PropEventType", "LongitudinalSubmodel",
-                          "SurvivalSubmodel", "random", "call", "Quad.method", "id", "opt")
+                          "SurvivalSubmodel", "random", "tol", "call", "Quad.method", "id", "opt")
       
       class(result) <- "jmcs"
       
@@ -620,14 +621,14 @@ jmcs <- function(ydata, cdata, long.formula, random = NULL, surv.formula, REML =
                      vcov, sebeta, segamma1, sealpha1, seSig, sesigma, getloglike, 
                      getfitted, getfittedSurv, FUNB, CompetingRisk,
                      quadpoint, rawydata, rawcdata, PropComp, FunCall_long, FunCall_survival, 
-                     random, mycall, method, id, opt)
+                     random, tol, mycall, method, id, opt)
       
       names(result) <- c("beta", "gamma1", "nu1", "H01", "Sig", "sigma",
                          "iter", "convergence", "vcov", "sebeta", "segamma1", 
                          "senu1", "seSig", "sesigma", "loglike", "fitted", "fittedSurv", 
                          "FUNB", "CompetingRisk", "quadpoint",
                          "ydata", "cdata", "PropEventType", "LongitudinalSubmodel",
-                         "SurvivalSubmodel", "random", "call", "Quad.method", "id", "opt")
+                         "SurvivalSubmodel", "random", "tol", "call", "Quad.method", "id", "opt")
       
       class(result) <- "jmcs"
       

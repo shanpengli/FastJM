@@ -104,6 +104,7 @@ It has been re-ordered in accordance with descending observation times.}
 \item{LongitudinalSubmodel}{the component of the \code{long.formula}.}
 \item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
 \item{random}{the component of the \code{random}.}
+\item{tol}{the convergence parameter.}
 \item{call}{the matched call.}
 \item{Quad.method}{the quadrature rule used for integration. 
 If pseudo-adaptive quadrature rule is used, then return \code{pseudo-adaptive}. 
