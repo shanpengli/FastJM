@@ -1,18 +1,11 @@
 ---
 title: "Introduction to FastJM"
 author: "FastJM Team"
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
-package: "`r packageVersion('FastJM')`"
+output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{FastJM}
+  %\VignetteIndexEntry{Introduction to FastJM}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-output:
-  html_document:
-    theme: cerulean
-    toc: true
-    toc_float: true
-    toc_depth: 3
 ---
 
 ```{r, echo=FALSE, results="hide", warning=FALSE}

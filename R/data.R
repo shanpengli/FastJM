@@ -96,3 +96,52 @@
 #'
 "mvcdata"
 
+#' Simulated longitudinal data with within-subject variance
+#'
+#' @description The \code{ydatah} data frame has 1353 rows and 6 columns.
+#'
+#' @format This data frame contains the following columns:
+#'
+#'   \describe{
+#'
+#'   \item{\code{ID}}{patient identifier.}
+#'
+#'   \item{\code{Y}}{response variable.}
+#'
+#'   \item{\code{time}}{visit time.}
+#'
+#'   \item{\code{Z1}}{treatment indicator. \code{0} denotes the placebo group and \code{1} the treatment group.}
+#'    
+#'    \item{\code{Z2}}{continuous variable..}
+#'    
+#'    \item{\code{Z3}}{continuous variable..}
+#'   }
+#' @usage data(ydatah)
+#'
+"ydatah"
+
+#' Simulated competing risks data where event hazards depend on within-subject variance
+#'
+#' @description The \code{cdatah} data frame has 200 rows and 6 columns.
+#'
+#' @format This data frame contains the following columns:
+#'
+#'   \describe{
+#'
+#'   \item{\code{ID}}{patient identifier.}
+#
+#'   \item{\code{survtime}}{event time.}
+#'
+#'   \item{\code{cmprsk}}{event indicator. \code{0} denotes censoring, \code{1} risk 1, 
+#'   and \code{2} risk 2.}
+#'
+#'   \item{\code{var1}}{treatment indicator. \code{0} denotes the placebo group and \code{1} the treatment group.}
+#'
+#'   \item{\code{var2}}{continuous variable.}
+#'
+#'   \item{\code{var3}}{continuous variable.}
+#'   }
+#' @usage data(cdatah)
+#'
+"cdatah"
+
