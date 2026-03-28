@@ -58,43 +58,32 @@ survfit <- survfitjmcs(fit,
 survfit
 ```
 
-To assess the prediction accuracy of the fitted joint model, we may run `PEjmcs` to calculate the Brier score. 
+To assess the prediction accuracy of the fitted joint model, we may run `DynPredAccjmcs` to assess the prediction accuracy by calculating all available evaluation metrics. 
 ```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
-PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-             obs.time = "time", method = "GH", 
-             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-             survinitial = TRUE)
-summary(PE, error = "Brier")
+res <- DynPredAccjmcs(
+  object = fit,
+  landmark.time = 3,
+  horizon.time = c(3.6, 4, 4.4),
+  obs.time = "time",
+  method = "GH",
+  maxiter = 1000,
+  n.cv = 3,
+  survinitial = TRUE,
+  quantile.width = 0.25,
+  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+)
+
+summary(res, metric = "Brier")
+summary(res, metric = "MAE")
+summary(res, metric = "MAEQ")
+summary(res, metric = "AUC")
+summary(res, metric = "Cindex")
 ```
 
-An alternative to assess the prediction accuracy is to run `MAEQjmcs` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
-
+Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
 ```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
-MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-                 obs.time = "time", method = "GH", 
-                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-                 survinitial = TRUE)
-summary(MAEQ, digits = 3)
-```
-
-We may also calculate the area under the ROC curve (AUC) to assess the discrimination measure of joint models.
-```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
-AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
-summary(AUC, digits = 3)
-```
-
-Alternatively, we can also calculate concordance index (Cindex) as another discrimination measure.
-```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
-Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               maxiter = 1000, n.cv = 3, metric = "Cindex")
-summary(Cindex, digits = 3)
+Concord <- Concordancejmcs(seed = 100, fit, n.cv = 3)
+summary(Concord)
 ```
 
 ## Multi-biomarker Joint Model (`mvjmcs`)
@@ -154,8 +143,74 @@ survmvfit <- survfitmvjmcs(mvfit, seed = 100, ynewdata = subydata, cnewdata = su
 survmvfit
 
 ```
-Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to mvjmcs is under active development and will be available later this year.
 
+## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
+
+- ydatah: longitudinal data for a **single** biomarker per patient
+- cdatah: competing risks time-to-event data per patient
+
+```{r}
+data(ydatah)
+data(cdatah)
+## fit a joint model
+fit <- JMMLSM(cdata = cdatah, ydata = ydatah, 
+              long.formula = Y ~ Z1 + Z2 + Z3 + time,
+              surv.formula = Surv(survtime, cmprsk) ~ var1 + var2 + var3,
+              variance.formula = ~ Z1 + Z2 + Z3 + time, 
+              quadpoint = 6, random = ~ 1|ID, print.para = FALSE)
+fit
+```
+
+```{r}
+cnewdata <- cdatah[cdatah$ID %in% c(122, 152), ]
+ynewdata <- ydatah[ydatah$ID %in% c(122, 152), ]
+survfit <- survfitJMMLSM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
+                         u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
+                         obs.time = "time", method = "GH")
+survfit
+oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
+plot(survfit, include.y = TRUE)
+par(oldpar)
+```
+
+If we assess the prediction accuracy of the fitted joint model using Brier score as a calibration measure, we may run `PEJMMLSM` to calculate the Brier score. 
+```{r}
+PE <- PEJMMLSM(fit, seed = 100, landmark.time = 3, horizon.time = c(4:6),
+               obs.time = "time", method = "GH", 
+               n.cv = 3)
+summary(PE, error = "Brier")
+```
+
+An alternative tool is to run `MAEQJMMLSM` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
+```{r}
+MAEQ <- MAEQJMMLSM(fit, seed = 100, landmark.time = 3, 
+                   horizon.time = c(4:6), 
+                   obs.time = "time", method = "GH", n.cv = 3)
+summary(MAEQ)
+```
+
+Using area under the ROC curve (AUC) as a discrimination measure, we may run `AUCJMMLSM` to calculate the AUC score. 
+```{r}
+AUC <- AUCJMMLSM(fit, seed = 100, landmark.time = 3, horizon.time = c(4:6),
+                 obs.time = "time", method = "GH",
+                 n.cv = 3, metric = "AUC")
+summary(AUC)
+```
+
+Alternatively, we can also calculate concordance index (Cindex) as another discrimination measure.
+```{r}
+## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
+Cindex <- AUCJMMLSM(fit, seed = 100, landmark.time = 3, horizon.time = c(4:6),
+                  obs.time = "time", method = "GH",
+                  n.cv = 3, metric = "Cindex")
+summary(Cindex)
+```
+
+Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
+```{r}
+Concord <- ConcordanceJMMLSM(seed = 100, fit, n.cv = 3)
+summary(Concord)
+```
 ### Simulate Data (Optional)
 
 In order to create simulated data for `mvjmcs`, we can use the `simmvJMdata` function, which creates longitudinal and survival data as a nested list (which are unpacked the this example). When first calling the function, it provides censoring and risk rates. 

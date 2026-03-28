@@ -133,6 +133,48 @@ Concordancejmcs <- function(seed = 100, object, opt = "nlminb", n.cv = 3, maxite
         
         Concordance.cv[[t]] <- c(Risk1Cindex, Risk2Cindex)
         writeLines(paste0("The ", t, " th validation is done!"))
+      } else {
+        
+        beta <- fit$beta
+        sigma <- fit$sigma
+        gamma1 <- fit$gamma1
+        nu1 <- fit$nu1
+        Sig <- fit$Sig
+        H01 <- fit$H01
+        
+        Z <- getinit$Z
+        X1 <- getinit$X1
+        Y <- getinit$Y
+        X2 <- getinit$X2
+        survtime <- getinit$survtime
+        cmprsk <- getinit$cmprsk
+        mdata <- getinit$mdata
+        n <- nrow(mdata)
+        mdata <- as.data.frame(mdata)
+        mdata <- as.vector(mdata$ni)
+        mdataS <- rep(0, n) 
+        mdataS[1] <- 1
+        mdataCum <- cumsum(mdata)
+        mdata2 <- mdata - 1
+        mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
+        
+        Posttheta <- GetBayesSF(beta, sigma, gamma1, nu1, H01, 
+                              Sig, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, initial.optimizer)
+        
+        X <- cbind(X2, Posttheta)
+        para1 <- c(gamma1, nu1)
+        Risk1Score <- X %*% para1
+        subcdata <- data.frame(survtime, cmprsk, exp(Risk1Score))
+        colnames(subcdata) <- c("time", "status", "Risk1Score")
+        PI.cv[[t]] <- subcdata
+        
+        Risk1Cindex <- CindexCR(subcdata$time, subcdata$status, 
+                                subcdata$Risk1Score, Cause_int = 1)
+      
+        
+        Concordance.cv[[t]] <- Risk1Cindex
+        writeLines(paste0("The ", t, " th validation is done!"))
+        
       }
       
     }

@@ -1,20 +1,21 @@
 ##' @title A metric of prediction accuracy of joint model by comparing the predicted risk
 ##' with the empirical risks stratified on different predicted risk group.
-##' @name MAEQjmcs
-##' @aliases MAEQjmcs
+##' @name MAEQJMMLSM
+##' @aliases MAEQJMMLSM
 ##' @param seed a numeric value of seed to be specified for cross validation.
-##' @param object object of class 'jmcs'.
+##' @param object object of class 'JMMLSM'.
 ##' @param landmark.time a numeric value of time for which dynamic prediction starts..
 ##' @param horizon.time a numeric vector of future times for which predicted probabilities are to be computed.
 ##' @param obs.time a character string of specifying a longitudinal time variable.
 ##' @param method estimation method for predicted probabilities. If \code{Laplace}, then the empirical empirical
-##' estimates of random effects is used. If \code{GH}, then the pseudo-adaptive Gauss-Hermite quadrature is used.
-##' @param quadpoint the number of pseudo-adaptive Gauss-Hermite quadrature points if \code{method = "GH"}.
+##' estimates of random effects is used. If \code{GH}, then the standard Gauss-Hermite quadrature is used.
+##' @param quadpoint the number of standard Gauss-Hermite quadrature points if \code{method = "GH"}.
 ##' @param maxiter the maximum number of iterations of the EM algorithm that the 
 ##' function will perform. Default is 10000.
-##' @param n.cv number of folds for cross validation. Default is 3.
 ##' @param survinitial Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.
+##' @param n.cv number of folds for cross validation. Default is 3.
 ##' @param quantile.width a numeric value of width of quantile to be specified. Default is 0.25.
+##' @param opt Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.
 ##' @param initial.para Initial guess of parameters for cross validation. Default is FALSE.
 ##' @param LOCF a logical value to indicate whether the last-observation-carried-forward approach applies to prediction. 
 ##' If \code{TRUE}, then \code{LOCFcovariate} and \code{clongdata} must be specified to indicate 
@@ -24,20 +25,19 @@
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
+##' @seealso \code{\link{JMMLSM}, \link{survfitJMMLSM}}
 ##' @export
 ##' 
 
-MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL, 
-                     obs.time = NULL, method = c("Laplace", "GH"), 
-                     quadpoint = NULL, maxiter = 1000, 
-                     n.cv = 3, survinitial = TRUE, 
-                     quantile.width = 0.25, 
-                     initial.para = FALSE,
-                     LOCF = FALSE, LOCFcovariate = NULL, clongdata = NULL, ...) {
+MAEQJMMLSM <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL, 
+                        obs.time = NULL, method = c("Laplace", "GH"), 
+                        quadpoint = NULL, maxiter = 1000, 
+                        survinitial = TRUE, n.cv = 3, 
+                        quantile.width = 0.25, opt = "nlminb", initial.para = FALSE, 
+                        LOCF = FALSE, LOCFcovariate = NULL, clongdata = NULL,...) {
   
-  if (!inherits(object, "jmcs"))
-    stop("Use only with 'jmcs' xs.\n")
+  if (!inherits(object, "JMMLSM"))
+    stop("Use only with 'JMMLSM' xs.\n")
   if (is.null(landmark.time)) 
     stop("Please specify the landmark.time for dynamic prediction.")   
   if (!method %in% c("Laplace", "GH"))
@@ -61,19 +61,22 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
   set.seed(seed)
   cdata <- object$cdata
   ydata <- object$ydata
-  long.formula <- object$LongitudinalSubmodel
+  long.formula <- object$LongitudinalSubmodelmean
   surv.formula <- object$SurvivalSubmodel
   surv.var <- all.vars(surv.formula)
+  variance.formula <- as.formula(paste("", object$LongitudinalSubmodelvariance[3], sep = "~"))
   random <- all.vars(object$random) 
   ID <- random[length(random)]
   
   if (initial.para) {
     initial.para <- list(beta = object$beta,
-                         sigma = object$sigma, 
+                         tau = object$tau, 
                          gamma1 = object$gamma1,
                          gamma2 = object$gamma2,
-                         alpha1 = object$nu1,
-                         alpha2 = object$nu2,
+                         alpha1 = object$alpha1,
+                         alpha2 = object$alpha2,
+                         vee1 = object$vee1,
+                         vee2 = object$vee2,
                          Sig = object$Sig)
   } else {
     initial.para <- NULL
@@ -86,13 +89,12 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
     train.cdata <- cdata[folds[[t]], ]
     train.ydata <- ydata[ydata[, ID] %in% train.cdata[, ID], ]
     
-    fit <- try(jmcs(cdata = train.cdata, ydata = train.ydata, 
+    fit <- try(JMMLSM(cdata = train.cdata, ydata = train.ydata, 
                       long.formula = long.formula,
                       surv.formula = surv.formula,
+                      variance.formula = variance.formula, 
                       quadpoint = quadpoint, random = object$random,
-                      maxiter = maxiter, 
-                      survinitial = survinitial,
-                      opt = object$opt,
+                      survinitial = survinitial, maxiter = maxiter, opt = opt, epsilon = object$epsilon,
                       initial.para = initial.para), silent = TRUE)
     
     if ('try-error' %in% class(fit)) {
@@ -117,11 +119,11 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
         val.clongdata <- NULL
       }
       
-      survfit <- try(survfitjmcs(fit, ynewdata = val.ydata, cnewdata = val.cdata, 
-                                 u = horizon.time, method = method, 
-                                 Last.time = landmark.time,
-                                 obs.time = obs.time, quadpoint = quadpoint,
-                                 LOCF = LOCF, LOCFcovariate = LOCFcovariate, clongdata = val.clongdata), silent = TRUE)
+      survfit <- try(survfitJMMLSM(fit, ynewdata = val.ydata, cnewdata = val.cdata, 
+                                   u = horizon.time, method = method, 
+                                   Last.time = landmark.time,
+                                   obs.time = obs.time, quadpoint = quadpoint,
+                                   LOCF = LOCF, LOCFcovariate = LOCFcovariate, clongdata = val.clongdata), silent = TRUE)
       
       if ('try-error' %in% class(survfit)) {
         writeLines(paste0("Error occured in the ", t, " th validation!"))
@@ -184,7 +186,7 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
             for (i in 1:groups) {
               subquant <- CIF[CIF$CIF2 > quant2[i] &
                                 CIF$CIF2 <= quant2[i+1], c(1, 3)]
-              quantsubdata <- val.cdata[val.cdata[, ID] %in% subquant$ID, surv.var]
+              quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
               
               quantsubCIF <- GetEmpiricalCIF(data = quantsubdata, 
                                              time = surv.var[1],
@@ -235,14 +237,19 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
             for (i in 1:groups) {
               subquant <- Surv[Surv$Surv > quant[i] &
                                  Surv$Surv <= quant[i+1], c(1, 2)]
-              quantsubdata <- val.cdata[val.cdata[, ID] %in% subquant$ID, surv.var]
+              quantsubdata <- cdata[cdata[, ID] %in% subquant$ID, surv.var]
               colnames(quantsubdata) <- c("time", "status")
               fitKM <- survfit(Surv(time, status) ~ 1, data = quantsubdata)
               fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
               if ('try-error' %in% class(fitKM.horizon)) {
                 EmpiricalSurv[i] <- summary(fitKM, times = max(quantsubdata$time))$surv
               } else {
-                EmpiricalSurv[i] <- summary(fitKM, times = horizon.time[j])$surv
+                tempSurv <- summary(fitKM, times = horizon.time[j])$surv
+                if (is.null(tempSurv)) {
+                  EmpiricalSurv[i] <- 0
+                } else {
+                  EmpiricalSurv[i] <- tempSurv
+                }
               }
               PredictedSurv[i] <-mean(subquant$Surv)
             }
@@ -258,7 +265,7 @@ MAEQjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NU
   }
   result <- list(MAEQ.cv = MAEQ.cv, n.cv = n.cv, landmark.time = landmark.time,
                  horizon.time = horizon.time, method = method, quadpoint = quadpoint, 
-                 CompetingRisk = CompetingRisk, opt = object$opt, seed = seed)
-  class(result) <- "MAEQjmcs"
+                 CompetingRisk = CompetingRisk, quantile.width = quantile.width, seed = seed)
+  class(result) <- "MAEQJMMLSM"
   return(result)
 }

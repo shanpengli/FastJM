@@ -1,18 +1,11 @@
 ---
 title: "Introduction to FastJM"
 author: "FastJM Team"
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
-package: "`r packageVersion('FastJM')`"
+output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{FastJM}
+  %\VignetteIndexEntry{Introduction to FastJM}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-output:
-  html_document:
-    theme: cerulean
-    toc: true
-    toc_float: true
-    toc_depth: 3
 ---
 
 ```{r, echo=FALSE, results="hide", warning=FALSE}
@@ -85,43 +78,32 @@ survfit <- survfitjmcs(fit,
 survfit
 ```
 
-To assess the prediction accuracy of the fitted joint model, we may run `PEjmcs` to calculate the Brier score. 
+To assess the prediction accuracy of the fitted joint model, we may run `DynPredAccjmcs` to assess the prediction accuracy by calculating all available evaluation metrics. 
 ```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
-PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-             obs.time = "time", method = "GH", 
-             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-             survinitial = TRUE)
-summary(PE, error = "Brier")
+res <- DynPredAccjmcs(
+  object = fit,
+  landmark.time = 3,
+  horizon.time = c(3.6, 4, 4.4),
+  obs.time = "time",
+  method = "GH",
+  maxiter = 1000,
+  n.cv = 3,
+  survinitial = TRUE,
+  quantile.width = 0.25,
+  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+)
+
+summary(res, metric = "Brier")
+summary(res, metric = "MAE")
+summary(res, metric = "MAEQ")
+summary(res, metric = "AUC")
+summary(res, metric = "Cindex")
 ```
 
-An alternative to assess the prediction accuracy is to run `MAEQjmcs` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
-
+Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
 ```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
-MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-                 obs.time = "time", method = "GH", 
-                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-                 survinitial = TRUE)
-summary(MAEQ, digits = 3)
-```
-
-We may also calculate the area under the ROC curve (AUC) to assess the discrimination measure of joint models.
-```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
-AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
-summary(AUC, digits = 3)
-```
-
-Alternatively, we can also calculate concordance index (Cindex) as another discrimination measure.
-```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
-Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               maxiter = 1000, n.cv = 3, metric = "Cindex")
-summary(Cindex, digits = 3)
+Concord <- Concordancejmcs(seed = 100, fit, n.cv = 3)
+summary(Concord)
 ```
 
 ## Multi-biomarker Joint Model (`mvjmcs`)

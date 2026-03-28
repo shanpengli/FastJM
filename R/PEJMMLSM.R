@@ -1,9 +1,9 @@
 ##' @title A metric of prediction accuracy of joint model by comparing the predicted risk
 ##' with the counting process.
-##' @name PEjmcs
-##' @aliases PEjmcs
+##' @name PEJMMLSM
+##' @aliases PEJMMLSM
 ##' @param seed a numeric value of seed to be specified for cross validation.
-##' @param object object of class 'jmcs'.
+##' @param object object of class 'JMMLSM'.
 ##' @param landmark.time a numeric value of time for which dynamic prediction starts..
 ##' @param horizon.time a numeric vector of future times for which predicted probabilities are to be computed.
 ##' @param obs.time a character string of specifying a longitudinal time variable.
@@ -14,6 +14,7 @@
 ##' function will perform. Default is 10000.
 ##' @param n.cv number of folds for cross validation. Default is 3.
 ##' @param survinitial Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.
+##' @param opt Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.
 ##' @param initial.para Initial guess of parameters for cross validation. Default is FALSE.
 ##' @param LOCF a logical value to indicate whether the last-observation-carried-forward approach applies to prediction. 
 ##' If \code{TRUE}, then \code{LOCFcovariate} and \code{clongdata} must be specified to indicate 
@@ -23,19 +24,18 @@
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
+##' @seealso \code{\link{JMMLSM}, \link{survfitJMMLSM}}
 ##' @export
 ##' 
 
-PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL, 
-                   obs.time = NULL, method = c("Laplace", "GH"), 
-                   quadpoint = NULL, maxiter = NULL, n.cv = 3, 
-                   survinitial = TRUE, 
-                   initial.para = FALSE,
-                   LOCF = FALSE, LOCFcovariate = NULL, clongdata = NULL,...) {
+PEJMMLSM <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL, 
+                  obs.time = NULL, method = c("Laplace", "GH"), 
+                  quadpoint = NULL, maxiter = 1000, n.cv = 3, survinitial = TRUE, 
+                  opt = "nlminb", initial.para = FALSE, 
+                  LOCF = FALSE, LOCFcovariate = NULL, clongdata = NULL, ...) {
   
-  if (!inherits(object, "jmcs"))
-    stop("Use only with 'jmcs' xs.\n")
+  if (!inherits(object, "JMMLSM"))
+    stop("Use only with 'JMMLSM' xs.\n")
   if (is.null(landmark.time)) 
     stop("Please specify the landmark.time for dynamic prediction.")   
   if (!method %in% c("Laplace", "GH"))
@@ -52,29 +52,29 @@ PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL
       stop(paste0(obs.time, " is not found in ynewdata."))
     }
   }
-  if (is.null(maxiter)) {
-    maxiter <- 10000
-  }
   CompetingRisk <- object$CompetingRisk
   set.seed(seed)
   cdata <- object$cdata
   ydata <- object$ydata
-  long.formula <- object$LongitudinalSubmodel
+  long.formula <- object$LongitudinalSubmodelmean
   surv.formula <- object$SurvivalSubmodel
   surv.var <- all.vars(surv.formula)
   New.surv.formula.out <- paste0("survival::Surv(", surv.var[1], ",", 
                                  surv.var[2], "==0)")
   New.surv.formula <- as.formula(paste(New.surv.formula.out, 1, sep = "~"))
+  variance.formula <- as.formula(paste("", object$LongitudinalSubmodelvariance[3], sep = "~"))
   random <- all.vars(object$random) 
   ID <- random[length(random)]
   
   if (initial.para) {
     initial.para <- list(beta = object$beta,
-                         sigma = object$sigma, 
+                         tau = object$tau, 
                          gamma1 = object$gamma1,
                          gamma2 = object$gamma2,
-                         alpha1 = object$nu1,
-                         alpha2 = object$nu2,
+                         alpha1 = object$alpha1,
+                         alpha2 = object$alpha2,
+                         vee1 = object$vee1,
+                         vee2 = object$vee2,
                          Sig = object$Sig)
   } else {
     initial.para <- NULL
@@ -88,12 +88,13 @@ PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL
     train.cdata <- cdata[folds[[t]], ]
     train.ydata <- ydata[ydata[, ID] %in% train.cdata[, ID], ]
     
-    fit <- try(jmcs(cdata = train.cdata, ydata = train.ydata, 
+    fit <- try(JMMLSM(cdata = train.cdata, ydata = train.ydata, 
                       long.formula = long.formula,
                       surv.formula = surv.formula,
+                      variance.formula = variance.formula, 
                       quadpoint = quadpoint, random = object$random, 
-                      survinitial = survinitial,
-                      opt = object$opt,
+                      survinitial = survinitial, maxiter = maxiter, opt = opt, 
+                      epsilon = object$epsilon,
                       initial.para = initial.para), silent = TRUE)
     
     if ('try-error' %in% class(fit)) {
@@ -122,12 +123,11 @@ PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL
         val.clongdata <- NULL
       }
       
-      survfit <- try(survfitjmcs(fit, ynewdata = val.ydata, cnewdata = val.cdata, 
-                                 u = horizon.time, method = method, 
-                                 Last.time = landmark.time,
-                                 obs.time = obs.time, quadpoint = quadpoint,
-                                 LOCF = LOCF, LOCFcovariate = LOCFcovariate, 
-                                 clongdata = val.clongdata), silent = TRUE)
+      survfit <- try(survfitJMMLSM(fit, ynewdata = val.ydata, cnewdata = val.cdata, 
+                                   u = horizon.time, method = method, 
+                                   Last.time = landmark.time,
+                                   obs.time = obs.time, quadpoint = quadpoint,
+                                   LOCF = LOCF, LOCFcovariate = LOCFcovariate, clongdata = val.clongdata), silent = TRUE)
       
       if ('try-error' %in% class(survfit)) {
         writeLines(paste0("Error occured in the ", t, " th validation!"))
@@ -135,7 +135,6 @@ PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL
         MAE.cv[[t]] <- NULL
       } else {
         if (CompetingRisk) {
-          
           CIF <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 3))
           colnames(CIF) <- c("ID", "CIF1", "CIF2")
           CIF$ID <- val.cdata[, ID]
@@ -214,9 +213,7 @@ PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL
           
           Brier.cv[[t]] <- mean.Brier
           MAE.cv[[t]] <- mean.MAE
-          
         } else {
-          
           Surv <- as.data.frame(matrix(0, nrow = nrow(val.cdata), ncol = 2))
           colnames(Surv) <- c("ID", "Surv")
           Surv$ID <- val.cdata[, ID]
@@ -270,7 +267,6 @@ PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL
           }
           Brier.cv[[t]] <- mean.Brier
           MAE.cv[[t]] <- mean.MAE
-          
         }
         
       }
@@ -282,7 +278,7 @@ PEjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL
   result <- list(n.cv = n.cv, Brier.cv = Brier.cv, MAE.cv = MAE.cv, landmark.time = landmark.time,
                  horizon.time = horizon.time, method = method, quadpoint = quadpoint, 
                  CompetingRisk = CompetingRisk, seed = seed)
-  class(result) <- "PEjmcs"
+  class(result) <- "PEJMMLSM"
   
   return(result)
   

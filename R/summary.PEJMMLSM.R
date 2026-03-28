@@ -1,18 +1,18 @@
-##' @title Print PEjmcs
-##' @name summary.PEjmcs
-##' @aliases summary.PEjmcs
-##' @param object object of class 'PEjmcs'.
+##' @title Print PEJMMLSM
+##' @name summary
+##' @aliases summary.PEJMMLSM
+##' @param object object of class 'PEJMMLSM'.
 ##' @param error a character string that specifies the loss function. 
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
+##' @seealso \code{\link{JMMLSM}, \link{survfitJMMLSM}}
 ##' @export
 ##' 
 
-summary.PEjmcs <- function (object, error = c("MAE", "Brier"), ...) {
-  if (!inherits(object, "PEjmcs"))
-    stop("Use only with 'PEjmcs' xs.\n") 
+summary.PEJMMLSM <- function (object, error = c("MAE", "Brier"), ...) {
+  if (!inherits(object, "PEJMMLSM"))
+    stop("Use only with 'PEJMMLSM' xs.\n") 
   if (!error %in% c("MAE", "Brier"))
     stop("Please choose one of the following options: MAE or Brier.")
   

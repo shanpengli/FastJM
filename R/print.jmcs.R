@@ -105,9 +105,13 @@ print.jmcs <- function(x, digits = 4, ...) {
     
     # Row index sets: first variances (i,i), then covariances (i<j)
     var_idx <- cbind(seq_len(p), seq_len(p))
-    cov_idx <- t(combn(p, 2))  # each row = (i, j) with i<j
-    
-    idx <- rbind(var_idx, cov_idx)
+    if (p >= 2) {
+      cov_idx <- t(combn(p, 2))
+      idx <- rbind(var_idx, cov_idx)
+    } else {
+      cov_idx <- matrix(integer(0), nrow = 0, ncol = 2)
+      idx <- var_idx
+    }
     n_rows <- nrow(idx)
     
     # Compute estimates, SE, Z, p
@@ -123,8 +127,14 @@ print.jmcs <- function(x, digits = 4, ...) {
       dat[r, ] <- c(est, se, z, pval)
     }
     
-    # Row names: variances get eff_names; covariances get "name_i:name_j"
-    rownms <- c(eff_names, paste0(eff_names[cov_idx[,1]], ":", eff_names[cov_idx[,2]]))
+    # Row names
+    cov_names <- if (nrow(cov_idx) > 0) {
+      paste0(eff_names[cov_idx[, 1]], ":", eff_names[cov_idx[, 2]])
+    } else {
+      character(0)
+    }
+    
+    rownms <- c(eff_names, cov_names)
     dat <- as.data.frame(dat, row.names = rownms)
     
     # Formatting
@@ -210,11 +220,20 @@ print.jmcs <- function(x, digits = 4, ...) {
     }
     eff_names <- eff_names[seq_len(p)]
     
+    # Make sure covariance matrices keep matrix structure
+    Sig <- as.matrix(x$Sig)
+    seSig <- as.matrix(x$seSig)
+    
     # Row index sets: first variances (i,i), then covariances (i<j)
     var_idx <- cbind(seq_len(p), seq_len(p))
-    cov_idx <- t(combn(p, 2))  # each row = (i, j) with i<j
-    
-    idx <- rbind(var_idx, cov_idx)
+    if (p >= 2) {
+      cov_idx <- combn(p, 2)
+      cov_idx <- t(cov_idx)
+      idx <- rbind(var_idx, cov_idx)
+    } else {
+      cov_idx <- matrix(integer(0), nrow = 0, ncol = 2)
+      idx <- var_idx
+    }
     n_rows <- nrow(idx)
     
     # Compute estimates, SE, Z, p
@@ -231,7 +250,12 @@ print.jmcs <- function(x, digits = 4, ...) {
     }
     
     # Row names: variances get eff_names; covariances get "name_i:name_j"
-    rownms <- c(eff_names, paste0(eff_names[cov_idx[,1]], ":", eff_names[cov_idx[,2]]))
+    cov_names <- if (nrow(cov_idx) > 0) {
+      paste0(eff_names[cov_idx[, 1]], ":", eff_names[cov_idx[, 2]])
+    } else {
+      character(0)
+    }
+    rownms <- c(eff_names, cov_names)
     dat <- as.data.frame(dat, row.names = rownms)
     
     # Formatting

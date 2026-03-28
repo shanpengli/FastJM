@@ -116,32 +116,22 @@
 ##'                        method = "GH",
 ##'                        obs.time = "time")
 ##' survfit
-##' PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-##'              obs.time = "time", method = "GH", 
-##'              quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-##'              survinitial = TRUE)
-##' Brier <- summary(PE, error = "Brier")
-##' Brier
 ##' 
-##' MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-##'                  obs.time = "time", method = "GH", 
-##'                  quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-##'                  survinitial = TRUE)
-##' APE <- summary(MAEQ, digits = 3)
-##' APE
+##' res <- DynPredAccjmcs(object = fit,
+##'                       landmark.time = 3,
+##'                       horizon.time = c(3.6, 4, 4.4),
+##'                       obs.time = "time",
+##'                       method = "GH",
+##'                       maxiter = 1000,
+##'                       n.cv = 3,
+##'                       metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ"))
 ##' 
-##' ## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
-##' AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-##'                obs.time = "time", method = "GH",
-##'                quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
-##' summary(AUC, digits = 3)
-##' 
-##' ## or using cross-validated mean C-index
-##' Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-##'                obs.time = "time", method = "GH",
-##'                quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "Cindex")
-##' summary(Cindex, digits = 3)
-##' 
+##' # Print all available evaluation metrics for the fitted joint model
+##' summary(res, metric = "Brier")
+##' summary(res, metric = "MAE")
+##' summary(res, metric = "MAEQ")
+##' summary(res, metric = "AUC")
+##' summary(res, metric = "Cindex")
 ##' }
 ##' 
 ##' @export

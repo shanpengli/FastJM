@@ -9,6 +9,10 @@ GetrisksetCSF <- function(cdata) {
     .Call(`_FastJM_GetrisksetCSF`, cdata)
 }
 
+OLS <- function(X, Y) {
+    .Call(`_FastJM_OLS`, X, Y)
+}
+
 MultVV <- function(x, y) {
     .Call(`_FastJM_MultVV`, x, y)
 }
@@ -61,6 +65,22 @@ GetCIF2CRall <- function(gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, timeci
     .Call(`_FastJM_GetCIF2CRall`, gamma1, gamma2, alpha1, alpha2, X2, H01, H02, s, timecif, bi)
 }
 
+GetCIF1CR_JMH <- function(gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, u, bwi, q) {
+    .Call(`_FastJM_GetCIF1CR_JMH`, gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, u, bwi, q)
+}
+
+GetCIF2CR_JMH <- function(gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, u, bwi, q) {
+    .Call(`_FastJM_GetCIF2CR_JMH`, gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, u, bwi, q)
+}
+
+GetCIF1CRall_JMH <- function(gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, timecif, bwi, q) {
+    .Call(`_FastJM_GetCIF1CRall_JMH`, gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, timecif, bwi, q)
+}
+
+GetCIF2CRall_JMH <- function(gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, timecif, bwi, q) {
+    .Call(`_FastJM_GetCIF2CRall_JMH`, gamma1, gamma2, alpha1, alpha2, nu1, nu2, X2, H01, H02, s, timecif, bwi, q)
+}
+
 getBayes <- function(beta, Sig, sigma, Z, X1, Y, mdata, mdataS) {
     .Call(`_FastJM_getBayes`, beta, Sig, sigma, Z, X1, Y, mdata, mdataS)
 }
@@ -73,12 +93,48 @@ getCovSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survti
     .Call(`_FastJM_getCovSF`, beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
 }
 
+getCovSF_JMH <- function(beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW) {
+    .Call(`_FastJM_getCovSF_JMH`, beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW)
+}
+
+getCov_JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW) {
+    .Call(`_FastJM_getCov_JMH`, beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW)
+}
+
+getEC <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02) {
+    .Call(`_FastJM_getEC`, beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02)
+}
+
 getECIF <- function(beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posbi, Poscov) {
     .Call(`_FastJM_getECIF`, beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posbi, Poscov)
 }
 
+getECIF_JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, nu1, nu2, Sig, Z, X1, W, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u) {
+    .Call(`_FastJM_getECIF_JMH`, beta, tau, gamma1, gamma2, alpha1, alpha2, nu1, nu2, Sig, Z, X1, W, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u)
+}
+
+getECIFad_JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, nu1, nu2, Sig, Z, X1, W, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posmean, Poscov) {
+    .Call(`_FastJM_getECIFad_JMH`, beta, tau, gamma1, gamma2, alpha1, alpha2, nu1, nu2, Sig, Z, X1, W, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, u, Posmean, Poscov)
+}
+
 getECIFall <- function(beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, timecif1, timecif2, Posmean, Poscov) {
     .Call(`_FastJM_getECIFall`, beta, sigma, gamma1, gamma2, alpha1, alpha2, Sig, Z, X1, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, timecif1, timecif2, Posmean, Poscov)
+}
+
+getECIFall_JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, nu1, nu2, Sig, Z, X1, W, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, timecif1, timecif2, Posmean, Poscov) {
+    .Call(`_FastJM_getECIFall_JMH`, beta, tau, gamma1, gamma2, alpha1, alpha2, nu1, nu2, Sig, Z, X1, W, Y, X2, H01, H02, xsmatrix, wsmatrix, CH01, CH02, s, timecif1, timecif2, Posmean, Poscov)
+}
+
+getECSF <- function(beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01) {
+    .Call(`_FastJM_getECSF`, beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
+}
+
+getECSFad <- function(beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbwi, Poscov) {
+    .Call(`_FastJM_getECSFad`, beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbwi, Poscov)
+}
+
+getECad <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbwi, Poscov) {
+    .Call(`_FastJM_getECad`, beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbwi, Poscov)
 }
 
 getECpseudo <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov) {
@@ -101,6 +157,14 @@ getES <- function(beta, sigma, gamma1, alpha1, Sig, Z, X1, Y, X2, xsmatrix, wsma
     .Call(`_FastJM_getES`, beta, sigma, gamma1, alpha1, Sig, Z, X1, Y, X2, xsmatrix, wsmatrix, CH0s, CH0u, Posbi, Poscov)
 }
 
+getES_JMH <- function(beta, tau, gamma1, alpha1, nu1, Sig, Z, X1, W, Y, X2, xsmatrix, wsmatrix, CH0s, CH0u) {
+    .Call(`_FastJM_getES_JMH`, beta, tau, gamma1, alpha1, nu1, Sig, Z, X1, W, Y, X2, xsmatrix, wsmatrix, CH0s, CH0u)
+}
+
+getESad_JMH <- function(beta, tau, gamma1, alpha1, nu1, Sig, Z, X1, W, Y, X2, xsmatrix, wsmatrix, CH0s, CH0u, Posmean, Poscov) {
+    .Call(`_FastJM_getESad_JMH`, beta, tau, gamma1, alpha1, nu1, Sig, Z, X1, W, Y, X2, xsmatrix, wsmatrix, CH0s, CH0u, Posmean, Poscov)
+}
+
 getHazard <- function(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02) {
     .Call(`_FastJM_getHazard`, CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
 }
@@ -115,6 +179,14 @@ getMC <- function(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, Sig, sigma, Z,
 
 getMCSF <- function(beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB) {
     .Call(`_FastJM_getMCSF`, beta, gamma1, alpha1, H01, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, FUNBS, FUNEC, FUNBEC, FUNBSEC, FUNB)
+}
+
+getMCSF_JMH <- function(beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW) {
+    .Call(`_FastJM_getMCSF_JMH`, beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW)
+}
+
+getMC_JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW) {
+    .Call(`_FastJM_getMC_JMH`, beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC, FUNBSEC, FUNWEC, FUNWSEC, FUNB, FUNW)
 }
 
 getMNA <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
@@ -143,6 +215,22 @@ getfittedSurv <- function(gamma1, gamma2, X2, CH012, alpha1, alpha2, FUNB) {
 
 getfittedSurvSF <- function(gamma1, X2, CH01, alpha1, FUNB) {
     .Call(`_FastJM_getfittedSurvSF`, gamma1, X2, CH01, alpha1, FUNB)
+}
+
+getloglikeC <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02) {
+    .Call(`_FastJM_getloglikeC`, beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02)
+}
+
+getloglikeCSF <- function(beta, tau, gamma1, alpha1, vee1, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01) {
+    .Call(`_FastJM_getloglikeCSF`, beta, tau, gamma1, alpha1, vee1, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01)
+}
+
+getloglikeCSFad <- function(beta, tau, gamma1, alpha1, vee1, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbwi, Poscov) {
+    .Call(`_FastJM_getloglikeCSFad`, beta, tau, gamma1, alpha1, vee1, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, HAZ01, Posbwi, Poscov)
+}
+
+getloglikeCad <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbwi, Poscov) {
+    .Call(`_FastJM_getloglikeCad`, beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbwi, Poscov)
 }
 
 getloglikeCpseudo <- function(beta, gamma1, gamma2, alpha1, alpha2, Sig, sigma, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, CUH01, CUH02, HAZ01, HAZ02, Posbi, Poscov) {

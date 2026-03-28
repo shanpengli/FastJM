@@ -1,3 +1,9 @@
+# FastJM 1.6.0
+
+* The package now supports modeling a single longitudinal outcome with heterogeneous within-subject variability via functionality adapted from the 'JMH' package.
+* Add ```DynPredAccjmcs()``` to calculate all available evaluation metrics for fitted joint models. 
+* Remove ```AUCjmcs()```, ```MAEQjmcs()```, ```PEjmcs()```, ```summary.AUCjmcs()```, ```summary.MAEQjmcs()```, and ```summary.PEjmcs()```.
+
 # FastJM 1.5.3
 
 * Fix small bug in ```survfitmvjmcs()```.

@@ -1,18 +1,18 @@
-##' @title Print AUCjmcs
-##' @name summary.AUCjmcs
-##' @aliases summary.AUCjmcs
-##' @param object object of class 'AUCjmcs'.
+##' @title Summaries of evaluation metrics for joint models
+##' @name summary
+##' @aliases summary.AUCJMMLSM
+##' @param object object of class 'AUCJMMLSM'.
 ##' @param digits number of digits of decimal to be printed. 
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
+##' @seealso \code{\link{JMMLSM}, \link{survfitJMMLSM}}
 ##' @export
 ##' 
 
-summary.AUCjmcs <- function (object, digits = 4, ...) {
-  if (!inherits(object, "AUCjmcs"))
-    stop("Use only with 'AUCjmcs' xs.\n") 
+summary.AUCJMMLSM <- function (object, digits = 4, ...) {
+  if (!inherits(object, "AUCJMMLSM"))
+    stop("Use only with 'AUCJMMLSM' xs.\n") 
   
   if (is.null(object$AUC.cv)) {
     stop("The cross validation fails. Please try using a different seed number.")
@@ -38,12 +38,12 @@ summary.AUCjmcs <- function (object, digits = 4, ...) {
       } else {
         AUC <- sum[, 1]
         ExpectedAUC <- data.frame(object$horizon.time, AUC)
+        
         if (object$metric == "AUC") {
           colnames(ExpectedAUC) <- c("Horizon Time", "AUC")
         } else {
           colnames(ExpectedAUC) <- c("Horizon Time", "Cindex")
         }
-        
       }
       if (object$metric == "AUC") {
         cat("\nExpected AUC at the landmark time of", object$landmark.time, "\nbased on", object$n.cv, "fold cross validation\n")
@@ -57,7 +57,7 @@ summary.AUCjmcs <- function (object, digits = 4, ...) {
     
   }
   
-  
+
   
   
 }
