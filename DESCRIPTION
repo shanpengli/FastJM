@@ -2,20 +2,12 @@ Package: FastJM
 Type: Package
 Title: Semi-Parametric Joint Modeling of Longitudinal and Survival Data
 Version: 1.6.0
-Date: 2026-03-07
+Date: 2026-03-28
 Authors@R: c(
     person("Shanpeng", "Li", email = "lishanpeng0913@ucla.edu", 
         role = c("aut", "cre")),
-    person("Ning", "Li", email = "liningpv@gmail.com", 
-        role = "ctb"),
     person("Emily", "Ouyang", email = "eouya001@ucr.edu", 
         role = "ctb"),   
-    person("Hong", "Wang", email = "wh@csu.edu.cn", 
-        role = "ctb"),
-    person("Jin", "Zhou", email = "jinjinzhou@g.ucla.edu", 
-        role = "ctb"),       
-    person("Hua", "Zhou", email = "huazhou@ucla.edu", 
-        role = "ctb"),
     person("Gang", "Li", email = "vli@ucla.edu", 
         role = "ctb")
     )
@@ -35,7 +27,7 @@ Description: Implements scalable joint models for large-scale competing risks ti
              variability via functionality adapted from the 'JMH' package.
 License: GPL (>= 3)
 NeedsCompilation: yes
-Imports: Rcpp (>= 1.0.7), dplyr, nlme, caret, timeROC, future, future.apply, rlang (>= 0.4.11)
+Imports: Rcpp (>= 1.0.7), dplyr, nlme, caret, pec, future, future.apply, rlang (>= 0.4.11)
 LinkingTo: Rcpp, RcppEigen
 Depends: R (>= 3.5.0), survival, utils, MASS, statmod, magrittr, stats
 RoxygenNote: 7.3.2

@@ -1,5 +1,5 @@
 ##' @title Print MAEQJMMLSM
-##' @name summary.MAEQJMMLSM
+##' @name summary
 ##' @aliases summary.MAEQJMMLSM
 ##' @param object object of class 'MAEQJMMLSM'.
 ##' @param digits number of decimal points to be rounded.

@@ -1,5 +1,5 @@
 ##' @title Print Concordancejmcs
-##' @name summary.Concordancejmcs
+##' @name summary
 ##' @aliases summary.Concordancejmcs
 ##' @param object object of class 'Concordancejmcs'.
 ##' @param digits number of digits of decimal to be printed. 

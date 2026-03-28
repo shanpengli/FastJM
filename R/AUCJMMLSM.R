@@ -147,7 +147,7 @@ AUCJMMLSM <- function(seed = 100, object, landmark.time = NULL, horizon.time = N
             }
             
             if (metric == "AUC") {
-              ROC <- timeROC::timeROC(T = CIF$time, delta = CIF$status,
+              ROC <- timeROC(T = CIF$time, delta = CIF$status,
                                       weighting = "marginal",
                                       marker = CIF$CIF1, cause = 1,
                                       times = horizon.time[j])
@@ -158,7 +158,7 @@ AUCJMMLSM <- function(seed = 100, object, landmark.time = NULL, horizon.time = N
                                     ifelse(CIF$status == 1, 2, 0)
               )
               
-              ROC <- timeROC::timeROC(T = CIF$time, delta = CIF$status2,
+              ROC <- timeROC(T = CIF$time, delta = CIF$status2,
                                       weighting = "marginal",
                                       marker = CIF$CIF2, cause = 1,
                                       times = horizon.time[j])
@@ -190,7 +190,7 @@ AUCJMMLSM <- function(seed = 100, object, landmark.time = NULL, horizon.time = N
             }
             
             if (metric == "AUC") {
-              ROC <- timeROC::timeROC(T = Surv$time, delta = Surv$status,
+              ROC <- timeROC(T = Surv$time, delta = Surv$status,
                                       weighting = "marginal",
                                       marker = -Surv$Surv, cause = 1,
                                       times = horizon.time[j])

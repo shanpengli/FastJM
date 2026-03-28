@@ -1,4 +1,4 @@
-##' @title Anova Method for Fitted Joint Models
+##' @title Summary for Fitted Joint Models
 ##' @name summary
 ##' @aliases summary.jmcs
 ##' @description Produce result summaries of a joint model fit. 

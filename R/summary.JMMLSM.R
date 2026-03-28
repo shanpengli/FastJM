@@ -1,3 +1,13 @@
+##' @title Summary for Fitted Joint Models
+##' @name summary
+##' @aliases summary.JMMLSM
+##' @description Produce result summaries of a joint model fit. 
+##' @param object an object inheriting from class \code{JMMLSM}.
+##' @param process for which model (i.e., longitudinal model or survival model) to extract the estimated coefficients.
+##' @param digits the number of significant digits to use when printing. Default is 4.
+##' @param ... further arguments passed to or from other methods.
+##' @return A table to summarize the model results.
+##' @seealso \code{\link{JMMLSM}}
 ##' @export
 ##' 
 

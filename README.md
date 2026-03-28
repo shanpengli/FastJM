@@ -150,91 +150,66 @@ survfit
 ```
 
 To assess the prediction accuracy of the fitted joint model, we may run
-`PEjmcs` to calculate the Brier score.
+`DynPredAccjmcs` to assess the prediction accuracy by calculating all
+available evaluation metrics.
 
 ``` r
-## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
-PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-             obs.time = "time", method = "GH", 
-             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-             survinitial = TRUE)
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(PE, error = "Brier")
+res <- DynPredAccjmcs(
+  object = fit,
+  landmark.time = 3,
+  horizon.time = c(3.6, 4, 4.4),
+  obs.time = "time",
+  method = "GH",
+  maxiter = 1000,
+  n.cv = 3,
+  survinitial = TRUE,
+  quantile.width = 0.25,
+  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+)
+#> The 1-th validation is done!
+#> The 2-th validation is done!
+#> The 3-th validation is done!
+
+summary(res, metric = "Brier")
 #> 
 #> Expected Brier Score at the landmark time of 3 
 #> based on 3 fold cross validation
 #>   Horizon Time Brier Score 1 Brier Score 2
-#> 1          3.6    0.05888837    0.03483090
-#> 2          4.0    0.08889966    0.05428274
-#> 3          4.4    0.10517866    0.06865793
-```
-
-An alternative to assess the prediction accuracy is to run `MAEQjmcs` to
-calculate the prediction error by comparing the predicted and empirical
-risks stratified on different risk groups based on quantile of the
-predicted risks.
-
-``` r
-## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
-MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-                 obs.time = "time", method = "GH", 
-                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-                 survinitial = TRUE)
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(MAEQ)
+#> 1          3.6        0.0589        0.0348
+#> 2          4.0        0.0889        0.0543
+#> 3          4.4        0.1052        0.0687
+summary(res, metric = "MAE")
 #> 
-#> Mean absolute error across quintiles of predicted risk scores at the landmark time of 3 
+#> Expected mean absolute error at the landmark time of 3 
 #> based on 3 fold cross validation
-#>   Horizon Time  CIF1  CIF2
-#> 1          3.6 0.021 0.030
-#> 2          4.0 0.045 0.040
-#> 3          4.4 0.048 0.038
-```
-
-We may also calculate the area under the ROC curve (AUC) to assess the
-discrimination measure of joint models.
-
-``` r
-## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
-AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(AUC)
+#>   Horizon Time   MAE1   MAE2
+#> 1          3.6 0.1188 0.0699
+#> 2          4.0 0.1765 0.1085
+#> 3          4.4 0.2090 0.1387
+summary(res, metric = "MAEQ")
+#> 
+#> Mean absolute error across quantiles of predicted risk scores at the landmark time of 3 
+#> based on 3 fold cross validation
+#>   Horizon Time  MAEQ1  MAEQ2
+#> 1          3.6 0.0208 0.0301
+#> 2          4.0 0.0446 0.0403
+#> 3          4.4 0.0477 0.0379
+summary(res, metric = "AUC")
 #> 
 #> Expected AUC at the landmark time of 3 
 #> based on 3 fold cross validation
-#>   Horizon Time      AUC1      AUC2
-#> 1          3.6 0.7366710 0.7097309
-#> 2          4.0 0.7154871 0.6760296
-#> 3          4.4 0.7336741 0.7254964
-```
-
-Alternatively, we can also calculate concordance index (Cindex) as
-another discrimination measure.
-
-``` r
-## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
-Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               maxiter = 1000, n.cv = 3, metric = "Cindex")
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(Cindex)
+#>   Horizon Time   AUC1   AUC2
+#> 1          3.6 0.7367 0.7097
+#> 2          4.0 0.7155 0.6760
+#> 3          4.4 0.7337 0.7255
+summary(res, metric = "Cindex")
 #> 
 #> Expected Cindex at the landmark time of 3 
 #> based on 3 fold cross validation
-#>   Horizon Time   Cindex1   Cindex2
-#> 1          3.6 0.6864341 0.6772933
-#> 2          4.0 0.6859882 0.6765425
-#> 3          4.4 0.6862253 0.6757857
+#>   Horizon Time Cindex1 Cindex2
+#> 1          3.6  0.6864  0.6773
+#> 2          4.0  0.6860  0.6765
+#> 3          4.4  0.6862  0.6758
 ```
 
 Or we can calculate the overall, time-independent Cindex over the entire
@@ -273,7 +248,7 @@ mvfit <- mvjmcs(ydata = mvydata, cdata = mvcdata,
               maxiter = 1000, opt = "optim",
               tol = 1e-3, print.para = FALSE)
 #> runtime is:
-#> Time difference of 54.93408 secs
+#> Time difference of 57.60288 secs
 mvfit
 #> 
 #> Call:
@@ -466,10 +441,6 @@ survmvfit
 #> 4  9.00 0.02075384 0.003996402
 ```
 
-Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are
-implemented for models of class jmcs. Extension to mvjmcs is under
-active development and will be available later this year.
-
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
 
 - ydatah: longitudinal data for a **single** biomarker per patient
@@ -585,7 +556,7 @@ oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, include.y = TRUE)
 ```
 
-![](man/figures/README-unnamed-chunk-13-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 par(oldpar)
@@ -625,7 +596,7 @@ MAEQ <- MAEQJMMLSM(fit, seed = 100, landmark.time = 3,
 #> The 3 th validation is done!
 summary(MAEQ)
 #> 
-#> Mean absolute error across quintiles of predicted risk scores at the landmark time of 3 
+#> Mean absolute error across quantile of predicted risk scores at the landmark time of 3 
 #> based on 3 fold cross validation
 #>   Horizon Time  CIF1  CIF2
 #> 1            4 0.096 0.066

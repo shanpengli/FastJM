@@ -58,43 +58,26 @@ survfit <- survfitjmcs(fit,
 survfit
 ```
 
-To assess the prediction accuracy of the fitted joint model, we may run `PEjmcs` to calculate the Brier score. 
+To assess the prediction accuracy of the fitted joint model, we may run `DynPredAccjmcs` to assess the prediction accuracy by calculating all available evaluation metrics. 
 ```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated Brier Score
-PE <- PEjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-             obs.time = "time", method = "GH", 
-             quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-             survinitial = TRUE)
-summary(PE, error = "Brier")
-```
+res <- DynPredAccjmcs(
+  object = fit,
+  landmark.time = 3,
+  horizon.time = c(3.6, 4, 4.4),
+  obs.time = "time",
+  method = "GH",
+  maxiter = 1000,
+  n.cv = 3,
+  survinitial = TRUE,
+  quantile.width = 0.25,
+  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+)
 
-An alternative to assess the prediction accuracy is to run `MAEQjmcs` to calculate the prediction error by comparing the predicted and empirical risks stratified on different risk groups based on quantile of the predicted risks.
-
-```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean absolute prediction error
-MAEQ <- MAEQjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4), 
-                 obs.time = "time", method = "GH", 
-                 quadpoint = NULL, maxiter = 1000, n.cv = 3, 
-                 survinitial = TRUE)
-summary(MAEQ)
-```
-
-We may also calculate the area under the ROC curve (AUC) to assess the discrimination measure of joint models.
-```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean AUC
-AUC <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               quadpoint = NULL, maxiter = 1000, n.cv = 3, metric = "AUC")
-summary(AUC)
-```
-
-Alternatively, we can also calculate concordance index (Cindex) as another discrimination measure.
-```{r}
-## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
-Cindex <- AUCjmcs(fit, seed = 100, landmark.time = 3, horizon.time = c(3.6, 4, 4.4),
-               obs.time = "time", method = "GH",
-               maxiter = 1000, n.cv = 3, metric = "Cindex")
-summary(Cindex)
+summary(res, metric = "Brier")
+summary(res, metric = "MAE")
+summary(res, metric = "MAEQ")
+summary(res, metric = "AUC")
+summary(res, metric = "Cindex")
 ```
 
 Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
@@ -160,7 +143,6 @@ survmvfit <- survfitmvjmcs(mvfit, seed = 100, ynewdata = subydata, cnewdata = su
 survmvfit
 
 ```
-Currently, validation features (e.g., survfitjmcs, PEjmcs, AUCjmcs) are implemented for models of class jmcs. Extension to mvjmcs is under active development and will be available later this year.
 
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
 

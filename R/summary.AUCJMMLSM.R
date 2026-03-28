@@ -1,5 +1,5 @@
-##' @title Print AUCJMMLSM
-##' @name summary.AUCJMMLSM
+##' @title Summaries of evaluation metrics for joint models
+##' @name summary
 ##' @aliases summary.AUCJMMLSM
 ##' @param object object of class 'AUCJMMLSM'.
 ##' @param digits number of digits of decimal to be printed. 

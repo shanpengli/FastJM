@@ -1,5 +1,5 @@
 ##' @title Print PEJMMLSM
-##' @name summary.PEJMMLSM
+##' @name summary
 ##' @aliases summary.PEJMMLSM
 ##' @param object object of class 'PEJMMLSM'.
 ##' @param error a character string that specifies the loss function. 
