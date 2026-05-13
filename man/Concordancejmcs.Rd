@@ -7,10 +7,8 @@
 Concordancejmcs(
   seed = 100,
   object,
-  opt = "nlminb",
   n.cv = 3,
   maxiter = 10000,
-  initial.optimizer = "BFGS",
   initial.para = TRUE,
   ...
 )
@@ -20,18 +18,16 @@ Concordancejmcs(
 
 \item{object}{object of class 'jmcs'.}
 
-\item{opt}{Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.}
-
 \item{n.cv}{number of folds for cross validation. Default is 3.}
 
 \item{maxiter}{the maximum number of iterations of the EM algorithm that the 
 function will perform. Default is 10000.}
 
-\item{initial.optimizer}{Method for numerical optimization to be used. Default is \code{BFGS}.}
-
 \item{initial.para}{Initial guess of parameters for cross validation. Default is FALSE.}
 
 \item{...}{Further arguments passed to or from other methods.}
+
+\item{opt}{Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.}
 }
 \value{
 a list of matrices with conditional probabilities for subjects.

@@ -1,6 +1,30 @@
 ##' @title Calculating evaluation metrics for joint models
 ##' @name DynPredAccjmcs
 ##' @aliases DynPredAccjmcs
+##' @description
+##' Computes dynamic prediction accuracy measures for fitted joint models of class
+##' \code{jmcs} using grouped cross-validation.
+##'
+##' At each cross-validation fold, the function refits the joint model on the
+##' training set, obtains subject-specific dynamic predictions on the validation
+##' set at the requested horizon times, and evaluates the requested prediction
+##' accuracy metrics.
+##'
+##' Supported metrics include:
+##' \describe{
+##'   \item{\code{"AUC"}}{time-dependent area under the ROC curve.}
+##'   \item{\code{"Cindex"}}{concordance index for dynamic predictions.}
+##'   \item{\code{"Brier"}}{inverse-probability-of-censoring weighted Brier score.}
+##'   \item{\code{"MAE"}}{inverse-probability-of-censoring weighted mean absolute error.}
+##'   \item{\code{"MAEQ"}}{quantile-based calibration summaries comparing empirical
+##'   and predicted risks or survival probabilities.}
+##' }
+##'
+##' For competing-risks models, event-specific cumulative incidence predictions
+##' are evaluated. For single-event models, conditional survival probabilities
+##' are evaluated.
+##' 
+##' 
 ##' @param seed a numeric value of seed to be specified for cross validation.
 ##' @param object object of class 'jmcs'.
 ##' @param landmark.time a numeric value of time for which dynamic prediction starts.
@@ -12,7 +36,6 @@
 ##' @param maxiter the maximum number of iterations of the EM algorithm that the 
 ##' function will perform. Default is 10000.
 ##' @param n.cv number of folds for cross validation. Default is 3.
-##' @param survinitial Fit a Cox model to obtain initial values of the parameter estimates. Default is TRUE.
 ##' @param quantile.width a numeric value of width of quantile to be specified. Default is 0.25.
 ##' @param initial.para Initial guess of parameters for cross validation. Default is FALSE.
 ##' @param LOCF a logical value to indicate whether the last-observation-carried-forward approach applies to prediction. 
@@ -22,14 +45,52 @@
 ##' @param clongdata a long format data frame where time-dependent survival covariates are incorporated. Default is NULL.
 ##' @param metrics a list to indicate which metric is used. 
 ##' @param ... Further arguments passed to or from other methods.
-##' @return a list of matrices with conditional probabilities for subjects.
+##' @return
+##' An object of class \code{DynPredAccjmcs}, returned as a list containing:
+##' \describe{
+##'   \item{\code{n.cv}}{The number of cross-validation folds.}
+##'   \item{\code{landmark.time}}{The landmark time used for dynamic prediction.}
+##'   \item{\code{horizon.time}}{The vector of horizon times used for evaluation.}
+##'   \item{\code{method}}{The dynamic prediction approximation method used.}
+##'   \item{\code{quadpoint}}{The number of quadrature points used, if applicable.}
+##'   \item{\code{CompetingRisk}}{Logical; indicates whether the fitted model
+##'   accounts for competing risks.}
+##'   \item{\code{seed}}{The random seed used for cross-validation.}
+##'   \item{\code{metrics}}{The requested evaluation metrics.}
+##'   \item{\code{quantile.width}}{The width of quantile groups used for
+##'   quantile-based calibration summaries.}
+##'   \item{\code{AUC.cv}}{A list of fold-specific time-dependent AUC estimates,
+##'   returned when \code{"AUC"} is requested. For competing-risks models, each
+##'   fold contains a matrix with one column per event type.}
+##'   \item{\code{Cindex.cv}}{A list of fold-specific concordance index estimates,
+##'   returned when \code{"Cindex"} is requested. For competing-risks models, each
+##'   fold contains a matrix with one column per event type.}
+##'   \item{\code{Brier.cv}}{A list of fold-specific inverse-probability-of-
+##'   censoring weighted Brier scores, returned when \code{"Brier"} is requested.
+##'   For competing-risks models, each fold contains a matrix with one column per
+##'   event type.}
+##'   \item{\code{MAE.cv}}{A list of fold-specific inverse-probability-of-
+##'   censoring weighted mean absolute errors, returned when \code{"MAE"} is
+##'   requested. For competing-risks models, each fold contains a matrix with one
+##'   column per event type.}
+##'   \item{\code{MAEQ.cv}}{A list of fold-specific quantile-based calibration
+##'   summaries, returned when \code{"MAEQ"} is requested.}
+##' }
+##' 
+##' @details
+##' The function performs grouped cross-validation at the subject level. Within
+##' each fold, the model is refit on the training data, and dynamic predictions
+##' are computed for the validation subjects who remain under observation beyond
+##' the landmark time and who have longitudinal observations observed up to that
+##' time. For single-event models, prediction accuracy is based on conditional
+##' survival probabilities. For competing-risks models, prediction accuracy is
+##' based on event-specific cumulative incidence functions.
 ##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
 ##' @export
 ##' 
 DynPredAccjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.time = NULL,
                      obs.time = NULL, method = c("Laplace", "GH"),
                      quadpoint = NULL, maxiter = NULL, n.cv = 3,
-                     survinitial = TRUE,
                      quantile.width = 0.25,
                      initial.para = FALSE,
                      LOCF = FALSE, LOCFcovariate = NULL, clongdata = NULL,
@@ -120,15 +181,19 @@ DynPredAccjmcs <- function(seed = 100, object, landmark.time = NULL, horizon.tim
     train.ydata <- ydata[ydata[, ID] %in% train.cdata[, ID], ]
     
     fit <- try(
-      jmcs(cdata = train.cdata,
-           ydata = train.ydata,
-           long.formula = long.formula,
-           surv.formula = surv.formula,
-           quadpoint = quadpoint,
-           random = object$random,
-           survinitial = survinitial,
-           opt = object$opt,
-           initial.para = initial.para),
+      jmcs(
+        cdata = train.cdata,
+        ydata = train.ydata,
+        long.formula = long.formula,
+        surv.formula = surv.formula,
+        random = object$random,
+        control = jmcs_control(
+          quadpoint = quadpoint,
+          maxiter = maxiter,
+          initial.para = initial.para,
+          opt = object$opt
+        )
+      ),
       silent = TRUE
     )
     
