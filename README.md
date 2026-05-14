@@ -238,21 +238,18 @@ using the following built-in data sets:
 ``` r
 data(mvydata)
 data(mvcdata)
-library(FastJM)
 mvfit <- mvjmcs(ydata = mvydata, cdata = mvcdata,
               long.formula = list(Y1 ~ X11 + X12 + time,
                                   Y2 ~ X11 + X12 + time),
               random = list(~ time | ID,
                             ~ 1 | ID),
-              surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, 
-              maxiter = 1000, opt = "optim",
-              tol = 1e-3, print.para = FALSE)
+              surv.formula = Surv(survtime, cmprsk) ~ X21 + X22)
 #> runtime is:
-#> Time difference of 57.60288 secs
+#> Time difference of 33.2904 secs
 mvfit
 #> 
 #> Call:
-#>  mvjmcs(ydata = mvydata, cdata = mvcdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time), random = list(~time | ID, ~1 | ID), surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, maxiter = 1000, opt = "optim", tol = 0.001, print.para = FALSE) 
+#>  mvjmcs(ydata = mvydata, cdata = mvcdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time), random = list(~time | ID, ~1 | ID), surv.formula = Surv(survtime, cmprsk) ~ X21 + X22) 
 #> 
 #> Data Summary:
 #> Number of observations: 5645 
@@ -271,47 +268,47 @@ mvfit
 #> Fixed effects in the longitudinal sub-model:  list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time) 
 #> 
 #>                  Estimate      SE   Z value  p-val
-#> (Intercept)_bio1  4.97406 0.05388  92.32120 0.0000
-#> X11_bio1          1.46539 0.08053  18.19764 0.0000
-#> X12_bio1          1.99793 0.01429 139.79571 0.0000
-#> time_bio1         0.84275 0.03946  21.35698 0.0000
-#> (Intercept)_bio2  9.97547 0.04927 202.44649 0.0000
-#> X11_bio2          0.97966 0.07331  13.36293 0.0000
-#> X12_bio2          2.00955 0.01309 153.48364 0.0000
-#> time_bio2         0.99380 0.00455 218.63164 0.0000
+#> (Intercept)_bio1  4.97836 0.05389  92.37830 0.0000
+#> X11_bio1          1.46373 0.08052  18.17736 0.0000
+#> X12_bio1          1.99688 0.01430 139.68697 0.0000
+#> time_bio1         0.83770 0.03951  21.20086 0.0000
+#> (Intercept)_bio2  9.97514 0.04927 202.47202 0.0000
+#> X11_bio2          0.97968 0.07331  13.36384 0.0000
+#> X12_bio2          2.00928 0.01309 153.45755 0.0000
+#> time_bio2         0.99382 0.00455 218.62849 0.0000
 #> 
 #>              Estimate      SE    Z value  p-val
-#> sigma^2_bio1  0.49304 0.00018 2734.36540 0.0000
-#> sigma^2_bio2  0.49758 0.00965   51.55778 0.0000
+#> sigma^2_bio1  0.49302 0.00018 2729.81717 0.0000
+#> sigma^2_bio2  0.49757 0.00965   51.54934 0.0000
 #> 
 #> Fixed effects in the survival sub-model:  Surv(survtime, cmprsk) ~ X21 + X22 
 #> 
 #>       Estimate      SE  Z value  p-val
-#> X21_1  0.93618 0.13480  6.94491 0.0000
-#> X22_1  0.51147 0.03167 16.15030 0.0000
-#> X21_2 -0.21683 0.24922 -0.87006 0.3843
-#> X22_2  0.48481 0.05923  8.18515 0.0000
+#> X21_1  0.92687 0.13465  6.88331 0.0000
+#> X22_1  0.50892 0.03163 16.08946 0.0000
+#> X21_2 -0.22126 0.24916 -0.88800 0.3745
+#> X22_2  0.48336 0.05920  8.16466 0.0000
 #> 
 #> Association parameters:                 
 #>                   Estimate      SE  Z value  p-val
-#> (Intercept)_1bio1  0.49981 0.07535  6.63293 0.0000
-#> time_1bio1         0.70822 0.08502  8.32969 0.0000
-#> (Intercept)_1bio2 -0.54676 0.07972 -6.85843 0.0000
-#> (Intercept)_2bio1  0.63217 0.13344  4.73764 0.0000
-#> time_2bio1         0.66226 0.16726  3.95956 0.0001
-#> (Intercept)_2bio2 -0.48377 0.15879 -3.04662 0.0023
+#> (Intercept)_1bio1  0.49735 0.07539  6.59671 0.0000
+#> time_1bio1         0.70010 0.08498  8.23809 0.0000
+#> (Intercept)_1bio2 -0.54465 0.07972 -6.83163 0.0000
+#> (Intercept)_2bio1  0.63098 0.13344  4.72857 0.0000
+#> time_2bio1         0.65771 0.16710  3.93611 0.0001
+#> (Intercept)_2bio2 -0.48306 0.15877 -3.04259 0.0023
 #> 
 #> 
 #> Random effects:                 
 #>   bio 1 :  ~time | ID 
 #>   bio 2 :  ~1 | ID 
 #>                       Estimate      SE  Z value  p-val
-#> Intercept1             1.02117 0.06469 15.78498 0.0000
-#> time1                  0.91580 0.05834 15.69838 0.0000
-#> Intercept2             0.88206 0.05325 16.56574 0.0000
-#> Intercept1:time1      -0.09307 0.04532 -2.05384 0.0400
-#> Intercept1:Intercept2  0.04354 0.04052  1.07457 0.2826
-#> time1:Intercept2      -0.06569 0.04224 -1.55510 0.1199
+#> Intercept1             1.02128 0.06470 15.78547 0.0000
+#> time1                  0.91442 0.05819 15.71410 0.0000
+#> Intercept2             0.88199 0.05324 16.56595 0.0000
+#> Intercept1:time1      -0.09442 0.04533 -2.08271 0.0373
+#> Intercept1:Intercept2  0.04355 0.04051  1.07499 0.2824
+#> time1:Intercept2      -0.06492 0.04223 -1.53739 0.1242
 ```
 
 We can extract the components of the model as follows:
@@ -320,18 +317,18 @@ We can extract the components of the model as follows:
 # Longitudinal fixed effects
 fixef(mvfit, process = "Longitudinal")
 #> (Intercept)_bio1         X11_bio1         X12_bio1        time_bio1 (Intercept)_bio2         X11_bio2         X12_bio2 
-#>        4.9740592        1.4653916        1.9979294        0.8427526        9.9754651        0.9796637        2.0095547 
+#>        4.9783622        1.4637306        1.9968810        0.8377000        9.9751421        0.9796767        2.0092771 
 #>        time_bio2 
-#>        0.9937970
+#>        0.9938159
 summary(mvfit, process = "Longitudinal")
 #>        Longitudinal   coef     SE 95%Lower 95%Upper p-values
-#> 1  (Intercept)_bio1 4.9741 0.0539   4.8685   5.0797        0
-#> 2          X11_bio1 1.4654 0.0805   1.3076   1.6232        0
-#> 3          X12_bio1 1.9979 0.0143   1.9699   2.0259        0
-#> 4         time_bio1 0.8428 0.0395   0.7654   0.9201        0
-#> 5  (Intercept)_bio2 9.9755 0.0493   9.8789  10.0720        0
+#> 1  (Intercept)_bio1 4.9784 0.0539   4.8727   5.0840        0
+#> 2          X11_bio1 1.4637 0.0805   1.3059   1.6216        0
+#> 3          X12_bio1 1.9969 0.0143   1.9689   2.0249        0
+#> 4         time_bio1 0.8377 0.0395   0.7603   0.9151        0
+#> 5  (Intercept)_bio2 9.9751 0.0493   9.8786  10.0717        0
 #> 6          X11_bio2 0.9797 0.0733   0.8360   1.1234        0
-#> 7          X12_bio2 2.0096 0.0131   1.9839   2.0352        0
+#> 7          X12_bio2 2.0093 0.0131   1.9836   2.0349        0
 #> 8         time_bio2 0.9938 0.0045   0.9849   1.0027        0
 #> 9      sigma^2_bio1 0.4930 0.0002   0.4927   0.4934        0
 #> 10     sigma^2_bio2 0.4976 0.0097   0.4787   0.5165        0
@@ -340,33 +337,33 @@ summary(mvfit, process = "Longitudinal")
 fixef(mvfit, process = "Event")
 #> $Risk1
 #>     X21_1     X22_1 
-#> 0.9361783 0.5114748 
+#> 0.9268691 0.5089241 
 #> 
 #> $Risk2
 #>      X21_2      X22_2 
-#> -0.2168317  0.4848128
+#> -0.2212556  0.4833562
 summary(mvfit, process = "Event")
 #>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper 95%exp(Lower) 95%exp(Upper) p-values
-#> 1              X21_1  0.9362    2.5502   0.1348   0.6720   1.2004        1.9581        3.3214   0.0000
-#> 2              X22_1  0.5115    1.6677   0.0317   0.4494   0.5735        1.5674        1.7746   0.0000
-#> 3              X21_2 -0.2168    0.8051   0.2492  -0.7053   0.2716        0.4940        1.3121   0.3843
-#> 4              X22_2  0.4848    1.6239   0.0592   0.3687   0.6009        1.4459        1.8238   0.0000
-#> 5  (Intercept)_1bio1  0.4998    1.6484   0.0754   0.3521   0.6475        1.4221        1.9108   0.0000
-#> 6         time_1bio1  0.7082    2.0304   0.0850   0.5416   0.8749        1.7187        2.3986   0.0000
-#> 7  (Intercept)_1bio2 -0.5468    0.5788   0.0797  -0.7030  -0.3905        0.4951        0.6767   0.0000
-#> 8  (Intercept)_2bio1  0.6322    1.8817   0.1334   0.3706   0.8937        1.4487        2.4442   0.0000
-#> 9         time_2bio1  0.6623    1.9392   0.1673   0.3344   0.9901        1.3972        2.6915   0.0001
-#> 10 (Intercept)_2bio2 -0.4838    0.6165   0.1588  -0.7950  -0.1725        0.4516        0.8415   0.0023
+#> 1              X21_1  0.9269    2.5266   0.1347   0.6629   1.1908        1.9405        3.2897   0.0000
+#> 2              X22_1  0.5089    1.6635   0.0316   0.4469   0.5709        1.5635        1.7699   0.0000
+#> 3              X21_2 -0.2213    0.8015   0.2492  -0.7096   0.2671        0.4918        1.3062   0.3745
+#> 4              X22_2  0.4834    1.6215   0.0592   0.3673   0.5994        1.4439        1.8210   0.0000
+#> 5  (Intercept)_1bio1  0.4973    1.6444   0.0754   0.3496   0.6451        1.4185        1.9062   0.0000
+#> 6         time_1bio1  0.7001    2.0139   0.0850   0.5335   0.8667        1.7049        2.3790   0.0000
+#> 7  (Intercept)_1bio2 -0.5446    0.5800   0.0797  -0.7009  -0.3884        0.4961        0.6781   0.0000
+#> 8  (Intercept)_2bio1  0.6310    1.8794   0.1334   0.3694   0.8925        1.4469        2.4413   0.0000
+#> 9         time_2bio1  0.6577    1.9304   0.1671   0.3302   0.9852        1.3912        2.6784   0.0001
+#> 10 (Intercept)_2bio2 -0.4831    0.6169   0.1588  -0.7942  -0.1719        0.4519        0.8421   0.0023
 
 # Random effects for first few subjects
 head(ranef(mvfit))
-#>   (Intercept)_bio1  time_bio1 (Intercept)_bio2
-#> 1        1.2401906 -0.5307380      -1.20266480
-#> 2       -0.5271435 -0.3345339       1.56044174
-#> 3       -1.1560670  0.3260969       0.17152013
-#> 4       -1.4226064 -1.9399773      -0.09515163
-#> 5        0.2392488 -1.9542406       0.02231513
-#> 6       -0.1187828 -0.0254132       0.06451794
+#>   (Intercept)_bio1   time_bio1 (Intercept)_bio2
+#> 1        1.2319610 -0.52584340      -1.20371719
+#> 2       -0.5308272 -0.32954734       1.56026919
+#> 3       -1.1627322  0.33104170       0.17052091
+#> 4       -1.4296389 -1.93508778      -0.09598218
+#> 5        0.2379468 -1.94922572       0.02283060
+#> 6       -0.1229965 -0.02043454       0.06420000
 ```
 
 The `FastJM` package can now make dynamic prediction in the presence of
@@ -408,37 +405,37 @@ survmvfit
 #> $`177`
 #>   times       CIF1        CIF2
 #> 1  4.75 0.00000000 0.000000000
-#> 2  7.00 0.01835440 0.003145087
-#> 3  8.00 0.02632333 0.004747017
-#> 4  9.00 0.02939841 0.005963632
+#> 2  7.00 0.01861973 0.003167409
+#> 3  8.00 0.02670221 0.004780677
+#> 4  9.00 0.02981999 0.006005652
 #> 
 #> $`182`
 #>   times      CIF1       CIF2
 #> 1  4.75 0.0000000 0.00000000
-#> 2  7.00 0.2463582 0.03393494
-#> 3  8.00 0.3325719 0.04805378
-#> 4  9.00 0.3630881 0.05807832
+#> 2  7.00 0.2460705 0.03392616
+#> 3  8.00 0.3322085 0.04804826
+#> 4  9.00 0.3626926 0.05807446
 #> 
 #> $`260`
 #>   times       CIF1       CIF2
 #> 1  4.75 0.00000000 0.00000000
-#> 2  7.00 0.03315209 0.01750073
-#> 3  8.00 0.04724973 0.02623700
-#> 4  9.00 0.05262962 0.03281393
+#> 2  7.00 0.03340964 0.01753985
+#> 3  8.00 0.04761368 0.02629538
+#> 4  9.00 0.05303220 0.03288541
 #> 
 #> $`305`
 #>   times       CIF1       CIF2
 #> 1  4.75 0.00000000 0.00000000
-#> 2  7.00 0.02876153 0.01545058
-#> 3  8.00 0.04104952 0.02319795
-#> 4  9.00 0.04574922 0.02904055
+#> 2  7.00 0.02891562 0.01545646
+#> 3  8.00 0.04126797 0.02320727
+#> 4  9.00 0.04599079 0.02905144
 #> 
 #> $`800`
 #>   times       CIF1        CIF2
 #> 1  4.75 0.00000000 0.000000000
-#> 2  7.00 0.01293233 0.002102670
-#> 3  8.00 0.01857301 0.003178285
-#> 4  9.00 0.02075384 0.003996402
+#> 2  7.00 0.01309319 0.002113995
+#> 3  8.00 0.01880334 0.003195467
+#> 4  9.00 0.02101032 0.004017890
 ```
 
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
@@ -454,11 +451,11 @@ fit <- JMMLSM(cdata = cdatah, ydata = ydatah,
               long.formula = Y ~ Z1 + Z2 + Z3 + time,
               surv.formula = Surv(survtime, cmprsk) ~ var1 + var2 + var3,
               variance.formula = ~ Z1 + Z2 + Z3 + time, 
-              quadpoint = 6, random = ~ 1|ID, print.para = FALSE)
+              random = ~ 1|ID)
 fit
 #> 
 #> Call:
-#>  JMMLSM(cdata = cdatah, ydata = ydatah, long.formula = Y ~ Z1 + Z2 + Z3 + time, surv.formula = Surv(survtime, cmprsk) ~ var1 + var2 + var3, variance.formula = ~Z1 + Z2 + Z3 + time, random = ~1 | ID, quadpoint = 6, print.para = FALSE) 
+#>  JMMLSM(cdata = cdatah, ydata = ydatah, long.formula = Y ~ Z1 + Z2 + Z3 + time, surv.formula = Surv(survtime, cmprsk) ~ var1 + var2 + var3, variance.formula = ~Z1 + Z2 + Z3 + time, random = ~1 | ID) 
 #> 
 #> Data Summary:
 #> Number of observations: 1353 
@@ -556,93 +553,71 @@ oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, include.y = TRUE)
 ```
 
-![](man/figures/README-unnamed-chunk-10-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 par(oldpar)
 ```
 
-If we assess the prediction accuracy of the fitted joint model using
-Brier score as a calibration measure, we may run `PEJMMLSM` to calculate
-the Brier score.
+To assess the prediction accuracy of the fitted joint model, we may run
+`DynPredAccJMMLSM` to assess the prediction accuracy by calculating all
+available evaluation metrics.
 
 ``` r
-PE <- PEJMMLSM(fit, seed = 100, landmark.time = 3, horizon.time = c(4:6),
-               obs.time = "time", method = "GH", 
-               n.cv = 3)
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(PE, error = "Brier")
+res <- DynPredAccJMMLSM(
+  object = fit,
+  landmark.time = 3, horizon.time = c(4:6),
+  obs.time = "time",
+  method = "GH",
+  maxiter = 1000,
+  n.cv = 3,
+  quantile.width = 0.25,
+  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+)
+#> The 1-th validation is done!
+#> The 2-th validation is done!
+#> The 3-th validation is done!
+
+summary(res, metric = "Brier")
 #> 
 #> Expected Brier Score at the landmark time of 3 
 #> based on 3 fold cross validation
 #>   Horizon Time Brier Score 1 Brier Score 2
-#> 1            4    0.06369906    0.06194668
-#> 2            5    0.10838731    0.11052099
-#> 3            6    0.20187572    0.11613515
-```
-
-An alternative tool is to run `MAEQJMMLSM` to calculate the prediction
-error by comparing the predicted and empirical risks stratified on
-different risk groups based on quantile of the predicted risks.
-
-``` r
-MAEQ <- MAEQJMMLSM(fit, seed = 100, landmark.time = 3, 
-                   horizon.time = c(4:6), 
-                   obs.time = "time", method = "GH", n.cv = 3)
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(MAEQ)
+#> 4            4        0.0637        0.0619
+#> 5            5        0.1084        0.1105
+#> 6            6        0.2019        0.1161
+summary(res, metric = "MAE")
 #> 
-#> Mean absolute error across quantile of predicted risk scores at the landmark time of 3 
+#> Expected mean absolute error at the landmark time of 3 
 #> based on 3 fold cross validation
-#>   Horizon Time  CIF1  CIF2
-#> 1            4 0.096 0.066
-#> 2            5 0.119 0.086
-#> 3            6 0.114 0.107
-```
-
-Using area under the ROC curve (AUC) as a discrimination measure, we may
-run `AUCJMMLSM` to calculate the AUC score.
-
-``` r
-AUC <- AUCJMMLSM(fit, seed = 100, landmark.time = 3, horizon.time = c(4:6),
-                 obs.time = "time", method = "GH",
-                 n.cv = 3, metric = "AUC")
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(AUC)
+#>   Horizon Time   MAE1   MAE2
+#> 4            4 0.1314 0.1258
+#> 5            5 0.2192 0.2195
+#> 6            6 0.3818 0.2291
+summary(res, metric = "MAEQ")
+#> 
+#> Mean absolute error across quantiles of predicted risk scores at the landmark time of 3 
+#> based on 3 fold cross validation
+#>   Horizon Time  MAEQ1  MAEQ2
+#> 1            4 0.0965 0.0656
+#> 2            5 0.1190 0.0864
+#> 3            6 0.1139 0.1074
+summary(res, metric = "AUC")
 #> 
 #> Expected AUC at the landmark time of 3 
 #> based on 3 fold cross validation
-#>   Horizon Time      AUC1      AUC2
-#> 1            4 0.5502137 0.6839226
-#> 2            5 0.6182312 0.6523506
-#> 3            6 0.6103724 0.7065657
-```
-
-Alternatively, we can also calculate concordance index (Cindex) as
-another discrimination measure.
-
-``` r
-## evaluate prediction accuracy of fitted joint model using cross-validated mean Cindex
-Cindex <- AUCJMMLSM(fit, seed = 100, landmark.time = 3, horizon.time = c(4:6),
-                  obs.time = "time", method = "GH",
-                  n.cv = 3, metric = "Cindex")
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(Cindex)
+#>   Horizon Time   AUC1   AUC2
+#> 4            4 0.5502 0.6839
+#> 5            5 0.6182 0.6524
+#> 6            6 0.6104 0.7066
+summary(res, metric = "Cindex")
 #> 
 #> Expected Cindex at the landmark time of 3 
 #> based on 3 fold cross validation
-#>   Horizon Time   Cindex1   Cindex2
-#> 1            4 0.6154102 0.6509733
-#> 2            5 0.6132650 0.6463436
-#> 3            6 0.6125965 0.6463436
+#>   Horizon Time Cindex1 Cindex2
+#> 4            4  0.6154  0.6510
+#> 5            5  0.6133  0.6463
+#> 6            6  0.6126  0.6463
 ```
 
 Or we can calculate the overall, time-independent Cindex over the entire
