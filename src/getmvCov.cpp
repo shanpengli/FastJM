@@ -1159,9 +1159,6 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
   for (t=0;t< numBio;t++)  sesigma(t) = sqrt(SSinv(index + t,index + t));
   index += numBio;
 
-
-
-
   // gamma
   for (t=0;t<gamma1.size();t++) segamma1(t) = sqrt(SSinv(index+t,index+t));
   index += gamma1.size();

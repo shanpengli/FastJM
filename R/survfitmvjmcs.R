@@ -4,6 +4,14 @@
 ##' @description This function computes the conditional probability of 
 ##' surviving later times than the last observed time for which a longitudinal 
 ##' measurement was available.
+##' 
+##' @details
+##' This is a model-specific dynamic prediction function for objects fitted by
+##' \code{\link{mvjmcs}}. It is retained for backward compatibility and for users
+##' who prefer direct access to the multivariate prediction routine. For routine
+##' use, users are encouraged to call \code{\link{survfitJM}}, which dispatches
+##' automatically according to the class of the fitted model object.
+##' 
 ##' @param object an object inheriting from class \code{mvjmcs}.
 ##' @param seed a random seed number to proceed Monte Carlo simulation. Default is 100.
 ##' @param ynewdata a data frame that contains the longitudinal and covariate information for the subjects 
@@ -394,13 +402,17 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         
         stime <-  as.numeric(Last.time[j])
         CH01 <- CH(H01, stime)
+        CH0u <- vector()
+        for (jj in 1:lengthu) {
+          CH0u[jj] <- CH(H01, u[jj])
+        }
         
         W <- as.matrix(subNDc[1, Cvar[3:length(Cvar)]])
         
         
         data <- list(YList, XList, ZList, W = W, CH01 = CH01,  betaList, gamma1,  alpha1,  sigma, Sig)
         names(data) <- c("YList", "XList", "ZList", "W", "CH01",  "beta",
-                         "gamma1","alpha1",   "sigma", "Sig")
+                         "gamma1","alpha1", "sigma", "Sig")
         
         opt <- optim(rep(0, nsig), logLikSFmv, data = data, method = "BFGS", hessian = TRUE)
         meanb <- opt$par
@@ -413,9 +425,8 @@ survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         }
         
         for (jj in 1:lengthu) {
-          ## calculate the CIF
-          CIF1 <- CIF1mv.SF(data, H01, stime, u[jj], meanb, numBio, pREvec)
-          P1us <- Pkmv.us_SF(CIF1, data, meanb, numBio = numBio, pREvec)
+          ## calculate the survival probabilities
+          P1us <- P.us.mvjmcs(data, CH0u[jj], meanb, numBio, pREvec) 
           Predraw1[j, jj] <- 1 - P1us
         }
         

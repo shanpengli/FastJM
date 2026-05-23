@@ -101,6 +101,53 @@ fit
 #> (Intercept):time -0.02765 0.02529 -1.09330 0.2743
 ```
 
+The fitted `jmcs` object also provides a standard diagnostic plotting
+method through `plot()`. This function displays four panels:
+subject-specific residuals for the longitudinal process versus their
+corresponding fitted values; a normal Q-Q plot of the residuals of the
+standardized subject-specific residuals for the longitudinal process, an
+estimate of the marginal survival function for the event process, and an
+estimate of the marginal cumulative risk function for the event process.
+These plots provide a quick graphical summary of the longitudinal
+residual behavior and the estimated event-time process from the fitted
+joint model.
+
+``` r
+plot(fit)
+```
+
+![](man/figures/README-unnamed-chunk-3-1.png)<!-- --> We can further
+examine the fitted joint model using diagnostic plots. The `timeplot()`
+function displays the longitudinal biomarker trajectories, the empirical
+log residual variance over follow-up time, and the event process. For
+competing-risk models, the event plot is shown as cumulative incidence
+curves for the specified event types.
+
+The log residual variance plot is intended as an exploratory diagnostic.
+Apparent changes over time may reflect departures from constant residual
+variance, but they may also be affected by finite-sample variability,
+model fit, or changing subject composition over follow-up.
+
+``` r
+crplot <- timeplot(
+  object = fit,
+  biomarker = response,
+  id_col = ID,
+  time_col = time,
+  time_bin_width = 0.5,
+  fail_code = 1,
+  cr_code = 2,
+  censor_code = 0,
+  primary_event_label = "Event type 1",
+  competing_event_label = "Event type 2",
+  x_lab = "Visit time",
+  event_x_lab = "Survival time",
+  n.obs = 200
+)
+```
+
+![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
+
 The `FastJM` package can make dynamic prediction given the longitudinal
 history information. Below is a toy example for competing risks data.
 Conditional cumulative incidence probabilities for each failure will be
@@ -110,12 +157,12 @@ presented.
 ND <- ydata[ydata$ID %in% c(419, 218), ]
 ID <- unique(ND$ID)
 NDc <- cdata[cdata$ID  %in% ID, ]
-survfit <- survfitjmcs(fit, 
-                       ynewdata = ND, 
-                       cnewdata = NDc, 
-                       u = seq(3, 4.8, by = 0.2), 
-                       method = "GH",
-                       obs.time = "time")
+survfit <- survfitJM(fit, 
+                     ynewdata = ND, 
+                     cnewdata = NDc, 
+                     u = seq(3, 4.8, by = 0.2), 
+                     method = "GH",
+                     obs.time = "time")
 survfit
 #> 
 #> Prediction of Conditional Probabilities of Event
@@ -150,11 +197,11 @@ survfit
 ```
 
 To assess the prediction accuracy of the fitted joint model, we may run
-`DynPredAccjmcs` to assess the prediction accuracy by calculating all
+`DynPredAcc` to assess the prediction accuracy by calculating all
 available evaluation metrics.
 
 ``` r
-res <- DynPredAccjmcs(
+res <- DynPredAcc(
   object = fit,
   landmark.time = 3,
   horizon.time = c(3.6, 4, 4.4),
@@ -162,15 +209,14 @@ res <- DynPredAccjmcs(
   method = "GH",
   maxiter = 1000,
   n.cv = 3,
-  survinitial = TRUE,
   quantile.width = 0.25,
-  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+  metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
 )
 #> The 1-th validation is done!
 #> The 2-th validation is done!
 #> The 3-th validation is done!
 
-summary(res, metric = "Brier")
+summary(res, metric = "Brier Score")
 #> 
 #> Expected Brier Score at the landmark time of 3 
 #> based on 3 fold cross validation
@@ -217,7 +263,7 @@ time period, evaluated by the linear predictor of the (cause-specific)
 Cox model.
 
 ``` r
-Concord <- Concordancejmcs(seed = 100, fit, n.cv = 3)
+Concord <- Concordance.jmcs(seed = 100, fit, n.cv = 3)
 #> The 1 th validation is done!
 #> The 2 th validation is done!
 #> The 3 th validation is done!
@@ -244,8 +290,6 @@ mvfit <- mvjmcs(ydata = mvydata, cdata = mvcdata,
               random = list(~ time | ID,
                             ~ 1 | ID),
               surv.formula = Surv(survtime, cmprsk) ~ X21 + X22)
-#> runtime is:
-#> Time difference of 33.2904 secs
 mvfit
 #> 
 #> Call:
@@ -262,6 +306,7 @@ mvfit
 #> Model Type: joint modeling of multivariate longitudinal continuous and competing risks data 
 #> 
 #> Model summary:
+#> Runtime: 33.05 seconds 
 #> Longitudinal process: linear mixed effects model
 #> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
 #> 
@@ -374,6 +419,7 @@ failure will be presented.
 ``` r
 require(dplyr)
 #> Loading required package: dplyr
+#> Warning: package 'dplyr' was built under R version 4.5.2
 #> 
 #> Attaching package: 'dplyr'
 #> The following object is masked from 'package:MASS':
@@ -395,8 +441,8 @@ subydata <- mvydata %>%
   dplyr::filter(ID %in% sampleID)
 
 ### Set up a landmark time of 4.75 and make predictions at time u
-survmvfit <- survfitmvjmcs(mvfit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
-                         u = c(7, 8, 9), Last.time = 4.75, obs.time = "time")
+survmvfit <- survfitJM(mvfit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+                       u = c(7, 8, 9), Last.time = 4.75, obs.time = "time")
 
 survmvfit
 #> 
@@ -436,6 +482,67 @@ survmvfit
 #> 2  7.00 0.01309319 0.002113995
 #> 3  8.00 0.01880334 0.003195467
 #> 4  9.00 0.02101032 0.004017890
+```
+
+To assess the prediction accuracy of the fitted joint model, we may run
+`DynPredAcc` to assess the prediction accuracy by calculating all
+available evaluation metrics.
+
+``` r
+res <- DynPredAcc(
+  object = mvfit,
+  landmark.time = 3,
+  horizon.time = c(3.6, 4, 4.4),
+  obs.time = "time",
+  maxiter = 1000,
+  n.cv = 3,
+  quantile.width = 0.25,
+  metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
+)
+#> The 1-th validation is done!
+#> The 2-th validation is done!
+#> The 3-th validation is done!
+
+summary(res, metric = "Brier Score")
+#> 
+#> Expected Brier Score at the landmark time of 3 
+#> based on 3 fold cross validation
+#>     Horizon Time Brier Score 1 Brier Score 2
+#> 3.6          3.6        0.0395        0.0101
+#> 4            4.0        0.0555        0.0143
+#> 4.4          4.4        0.0669        0.0266
+summary(res, metric = "MAE")
+#> 
+#> Expected mean absolute error at the landmark time of 3 
+#> based on 3 fold cross validation
+#>     Horizon Time   MAE1   MAE2
+#> 3.6          3.6 0.0793 0.0204
+#> 4            4.0 0.1122 0.0284
+#> 4.4          4.4 0.1349 0.0515
+summary(res, metric = "MAEQ")
+#> 
+#> Mean absolute error across quantiles of predicted risk scores at the landmark time of 3 
+#> based on 3 fold cross validation
+#>   Horizon Time  MAEQ1  MAEQ2
+#> 1          3.6 0.0202 0.0102
+#> 2          4.0 0.0299 0.0172
+#> 3          4.4 0.0381 0.0285
+summary(res, metric = "AUC")
+#> 
+#> Expected AUC at the landmark time of 3 
+#> based on 3 fold cross validation
+#>     Horizon Time   AUC1   AUC2
+#> 3.6          3.6 0.7981 0.7850
+#> 4            4.0 0.8290 0.7786
+#> 4.4          4.4 0.8313 0.7210
+summary(res, metric = "Cindex")
+#> 
+#> Expected Cindex at the landmark time of 3 
+#> based on 3 fold cross validation
+#>     Horizon Time Cindex1 Cindex2
+#> 3.6          3.6  0.8257  0.6914
+#> 4            4.0  0.8256  0.6922
+#> 4.4          4.4  0.8256  0.6927
 ```
 
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
@@ -525,9 +632,9 @@ fit
 ``` r
 cnewdata <- cdatah[cdatah$ID %in% c(122, 152), ]
 ynewdata <- ydatah[ydatah$ID %in% c(122, 152), ]
-survfit <- survfitJMMLSM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
-                         u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
-                         obs.time = "time", method = "GH")
+survfit <- survfitJM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
+                     u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
+                     obs.time = "time", method = "GH")
 survfit
 #> 
 #> Prediction of Conditional Probabilities of Event
@@ -553,18 +660,18 @@ oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, include.y = TRUE)
 ```
 
-![](man/figures/README-unnamed-chunk-11-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-13-1.png)<!-- -->
 
 ``` r
 par(oldpar)
 ```
 
 To assess the prediction accuracy of the fitted joint model, we may run
-`DynPredAccJMMLSM` to assess the prediction accuracy by calculating all
+`DynPredAcc` to assess the prediction accuracy by calculating all
 available evaluation metrics.
 
 ``` r
-res <- DynPredAccJMMLSM(
+res <- DynPredAcc(
   object = fit,
   landmark.time = 3, horizon.time = c(4:6),
   obs.time = "time",
@@ -572,13 +679,13 @@ res <- DynPredAccJMMLSM(
   maxiter = 1000,
   n.cv = 3,
   quantile.width = 0.25,
-  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+  metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
 )
 #> The 1-th validation is done!
 #> The 2-th validation is done!
 #> The 3-th validation is done!
 
-summary(res, metric = "Brier")
+summary(res, metric = "Brier Score")
 #> 
 #> Expected Brier Score at the landmark time of 3 
 #> based on 3 fold cross validation
@@ -625,7 +732,7 @@ time period, evaluated by the linear predictor of the (cause-specific)
 Cox model.
 
 ``` r
-Concord <- ConcordanceJMMLSM(seed = 100, fit, n.cv = 3)
+Concord <- Concordance.JMMLSM(seed = 100, fit, n.cv = 3)
 #> The 1 th validation is done!
 #> The 2 th validation is done!
 #> The 3 th validation is done!

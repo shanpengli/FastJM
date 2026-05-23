@@ -1,8 +1,9 @@
 ##' @title Concordance for joint models
-##' @name ConcordanceJMMLSM
-##' @aliases ConcordanceJMMLSM
+##' @name Concordance
+##' @aliases Concordance.jmcs
 ##' @param seed a numeric value of seed to be specified for cross validation.
-##' @param object object of class 'JMMLSM'.
+##' @param object object of class 'jmcs'.
+##' @param opt Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.
 ##' @param n.cv number of folds for cross validation. Default is 3.
 ##' @param maxiter the maximum number of iterations of the EM algorithm that the 
 ##' function will perform. Default is 10000.
@@ -10,21 +11,23 @@
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{JMMLSM}}
+##' @seealso \code{\link{jmcs}}
 ##' @export
 ##' 
 
-ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
-                              initial.para = TRUE, ...) {
+Concordance.jmcs <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
+                            initial.para = TRUE, ...) {
+  
+  if (!inherits(object, "jmcs"))
+    stop("Use only with 'jmcs' xs.\n")
   
   CompetingRisk <- object$CompetingRisk
   set.seed(seed)
   cdata <- object$cdata
   ydata <- object$ydata
-  long.formula <- object$LongitudinalSubmodelmean
+  long.formula <- object$LongitudinalSubmodel
   surv.formula <- object$SurvivalSubmodel
   surv.var <- all.vars(surv.formula)
-  variance.formula <- as.formula(paste("", object$LongitudinalSubmodelvariance[3], sep = "~"))
   random.form <- all.vars(object$random) 
   ID <- random.form[length(random.form)]
   
@@ -38,13 +41,11 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
   
   if (initial.para) {
     initial.para <- list(beta = object$beta,
-                         tau = object$tau, 
+                         sigma = object$sigma, 
                          gamma1 = object$gamma1,
                          gamma2 = object$gamma2,
-                         alpha1 = object$alpha1,
-                         alpha2 = object$alpha2,
-                         vee1 = object$vee1,
-                         vee2 = object$vee2,
+                         alpha1 = object$nu1,
+                         alpha2 = object$nu2,
                          Sig = object$Sig)
   } else {
     initial.para <- NULL
@@ -58,16 +59,16 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
     train.ydata <- ydata[ydata[, ID] %in% train.cdata[, ID], ]
     
     fit <- try(
-      JMMLSM(
+      jmcs(
         cdata = train.cdata,
         ydata = train.ydata,
         long.formula = long.formula,
         surv.formula = surv.formula,
-        variance.formula = variance.formula,
         random = object$random,
-        control = JMMLSM_control(
-          maxiter = maxiter,
+        control = jmcs_control(
           quadpoint = object$quadpoint,
+          maxiter = maxiter,
+          tol = object$tol,
           initial.para = initial.para,
           opt = object$opt
         )
@@ -85,32 +86,29 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
       val.cdata <- cdata[-folds[[t]], ]
       val.ydata <- ydata[ydata[, ID] %in% val.cdata[, ID], ]
       
-      getinit <- Getinit.JMH(cdata = val.cdata, ydata = val.ydata, long.formula = long.formula,
-                         surv.formula = surv.formula, variance.formula = variance.formula,
+      getinit <- Getinit(cdata = val.cdata, ydata = val.ydata, long.formula = long.formula,
+                         surv.formula = surv.formula,
                          model = model, ID = ID, RE = RE, random = object$random, survinitial = FALSE,
                          initial.para = initial.para, opt = opt)
       
       val.cdata2 <- getinit$cdata
       val.ydata2 <- getinit$ydata
-    
+      
       ## extract parameters
       
       if (CompetingRisk) {
         beta <- fit$beta
-        tau <- fit$tau
+        sigma <- fit$sigma
         gamma1 <- fit$gamma1
         gamma2 <- fit$gamma2
-        alpha1 <- fit$alpha1
-        alpha2 <- fit$alpha2
-        vee1 <- fit$vee1
-        vee2 <- fit$vee2
+        nu1 <- fit$nu1
+        nu2 <- fit$nu2
         Sig <- fit$Sig
         H01 <- fit$H01
         H02 <- fit$H02
         
         Z <- getinit$Z
         X1 <- getinit$X1
-        W <- getinit$W
         Y <- getinit$Y
         X2 <- getinit$X2
         survtime <- getinit$survtime
@@ -125,12 +123,12 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
         mdata2 <- mdata - 1
         mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
         
-        Posttheta <- GetBayes.JMH(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, 
-                             Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, "BFGS")
+        Posttheta <- GetBayes(beta, sigma, gamma1, gamma2, nu1, nu2, H01, H02, 
+                              Sig, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, "BFGS")
         
         X <- cbind(X2, Posttheta)
-        para1 <- c(gamma1, alpha1, vee1)
-        para2 <- c(gamma2, alpha2, vee2)
+        para1 <- c(gamma1, nu1)
+        para2 <- c(gamma2, nu2)
         Risk1Score <- X %*% para1
         Risk2Score <- X %*% para2
         subcdata <- data.frame(survtime, cmprsk, exp(Risk1Score), exp(Risk2Score))
@@ -138,26 +136,24 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
         PI.cv[[t]] <- subcdata
         
         Risk1Cindex <- CindexCR(subcdata$time, subcdata$status, 
-                                   subcdata$Risk1Score, Cause_int = 1)
+                                subcdata$Risk1Score, Cause_int = 1)
         
         Risk2Cindex <- CindexCR(subcdata$time, subcdata$status, 
-                                   subcdata$Risk2Score, Cause_int = 2)
+                                subcdata$Risk2Score, Cause_int = 2)
         
         Concordance.cv[[t]] <- c(Risk1Cindex, Risk2Cindex)
         writeLines(paste0("The ", t, " th validation is done!"))
       } else {
         
         beta <- fit$beta
-        tau <- fit$tau
+        sigma <- fit$sigma
         gamma1 <- fit$gamma1
-        alpha1 <- fit$alpha1
-        vee1 <- fit$vee1
+        nu1 <- fit$nu1
         Sig <- fit$Sig
         H01 <- fit$H01
         
         Z <- getinit$Z
         X1 <- getinit$X1
-        W <- getinit$W
         Y <- getinit$Y
         X2 <- getinit$X2
         survtime <- getinit$survtime
@@ -172,11 +168,11 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
         mdata2 <- mdata - 1
         mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
         
-        Posttheta <- GetBayesSF.JMH(beta, tau, gamma1, alpha1, vee1, H01,
-                                  Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, "BFGS")
+        Posttheta <- GetBayesSF(beta, sigma, gamma1, nu1, H01, 
+                              Sig, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, "BFGS")
         
         X <- cbind(X2, Posttheta)
-        para1 <- c(gamma1, alpha1, vee1)
+        para1 <- c(gamma1, nu1)
         Risk1Score <- X %*% para1
         subcdata <- data.frame(survtime, cmprsk, exp(Risk1Score))
         colnames(subcdata) <- c("time", "status", "Risk1Score")
@@ -184,6 +180,7 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
         
         Risk1Cindex <- CindexCR(subcdata$time, subcdata$status, 
                                 subcdata$Risk1Score, Cause_int = 1)
+      
         
         Concordance.cv[[t]] <- Risk1Cindex
         writeLines(paste0("The ", t, " th validation is done!"))
@@ -195,7 +192,7 @@ ConcordanceJMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
   }
   result <- list(n.cv = n.cv, Concordance.cv = Concordance.cv, PI.cv = PI.cv,
                  CompetingRisk = CompetingRisk, seed = seed)
-  class(result) <- "ConcordanceJMMLSM"
+  class(result) <- "Concordancejmcs"
   
   return(result)
   

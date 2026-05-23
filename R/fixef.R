@@ -1,7 +1,7 @@
 ##' @title Estimated coefficients estimates for joint models
 ##' @name fixef
 ##' @description Extracts the fixed effects for a fitted joint model.
-##' @param object an object inheriting from class \code{jmcs} or \code{mvjmcs}.
+##' @param object an object inheriting from class \code{jmcs}, \code{JMMLSM}, or \code{mvjmcs}.
 ##' @param process for which sub-model to extract the estimated coefficients.
 ##' @param ... further arguments passed to or from other methods.
 ##' @return A numeric vector or a list of the estimated parameters for the fitted model.
@@ -23,11 +23,21 @@
 ##' 
 
 fixef <- function(object, process = c("Longitudinal", "Event"), ...) {
-  if (!inherits(object, "jmcs") && !inherits(object, "mvjmcs"))
-    stop("Use only with 'mvjmcs' or jmcs' objects.\n")
+  if (!inherits(object, "jmcs") && 
+      !inherits(object, "mvjmcs") && 
+      !inherits(object, "JMMLSM"))
+    stop("Use only with 'jmcs', 'JMMLSM', or 'mvjmcs' objects.\n")
   
   if (process == "Longitudinal") {
-    vars <- object$beta
+    # If model contains tau, extract it
+    if (!is.null(object$tau)){
+      vars <- vector("list", 2)
+      vars[[1]] <- object$beta
+      vars[[2]] <- object$tau      
+    }
+    else{
+      vars <- object$beta
+    }
   } else if (process == "Event") {
     if (!is.null(object$gamma2)) {
       vars <- vector("list", 2)
@@ -43,5 +53,5 @@ fixef <- function(object, process = c("Longitudinal", "Event"), ...) {
     stop("Please choose one the following arguments: Longitudinal, Event.")
   }
   vars
-
+  
 }

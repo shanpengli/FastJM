@@ -1,11 +1,11 @@
 ##' @title Random effects estimates for joint models
 ##' @name ranef
 ##' @description Extracts the posterior mean of the random effects for a fitted joint model.
-##' @param object an object inheriting from class \code{jmcs} or \code{mvjmcs}.
+##' @param object an object inheriting from class \code{jmcs}, \code{JMMLSM}, or \code{mvjmcs}.
 ##' @param ... further arguments passed to or from other methods.
 ##' @return a matrix of random effects estimates.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}}
+##' @seealso \code{\link{jmcs}}, \code{\link{JMMLSM}}, \code{\link{mvjmcs}}
 ##' @examples 
 ##' \donttest{
 ##' # a joint model fit
@@ -21,8 +21,10 @@
 ##' 
 
 ranef <- function(object, ...) {
-  if (!inherits(object, "jmcs") && !inherits(object, "mvjmcs"))
-    stop("Use only with 'mvjmcs' or jmcs' objects.\n")
+  if (!inherits(object, "jmcs") && 
+      !inherits(object, "mvjmcs") &&
+      !inherits(object, "JMMLSM"))
+    stop("Use only with 'jmcs', 'JMMLSM', or 'mvjmcs' objects.\n")
   
   if(inherits(object, "jmcs")){
     rand <- all.vars(object$random)
@@ -32,7 +34,7 @@ ranef <- function(object, ...) {
     } else {
       colnames(dat) <- c("(Intercept)", rand[-length(rand)]) 
     }
-  }else{
+  }else if(inherits(object, "mvjmcs")) {
     rand <- c()
     ind <- 1
     tempName <- c()
@@ -52,6 +54,22 @@ ranef <- function(object, ...) {
                              nrow = length(object$pos.mode), byrow = TRUE))
     colnames(dat) <- tempName
   
+  } else {
+    
+    rand <- all.vars(object$random)
+    # b_i as df
+    datFUNB <- data.frame(t(object$EFuntheta$FUNB)) 
+    
+    if (length(rand) == 1) {
+      colnames(datFUNB) <- c("(Intercept)")
+    } else {
+      colnames(datFUNB) <- c("(Intercept)", rand[-length(rand)]) 
+    }
+    
+    # omega_i
+    datFUNW <- data.frame("omega" = object$EFuntheta$FUNW)
+    dat <- cbind(datFUNB, datFUNW)
+    
   }
 
   return(dat)

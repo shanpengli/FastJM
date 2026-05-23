@@ -43,24 +43,50 @@ fit <- jmcs(ydata = ydata, cdata = cdata,
 fit
 ```
 
+The fitted `jmcs` object also provides a standard diagnostic plotting method through `plot()`. This function displays four panels: subject-specific residuals for the longitudinal process versus their corresponding fitted values; a normal Q-Q plot of the residuals of the standardized subject-specific residuals for the longitudinal process, an estimate of the marginal survival function for the event process, and an estimate of the marginal cumulative risk function for the event process. These plots provide a quick graphical summary of the longitudinal residual behavior and the estimated event-time process from the fitted joint model.
+
+```{r}
+plot(fit)
+```
+We can further examine the fitted joint model using diagnostic plots. The `timeplot()` function displays the longitudinal biomarker trajectories, the empirical log residual variance over follow-up time, and the event process. For competing-risk models, the event plot is shown as cumulative incidence curves for the specified event types.
+
+The log residual variance plot is intended as an exploratory diagnostic. Apparent changes over time may reflect departures from constant residual variance, but they may also be affected by finite-sample variability, model fit, or changing subject composition over follow-up.
+```{r}
+crplot <- timeplot(
+  object = fit,
+  biomarker = response,
+  id_col = ID,
+  time_col = time,
+  time_bin_width = 0.5,
+  fail_code = 1,
+  cr_code = 2,
+  censor_code = 0,
+  primary_event_label = "Event type 1",
+  competing_event_label = "Event type 2",
+  x_lab = "Visit time",
+  event_x_lab = "Survival time",
+  n.obs = 200
+)
+```
+
 The `FastJM` package can make dynamic prediction given the longitudinal history information. Below is a toy example for competing risks data. Conditional cumulative incidence probabilities for each failure will be presented.
 
 ```{r}
 ND <- ydata[ydata$ID %in% c(419, 218), ]
 ID <- unique(ND$ID)
 NDc <- cdata[cdata$ID  %in% ID, ]
-survfit <- survfitjmcs(fit, 
-                       ynewdata = ND, 
-                       cnewdata = NDc, 
-                       u = seq(3, 4.8, by = 0.2), 
-                       method = "GH",
-                       obs.time = "time")
+survfit <- survfitJM(fit, 
+                     ynewdata = ND, 
+                     cnewdata = NDc, 
+                     u = seq(3, 4.8, by = 0.2), 
+                     method = "GH",
+                     obs.time = "time")
 survfit
 ```
 
-To assess the prediction accuracy of the fitted joint model, we may run `DynPredAccjmcs` to assess the prediction accuracy by calculating all available evaluation metrics. 
+To assess the prediction accuracy of the fitted joint model, we may run `DynPredAcc` to assess the prediction accuracy by calculating all available evaluation metrics. 
 ```{r}
-res <- DynPredAccjmcs(
+res <- DynPredAcc(
   object = fit,
   landmark.time = 3,
   horizon.time = c(3.6, 4, 4.4),
@@ -68,12 +94,11 @@ res <- DynPredAccjmcs(
   method = "GH",
   maxiter = 1000,
   n.cv = 3,
-  survinitial = TRUE,
   quantile.width = 0.25,
-  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+  metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
 )
 
-summary(res, metric = "Brier")
+summary(res, metric = "Brier Score")
 summary(res, metric = "MAE")
 summary(res, metric = "MAEQ")
 summary(res, metric = "AUC")
@@ -82,7 +107,7 @@ summary(res, metric = "Cindex")
 
 Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
 ```{r}
-Concord <- Concordancejmcs(seed = 100, fit, n.cv = 3)
+Concord <- Concordance.jmcs(seed = 100, fit, n.cv = 3)
 summary(Concord)
 ```
 
@@ -134,11 +159,31 @@ subydata <- mvydata %>%
   dplyr::filter(ID %in% sampleID)
 
 ### Set up a landmark time of 4.75 and make predictions at time u
-survmvfit <- survfitmvjmcs(mvfit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
-                         u = c(7, 8, 9), Last.time = 4.75, obs.time = "time")
+survmvfit <- survfitJM(mvfit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+                       u = c(7, 8, 9), Last.time = 4.75, obs.time = "time")
 
 survmvfit
 
+```
+
+To assess the prediction accuracy of the fitted joint model, we may run `DynPredAcc` to assess the prediction accuracy by calculating all available evaluation metrics. 
+```{r}
+res <- DynPredAcc(
+  object = mvfit,
+  landmark.time = 3,
+  horizon.time = c(3.6, 4, 4.4),
+  obs.time = "time",
+  maxiter = 1000,
+  n.cv = 3,
+  quantile.width = 0.25,
+  metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
+)
+
+summary(res, metric = "Brier Score")
+summary(res, metric = "MAE")
+summary(res, metric = "MAEQ")
+summary(res, metric = "AUC")
+summary(res, metric = "Cindex")
 ```
 
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
@@ -161,18 +206,18 @@ fit
 ```{r}
 cnewdata <- cdatah[cdatah$ID %in% c(122, 152), ]
 ynewdata <- ydatah[ydatah$ID %in% c(122, 152), ]
-survfit <- survfitJMMLSM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
-                         u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
-                         obs.time = "time", method = "GH")
+survfit <- survfitJM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
+                     u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
+                     obs.time = "time", method = "GH")
 survfit
 oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, include.y = TRUE)
 par(oldpar)
 ```
 
-To assess the prediction accuracy of the fitted joint model, we may run `DynPredAccJMMLSM` to assess the prediction accuracy by calculating all available evaluation metrics. 
+To assess the prediction accuracy of the fitted joint model, we may run `DynPredAcc` to assess the prediction accuracy by calculating all available evaluation metrics. 
 ```{r}
-res <- DynPredAccJMMLSM(
+res <- DynPredAcc(
   object = fit,
   landmark.time = 3, horizon.time = c(4:6),
   obs.time = "time",
@@ -180,10 +225,10 @@ res <- DynPredAccJMMLSM(
   maxiter = 1000,
   n.cv = 3,
   quantile.width = 0.25,
-  metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+  metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
 )
 
-summary(res, metric = "Brier")
+summary(res, metric = "Brier Score")
 summary(res, metric = "MAE")
 summary(res, metric = "MAEQ")
 summary(res, metric = "AUC")
@@ -192,7 +237,7 @@ summary(res, metric = "Cindex")
 
 Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
 ```{r}
-Concord <- ConcordanceJMMLSM(seed = 100, fit, n.cv = 3)
+Concord <- Concordance.JMMLSM(seed = 100, fit, n.cv = 3)
 summary(Concord)
 ```
 ### Simulate Data (Optional)

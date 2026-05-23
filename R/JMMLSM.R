@@ -610,6 +610,12 @@ JMMLSM <- function(cdata, ydata,
       FUNB <- as.matrix(GetEfun$FUNB)
       FUNW <- as.vector(GetEfun$FUNW)
       
+      EFuntheta <- list(FUNENW = FUNENW, FUNBENW = FUNBENW, FUNBS = FUNBS,
+                        FUNBW = FUNBW, FUNWS = FUNWS, FUNBSENW = FUNBSENW,
+                        FUNEC = FUNEC, FUNBEC = FUNBEC, FUNBSEC = FUNBSEC,
+                        FUNWEC = FUNWEC, FUNWSEC = FUNWSEC, FUNB = FUNB,
+                        FUNW = FUNW)
+      
       getcov <- getCovSF_JMH(beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y,
                          X2, survtime, cmprsk, mdata, mdataS,
                          FUNENW, FUNBENW, FUNBS, FUNBW, FUNWS, FUNBSENW, FUNEC, FUNBEC,
@@ -649,13 +655,13 @@ JMMLSM <- function(cdata, ydata,
       mycall <- match.call()
       
       result <- list(beta, tau, gamma1, alpha1, vee1, H01, Sig, iter, convergence, 
-                     vcov, sebeta, setau, segamma1, sealpha1, sevee1, seSig, getloglike,
+                     vcov, sebeta, setau, segamma1, sealpha1, sevee1, seSig, getloglike, EFuntheta,
                      CompetingRisk, quadpoint, rawydata, rawcdata, PropComp, 
                      FunCall_long, FunCall_longVar, FunCall_survival, random, mycall, method, tol)
       
       names(result) <- c("beta", "tau", "gamma1", "alpha1", "vee1", "H01", "Sig", 
                          "iter", "convergence", "vcov", "sebeta", "setau", "segamma1", 
-                         "sealpha1", "sevee1", "seSig", "loglike", "CompetingRisk", "quadpoint",
+                         "sealpha1", "sevee1", "seSig", "loglike", "EFuntheta", "CompetingRisk", "quadpoint",
                          "ydata", "cdata", "PropEventType", "LongitudinalSubmodelmean",
                          "LongitudinalSubmodelvariance", "SurvivalSubmodel", "random",
                          "call", "method", "tol")

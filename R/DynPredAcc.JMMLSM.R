@@ -1,122 +1,13 @@
-##' @title Dynamic prediction accuracy metrics for JMMLSM models
-##' @name DynPredAccJMMLSM
-##' @aliases DynPredAccJMMLSM
-##' @description
-##' Computes dynamic prediction accuracy measures for fitted joint models of class
-##' \code{JMMLSM} using grouped cross-validation.
-##'
-##' At each cross-validation fold, the function refits the joint model on the
-##' training set, obtains subject-specific dynamic predictions on the validation
-##' set at the requested horizon times, and evaluates the requested prediction
-##' accuracy metrics.
-##'
-##' Supported metrics include:
-##' \describe{
-##'   \item{\code{"AUC"}}{time-dependent area under the ROC curve.}
-##'   \item{\code{"Cindex"}}{concordance index for dynamic predictions.}
-##'   \item{\code{"Brier"}}{inverse-probability-of-censoring weighted Brier score.}
-##'   \item{\code{"MAE"}}{inverse-probability-of-censoring weighted mean absolute error.}
-##'   \item{\code{"MAEQ"}}{quantile-based calibration summaries comparing empirical
-##'   and predicted risks or survival probabilities.}
-##' }
-##'
-##' For competing-risks models, event-specific cumulative incidence predictions
-##' are evaluated. For single-event models, conditional survival probabilities
-##' are evaluated.
-##'
-##' @param seed A numeric value used to set the random seed for cross-validation.
-##'   Default is \code{100}.
-##' @param object A fitted object of class \code{JMMLSM}.
-##' @param landmark.time A numeric value specifying the landmark time at which
-##'   dynamic prediction begins.
-##' @param horizon.time A numeric vector of future times at which predicted
-##'   probabilities are to be evaluated.
-##' @param obs.time A character string specifying the longitudinal time variable
-##'   in \code{object$ydata}.
-##' @param method A character string specifying the approximation method used in
-##'   dynamic prediction. Must be one of \code{"Laplace"} or \code{"GH"}.
-##' @param quadpoint The number of quadrature points used when
-##'   \code{method = "GH"}. If \code{NULL}, the value stored in \code{object} is
-##'   used.
-##' @param maxiter The maximum number of iterations allowed when refitting the
-##'   model within each cross-validation fold. Default is \code{1000}.
-##' @param n.cv The number of cross-validation folds. Default is \code{3}.
-##' @param quantile.width A numeric value specifying the width of the quantile
-##'   groups used for \code{"MAEQ"} summaries. Default is \code{0.25}. The
-##'   reciprocal of \code{quantile.width} must be an integer.
-##' @param opt A character string specifying the optimizer used when refitting
-##'   the model in each fold. Default is \code{"nlminb"}.
-##' @param initial.para Logical; if \code{TRUE}, parameter estimates from
-##'   \code{object} are used as initial values in cross-validation refits.
-##'   Default is \code{FALSE}.
-##' @param LOCF Logical; if \code{TRUE}, the
-##'   last-observation-carried-forward approach is applied for time-dependent
-##'   survival covariates during prediction. Default is \code{FALSE}.
-##' @param LOCFcovariate A character vector specifying the time-dependent
-##'   survival covariates to be updated by last observation carried forward when
-##'   \code{LOCF = TRUE}. Default is \code{NULL}.
-##' @param clongdata A long-format data frame containing the time-dependent
-##'   survival covariates used when \code{LOCF = TRUE}. Default is \code{NULL}.
-##' @param metrics A character vector specifying which prediction accuracy
-##'   metrics to compute. Supported choices are \code{"AUC"},
-##'   \code{"Cindex"}, \code{"Brier"}, \code{"MAE"}, and \code{"MAEQ"}.
-##'   Default is \code{c("AUC", "Cindex", "Brier", "MAE", "MAEQ")}.
-##' @param ... Further arguments passed to or from other methods.
-##'
-##' @return
-##' An object of class \code{DynPredAccJMMLSM}, returned as a list containing:
-##' \describe{
-##'   \item{\code{n.cv}}{The number of cross-validation folds.}
-##'   \item{\code{landmark.time}}{The landmark time used for dynamic prediction.}
-##'   \item{\code{horizon.time}}{The vector of horizon times used for evaluation.}
-##'   \item{\code{method}}{The dynamic prediction approximation method used.}
-##'   \item{\code{quadpoint}}{The number of quadrature points used, if applicable.}
-##'   \item{\code{CompetingRisk}}{Logical; indicates whether the fitted model
-##'   accounts for competing risks.}
-##'   \item{\code{seed}}{The random seed used for cross-validation.}
-##'   \item{\code{metrics}}{The requested evaluation metrics.}
-##'   \item{\code{quantile.width}}{The width of quantile groups used for
-##'   quantile-based calibration summaries.}
-##'   \item{\code{AUC.cv}}{A list of fold-specific time-dependent AUC estimates,
-##'   returned when \code{"AUC"} is requested. For competing-risks models, each
-##'   fold contains a matrix with one column per event type.}
-##'   \item{\code{Cindex.cv}}{A list of fold-specific concordance index estimates,
-##'   returned when \code{"Cindex"} is requested. For competing-risks models, each
-##'   fold contains a matrix with one column per event type.}
-##'   \item{\code{Brier.cv}}{A list of fold-specific inverse-probability-of-
-##'   censoring weighted Brier scores, returned when \code{"Brier"} is requested.
-##'   For competing-risks models, each fold contains a matrix with one column per
-##'   event type.}
-##'   \item{\code{MAE.cv}}{A list of fold-specific inverse-probability-of-
-##'   censoring weighted mean absolute errors, returned when \code{"MAE"} is
-##'   requested. For competing-risks models, each fold contains a matrix with one
-##'   column per event type.}
-##'   \item{\code{MAEQ.cv}}{A list of fold-specific quantile-based calibration
-##'   summaries, returned when \code{"MAEQ"} is requested.}
-##' }
-##'
-##' @details
-##' The function performs grouped cross-validation at the subject level. Within
-##' each fold, the model is refit on the training data, and dynamic predictions
-##' are computed for the validation subjects who remain under observation beyond
-##' the landmark time and who have longitudinal observations observed up to that
-##' time. For single-event models, prediction accuracy is based on conditional
-##' survival probabilities. For competing-risks models, prediction accuracy is
-##' based on event-specific cumulative incidence functions.
-##' 
-##' @seealso \code{\link{JMMLSM}}, \code{\link{survfitJMMLSM}}
-##'
-##' @export
-DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
+DynPredAcc.JMMLSM <- function(seed = 100, object, landmark.time = NULL,
                              horizon.time = NULL, obs.time = NULL,
                              method = c("Laplace", "GH"),
                              quadpoint = NULL, maxiter = 1000,
                              n.cv = 3,
                              quantile.width = 0.25,
-                             opt = "nlminb", initial.para = FALSE,
+                             opt = c("nlminb", "optim"),
                              LOCF = FALSE, LOCFcovariate = NULL,
                              clongdata = NULL,
-                             metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ"),
+                             metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ"),
                              ...) {
   
   if (!inherits(object, "JMMLSM"))
@@ -142,7 +33,7 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
     quadpoint <- object$quadpoint
   }
   
-  allowed.metrics <- c("AUC", "Cindex", "Brier", "MAE", "MAEQ")
+  allowed.metrics <- c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
   if (length(metrics) < 1 || any(!metrics %in% allowed.metrics)) {
     stop("Please choose metrics from: 'AUC', 'Cindex', 'Brier', 'MAE', 'MAEQ'.")
   }
@@ -179,27 +70,13 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
     paste(New.surv.formula.out, 1, sep = "~")
   )
   
-  if (initial.para) {
-    initial.para <- list(
-      beta = object$beta,
-      tau = object$tau,
-      gamma1 = object$gamma1,
-      gamma2 = object$gamma2,
-      alpha1 = object$alpha1,
-      alpha2 = object$alpha2,
-      vee1 = object$vee1,
-      vee2 = object$vee2,
-      Sig = object$Sig
-    )
-  } else {
-    initial.para <- NULL
-  }
-  
   AUC.cv <- if ("AUC" %in% metrics) list() else NULL
   Cindex.cv <- if ("Cindex" %in% metrics) list() else NULL
-  Brier.cv <- if ("Brier" %in% metrics) list() else NULL
+  Brier.cv <- if ("Brier Score" %in% metrics) list() else NULL
   MAE.cv <- if ("MAE" %in% metrics) list() else NULL
   MAEQ.cv <- if ("MAEQ" %in% metrics) list() else NULL
+  
+  failed.folds <- list()
   
   folds <- caret::groupKFold(c(1:nrow(cdata)), k = n.cv)
   
@@ -220,7 +97,6 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
           maxiter = maxiter,
           tol = object$tol,
           quadpoint = quadpoint,
-          initial.para = initial.para,
           method = object$method,
           opt = opt
         )
@@ -229,7 +105,9 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
     )
     
     if ("try-error" %in% class(fit)) {
-      writeLines(paste0("Error occurred in the ", t, " th training!"))
+      msg <- paste0("Error occurred in the ", t, " th training!")
+      writeLines(msg)
+      failed.folds[[as.character(t)]] <- msg
       
       if (!is.null(AUC.cv)) AUC.cv[[t]] <- NULL
       if (!is.null(Cindex.cv)) Cindex.cv[[t]] <- NULL
@@ -241,7 +119,9 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
     }
     
     if (fit$iter == maxiter) {
-      writeLines(paste0("The ", t, " th training reached maxiter and was skipped."))
+      msg <- paste0("The ", t, " th training reached maxiter and was skipped.")
+      writeLines(msg)
+      failed.folds[[as.character(t)]] <- msg
       
       if (!is.null(AUC.cv)) AUC.cv[[t]] <- NULL
       if (!is.null(Cindex.cv)) Cindex.cv[[t]] <- NULL
@@ -255,7 +135,7 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
     val.cdata <- cdata[-folds[[t]], ]
     val.ydata <- ydata[ydata[, ID] %in% val.cdata[, ID], ]
     
-    if ("Brier" %in% metrics || "MAE" %in% metrics) {
+    if ("Brier Score" %in% metrics || "MAE" %in% metrics) {
       fitKM <- survival::survfit(New.surv.formula, data = val.cdata)
       Gs <- summary(fitKM, times = landmark.time)$surv
     }
@@ -291,7 +171,9 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
     )
     
     if ("try-error" %in% class(survfit)) {
-      writeLines(paste0("Error occurred in the ", t, " th validation!"))
+      msg <- paste0("Error occurred in the ", t, " th validation!")
+      writeLines(msg)
+      failed.folds[[as.character(t)]] <- msg
       
       if (!is.null(AUC.cv)) AUC.cv[[t]] <- NULL
       if (!is.null(Cindex.cv)) Cindex.cv[[t]] <- NULL
@@ -320,7 +202,7 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
                dimnames = list(horizon.time, c("event1", "event2")))
       } else NULL
       
-      mean.Brier <- if ("Brier" %in% metrics) {
+      mean.Brier <- if ("Brier Score" %in% metrics) {
         matrix(NA, nrow = length(horizon.time), ncol = 2,
                dimnames = list(horizon.time, c("event1", "event2")))
       } else NULL
@@ -377,13 +259,13 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
           mean.Cindex[j, 2] <- CindexCR(CIF$time, CIF$status, CIF$CIF2, 2)
         }
         
-        if ("Brier" %in% metrics || "MAE" %in% metrics) {
+        if ("Brier Score" %in% metrics || "MAE" %in% metrics) {
           
           fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
           
           if ("try-error" %in% class(fitKM.horizon)) {
             
-            if ("Brier" %in% metrics) {
+            if ("Brier Score" %in% metrics) {
               mean.Brier[j, 1] <- NA
               mean.Brier[j, 2] <- NA
             }
@@ -433,7 +315,7 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
             
             RAWData.Brier <- data.frame(CIF, N1, N2, W.IPCW)
             
-            if ("Brier" %in% metrics) {
+            if ("Brier Score" %in% metrics) {
               RAWData.Brier$Brier1 <- RAWData.Brier$W.IPCW *
                 abs(RAWData.Brier$CIF1 - RAWData.Brier$N1)^2
               RAWData.Brier$Brier2 <- RAWData.Brier$W.IPCW *
@@ -587,7 +469,7 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
                dimnames = list(horizon.time, "event"))
       } else NULL
       
-      mean.Brier <- if ("Brier" %in% metrics) {
+      mean.Brier <- if ("Brier Score" %in% metrics) {
         matrix(NA, nrow = length(horizon.time), ncol = 1,
                dimnames = list(horizon.time, "event"))
       } else NULL
@@ -630,13 +512,13 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
           )
         }
         
-        if ("Brier" %in% metrics || "MAE" %in% metrics) {
+        if ("Brier Score" %in% metrics || "MAE" %in% metrics) {
           
           fitKM.horizon <- try(summary(fitKM, times = horizon.time[j]), silent = TRUE)
           
           if ("try-error" %in% class(fitKM.horizon)) {
             
-            if ("Brier" %in% metrics) mean.Brier[j, 1] <- NA
+            if ("Brier Score" %in% metrics) mean.Brier[j, 1] <- NA
             if ("MAE" %in% metrics) mean.MAE[j, 1] <- NA
             
           } else {
@@ -670,7 +552,7 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
             
             RAWData.Brier <- data.frame(Surv, N1, W.IPCW)
             
-            if ("Brier" %in% metrics) {
+            if ("Brier Score" %in% metrics) {
               RAWData.Brier$Brier <- RAWData.Brier$W.IPCW *
                 abs(1 - RAWData.Brier$Surv - RAWData.Brier$N1)^2
               
@@ -751,6 +633,7 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
   }
   
   result <- list(
+    jm.class = "JMMLSM",
     n.cv = n.cv,
     landmark.time = landmark.time,
     horizon.time = horizon.time,
@@ -764,9 +647,10 @@ DynPredAccJMMLSM <- function(seed = 100, object, landmark.time = NULL,
     Cindex.cv = Cindex.cv,
     Brier.cv = Brier.cv,
     MAE.cv = MAE.cv,
-    MAEQ.cv = MAEQ.cv
+    MAEQ.cv = MAEQ.cv,
+    failed.folds = failed.folds
   )
   
-  class(result) <- "DynPredAccJMMLSM"
+  class(result) <- "DynPredAcc"
   return(result)
 }

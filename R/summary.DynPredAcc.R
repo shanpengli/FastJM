@@ -1,23 +1,23 @@
 ##' @title Summaries of evaluation metrics for joint models
 ##' @name summary
-##' @aliases summary.DynPredAccJMMLSM
-##' @param object object of class 'DynPredAccJMMLSM'.
+##' @aliases summary.DynPredAcc
+##' @param object object of class 'DynPredAcc'.
 ##' @param metric a list to indicate what metric to summarize
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a summary of the list of matrices with conditional probabilities for subjects.
-##' @seealso \code{\link{JMMLSM}, \link{survfitJMMLSM}}
 ##' @export
 ##' 
-summary.DynPredAccJMMLSM <- function(object,
-                                   metric = c("AUC", "Cindex", "Brier", "MAE", "MAEQ"),
-                                   digits = 4, ...) {
-  if (!inherits(object, "DynPredAccJMMLSM"))
-    stop("Use only with 'DynPredAccJMMLSM' xs.\n")
+summary.DynPredAcc <- function(object,
+                             metric = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ"),
+                             digits = 4, ...) {
+  
+  if (!inherits(object, "DynPredAcc"))
+    stop("Use only with 'DynPredAcc' xs.\n")
   
   metric <- match.arg(metric)
   
   if (!metric %in% object$metrics) {
-    stop(paste0("Metric '", metric, "' was not computed in this DynPredAccJMMLSM object."))
+    stop(paste0("Metric '", metric, "' was not computed in this DynPredAcc object."))
   }
   
   ## helper to check fold success
@@ -82,7 +82,7 @@ summary.DynPredAccJMMLSM <- function(object,
     return(ExpectedCindex)
   }
   
-  if (metric == "Brier") {
+  if (metric == "Brier Score") {
     if (!.check_cv(object$Brier.cv, object$n.cv)) {
       stop("The cross validation fails. Please try using a different seed number.")
     }

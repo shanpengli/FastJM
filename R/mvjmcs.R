@@ -28,50 +28,69 @@
 ##'   \item{\code{cpu.cores}}{Number of CPU cores used for parallel computation.
 ##'   The default is \code{NULL}.}
 ##' }
-##' @return  Object of class \code{mvjmcs} with elements
-##' \item{beta}{the vector of all biomarker-specific fixed effects for the linear mixed effects sub-models.} 
-##' \item{betaList}{the list of biomarker-specific fixed effects for the linear mixed effects sub-model.} 
-##' \item{gamma1}{the vector of fixed effects for type 1 failure for the survival model.}
-##' \item{gamma2}{the vector of fixed effects for type 2 failure for the survival model. 
-##' Valid only if \code{CompetingRisk = TRUE}.}
-##' \item{alpha1}{the vector of association parameter(s) for type 1 failure.}
-##' \item{alpha2}{the vector of association parameter(s) for type 2 failure. Valid only if \code{CompetingRisk = TRUE}.}
-##' \item{H01}{the matrix that collects baseline hazards evaluated at each uncensored event time for type 1 failure. 
-##' The first column denotes uncensored event times, the second column the number of events, and the third columns 
-##' the hazards obtained by Breslow estimator.}
-##' \item{H02}{the matrix that collects baseline hazards evaluated at each uncensored event time for type 2 failure. 
-##' The data structure is the same as \code{H01}. Valid only if \code{CompetingRisk = TRUE}.}
-##' \item{Sig}{the variance-covariance matrix of the random effects.}
-##' \item{sigma}{the vector of the variance of the biomarker-specific measurement error for the linear mixed effects sub-models.}
-##' \item{iter}{the total number of iterations until convergence.}
-##' \item{convergence}{convergence identifier: 1 corresponds to successful convergence, 
-##' whereas 0 to a problem (i.e., when 0, usually more iterations are required).}
-##' \item{vcov}{the variance-covariance matrix of all the fixed effects for both models.}
-##' \item{FisherInfo}{the Empirical Fisher information matrix.}
-##' \item{Score}{a matrix of the score function for all subjects.}
-##' \item{sebeta}{the standard error of \code{beta}.}
-##' \item{segamma1}{the standard error of \code{gamma1}.}
-##' \item{segamma2}{the standard error of \code{gamma2}. 
-##' Valid only if \code{CompetingRisk = TRUE}.}
-##' \item{sealpha1}{the standard error of \code{nu1}.}
-##' \item{sealpha2}{the standard error of \code{nu2}. Valid only if \code{CompetingRisk = TRUE}.}
-##' \item{seSig}{the vector of standard errors of covariance of random effects.}
-##' \item{sesigma}{the standard error of variance of biomarker-specific measurement error for the linear mixed effects sub-models.}
-##' \item{pos.mode}{the posterior mode of the conditional distribution of random effects.}
-##' \item{pos.cov}{the posterior covariance of the conditional distribution of random effects.}
-##' \item{CompetingRisk}{logical value; TRUE if a competing event are accounted for.}
-##' \item{ydata}{the input longitudinal dataset for fitting a joint model.
-##' It has been re-ordered in accordance with descending observation times in \code{cdata}.}
-##' \item{cdata}{the input survival dataset for fitting a joint model.
-##' It has been re-ordered in accordance with descending observation times.}
-##' \item{PropEventType}{a frequency table of number of events.}
-##' \item{LongitudinalSubmodel}{the component of the \code{long.formula}.}
-##' \item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
-##' \item{random}{the component of the \code{random}.}
-##' \item{call}{the matched call.}
-##' \item{id}{the grouping vector for the longitudinal outcome.}
-##' \item{opt}{the numerical optimizer for obtaining the initial guess of the parameters in the linear mixed effects sub-models.}
-##' \item{runtime}{the total computation time.}
+##' @return
+##' An object of class \code{mvjmcs}, returned as a list containing:
+##' \describe{
+##'   \item{\code{beta}}{The vector of all biomarker-specific fixed effects for
+##'   the linear mixed-effects submodels.}
+##'   \item{\code{betaList}}{The list of biomarker-specific fixed effects for
+##'   the linear mixed-effects submodels.}
+##'   \item{\code{gamma1}}{The vector of fixed effects for type 1 failure in the
+##'   survival submodel.}
+##'   \item{\code{gamma2}}{The vector of fixed effects for type 2 failure in the
+##'   survival submodel. Valid only if \code{CompetingRisk = TRUE}.}
+##'   \item{\code{alpha1}}{The vector of association parameters for type 1
+##'   failure.}
+##'   \item{\code{alpha2}}{The vector of association parameters for type 2
+##'   failure. Valid only if \code{CompetingRisk = TRUE}.}
+##'   \item{\code{H01}}{The matrix of baseline hazards evaluated at uncensored
+##'   event times for type 1 failure.}
+##'   \item{\code{H02}}{The matrix of baseline hazards evaluated at uncensored
+##'   event times for type 2 failure. Valid only if
+##'   \code{CompetingRisk = TRUE}.}
+##'   \item{\code{Sig}}{The variance-covariance matrix of the random effects.}
+##'   \item{\code{sigma}}{The vector of biomarker-specific measurement-error
+##'   variances.}
+##'   \item{\code{iter}}{The total number of iterations until convergence.}
+##'   \item{\code{convergence}}{Convergence identifier: \code{1} indicates
+##'   successful convergence, whereas \code{0} indicates a convergence problem,
+##'   often requiring more iterations.}
+##'   \item{\code{vcov}}{The variance-covariance matrix of all fixed-effect
+##'   parameters.}
+##'   \item{\code{FisherInfo}}{The empirical Fisher information matrix.}
+##'   \item{\code{Score}}{A matrix of subject-specific score contributions.}
+##'   \item{\code{sebeta}}{The standard errors of \code{beta}.}
+##'   \item{\code{segamma1}}{The standard errors of \code{gamma1}.}
+##'   \item{\code{segamma2}}{The standard errors of \code{gamma2}. Valid only if
+##'   \code{CompetingRisk = TRUE}.}
+##'   \item{\code{sealpha1}}{The standard errors of \code{alpha1}.}
+##'   \item{\code{sealpha2}}{The standard errors of \code{alpha2}. Valid only if
+##'   \code{CompetingRisk = TRUE}.}
+##'   \item{\code{seSig}}{The vector of standard errors for covariance parameters
+##'   of the random effects.}
+##'   \item{\code{sesigma}}{The standard errors of biomarker-specific
+##'   measurement-error variances.}
+##'   \item{\code{pos.mode}}{The posterior mode of the conditional distribution
+##'   of random effects.}
+##'   \item{\code{pos.cov}}{The posterior covariance of the conditional
+##'   distribution of random effects.}
+##'   \item{\code{CompetingRisk}}{Logical value indicating whether competing
+##'   events are modeled.}
+##'   \item{\code{ydata}}{The input longitudinal dataset, reordered according to
+##'   descending observation times in \code{cdata}.}
+##'   \item{\code{cdata}}{The input survival dataset, reordered according to
+##'   descending observation times.}
+##'   \item{\code{PropEventType}}{A frequency table of event types.}
+##'   \item{\code{LongitudinalSubmodel}}{The longitudinal submodel specified by
+##'   \code{long.formula}.}
+##'   \item{\code{SurvivalSubmodel}}{The survival submodel specified by
+##'   \code{surv.formula}.}
+##'   \item{\code{random}}{The random-effects specification.}
+##'   \item{\code{control}}{The fitting-control options used.}
+##'   \item{\code{call}}{The matched function call.}
+##'   \item{\code{id}}{The grouping vector for the longitudinal outcomes.}
+##'   \item{\code{runtime}}{The total computation time.}
+##' }
 ##'
 ##' @examples
 ##' 
@@ -466,9 +485,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     }
     
     end_time <- Sys.time()
-    
-    writeLines("runtime is:")
-    print(runtime <- end_time - start_time)
+    runtime <- end_time - start_time
     
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
     call <- match.call()
@@ -487,7 +504,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     result <- list(beta = beta, betaList = output$betaList, gamma1 = gamma1, gamma2 = gamma2, 
                    alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
-                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
+                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, tol = tol,
                    vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
                    sealpha1 = sealpha1, sealpha2 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
@@ -693,7 +710,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     }
     
     end_time <- Sys.time()
-    print(runtime <- end_time - start_time)
+    runtime <- end_time - start_time
     
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
     call <- match.call()
@@ -712,7 +729,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, 
                    alpha1 = alpha1, H01 = H01, 
-                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
+                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, tol = tol,
                    vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1,
                    sealpha1 = sealpha1, seSig = seSig, sesigma = sesigma, 
                    pos.mode = pos.mode, pos.cov = pos.cov,

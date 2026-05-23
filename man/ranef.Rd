@@ -7,7 +7,7 @@
 ranef(object, ...)
 }
 \arguments{
-\item{object}{an object inheriting from class \code{jmcs} or \code{mvjmcs}.}
+\item{object}{an object inheriting from class \code{jmcs}, \code{JMMLSM}, or \code{mvjmcs}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -30,7 +30,7 @@ head(ranef(fit))
 }
 }
 \seealso{
-\code{\link{jmcs}}
+\code{\link{jmcs}}, \code{\link{JMMLSM}}, \code{\link{mvjmcs}}
 }
 \author{
 Shanpeng Li \email{lishanpeng0913@ucla.edu}

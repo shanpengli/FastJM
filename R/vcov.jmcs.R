@@ -18,57 +18,57 @@ vcov.jmcs <- function(object, ...) {
                      random = object$random, ydata = object$ydata, cdata = object$cdata)
 
   surv.formula <- getdum$surv.formula
-  random <- all.vars(object$random)
+  
   vcov <- as.data.frame(object$vcov)
-  long <- names(object$beta)
-  survival <- names(object$gamma1)
-  survival1 <- paste0("T.", survival)
-  long <- paste0("Y.", long)
+  
+  random <- all.vars(object$random)
   p1a <- length(object$nu1)
-  nu1 <- rep("T.asso:", p1a)
-  sig <- "Sig"
-  if (p1a == 1) {
-    sig <- paste0(sig, "11")
-    nu1 <- paste0(nu1, "(Intercept)_1")
-  } else {
-    sig <- rep(sig, p1a*(p1a+1)/2)
-    for (i in 1:p1a) sig[i] <- paste0(sig[i], i, i)
-    if (p1a == 2) {
-      sig[p1a+1] <- paste0(sig[p1a+1], "12")
-      nu1[1] <- paste0(nu1[1], "(Intercept)_1")
-      nu1[2] <- paste0(nu1[2], random[1], "_1")
-    }
-    if (p1a == 3) {
-      sig[p1a+1] <- paste0(sig[p1a+1], "12")
-      sig[p1a+2] <- paste0(sig[p1a+2], "23")
-      sig[p1a+3] <- paste0(sig[p1a+3], "13")
-      nu1[1] <- paste0(nu1[1], "(Intercept)_1")
-      nu1[2] <- paste0(nu1[2], random[1], "_1")
-      nu1[3] <- paste0(nu1[3], random[2], "_1")
-    }
-  }
+  
+  ## Longitudinal fixed effects
+  long <- paste0("Y.", names(object$beta))
+  
+  ## Survival fixed effects
+  survival1 <- paste0("T.", names(object$gamma1))
+  
+  ## Random-effect names used in association parameters
+  re.names <- c("(Intercept)", random[seq_len(p1a - 1)])
+  
+  ## Association parameter names for event type 1
+  nu1 <- paste0("T.asso:", re.names, "_1")
+  
+  ## Flexible covariance parameter names: Sig11, Sig22, Sig12, etc.
+  sig <- c(
+    paste0("Sig", seq_len(p1a), seq_len(p1a)),
+    unlist(lapply(seq_len(p1a - 1), function(i) {
+      paste0("Sig", i, (i + 1):p1a)
+    }))
+  )
   
   if (object$CompetingRisk) {
-    survival <- names(object$gamma2)
-    survival2 <- paste0("T.", survival)
-    nu2 <- rep("T.asso:", p1a)
-    if (p1a == 1) nu2 <- paste0(nu2, "(Intercept)_2")
-    if (p1a == 2) {
-      nu2[1] <- paste0(nu2[1], "(Intercept)_2")
-      nu2[2] <- paste0(nu2[2], random[1], "_2")
-    }
-    if (p1a == 3) {
-      nu2[1] <- paste0(nu2[1], "(Intercept)_2")
-      nu2[2] <- paste0(nu2[2], random[1], "_2")
-      nu2[3] <- paste0(nu2[3], random[2], "_2")
-    }
-
-    colnames(vcov) <- c(long, survival1, survival2, nu1, nu2, "Y.sigma^2", sig)
-    rownames(vcov) <- c(long, survival1, survival2, nu1, nu2, "Y.sigma^2", sig)
+    survival2 <- paste0("T.", names(object$gamma2))
+    nu2 <- paste0("T.asso:", re.names, "_2")
+    
+    par.names <- c(
+      long,
+      survival1,
+      survival2,
+      nu1,
+      nu2,
+      "Y.sigma^2",
+      sig
+    )
   } else {
-    colnames(vcov) <- c(long, survival1, nu1, "Y.sigma^2", sig)
-    rownames(vcov) <- c(long, survival1, nu1, "Y.sigma^2", sig)
+    par.names <- c(
+      long,
+      survival1,
+      nu1,
+      "Y.sigma^2",
+      sig
+    )
   }
+  
+  colnames(vcov) <- par.names
+  rownames(vcov) <- par.names
   
   vcov
 }
