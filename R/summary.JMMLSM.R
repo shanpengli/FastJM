@@ -11,7 +11,7 @@
 ##' @export
 ##' 
 
-summary.JMMLSM <- function(object, process = c("longitudinal", "survival"), digits = 4, ...) {
+summary.JMMLSM <- function(object, process = c("longitudinal", "Event"), digits = 4, ...) {
   
   if (!inherits(object, "JMMLSM"))
     stop("Use only with 'JMMLSM' objects.\n")
@@ -51,7 +51,7 @@ summary.JMMLSM <- function(object, process = c("longitudinal", "survival"), digi
     
     return(out3)
     
-  } else if (process == "survival") {
+  } else if (process == "Event") {
     ##gamma
     Estimate <- object$gamma1
     SE <- object$segamma1

@@ -25,14 +25,15 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     }
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and competing risks data", "\n\n")
     cat("Model summary:\n")
+    if (!is.null(x$runtime)) {
+      cat("Runtime:", format_runtime(x$runtime), "\n")
+    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard\n\n")
     
     cat("Fixed effects in the longitudinal sub-model: ",
         sprintf(format(paste(deparse(x$LongitudinalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
-    
-    
     
     # ~~~~~~~~~~~~~~~~~~~~~~~
     # print beta coefficients
@@ -180,6 +181,9 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     cat("Proportion of events:", round(x$PropEventType[2, 2]/nrow(x$cdata)*100, 2), "%\n")
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and survival data", "\n\n")
     cat("Model summary:\n")
+    if (!is.null(x$runtime)) {
+      cat("Runtime:", format_runtime(x$runtime), "\n")
+    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: Cox proportional hazard model with non-parametric baseline hazard\n\n")
     cat("Fixed effects in the longitudinal submodel: ",

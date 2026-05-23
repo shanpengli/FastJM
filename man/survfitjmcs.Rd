@@ -66,6 +66,13 @@ This function computes the conditional probability of
 surviving later times than the last observed time for which a longitudinal 
 measurement was available.
 }
+\details{
+This is a model-specific dynamic prediction function for objects fitted by
+\code{\link{jmcs}}. It is retained for backward compatibility and for users
+who prefer direct access to the single-marker prediction routine. For routine
+use, users are encouraged to call \code{\link{survfitJM}}, which dispatches
+automatically according to the class of the fitted model object.
+}
 \seealso{
 \code{\link{jmcs}}
 }

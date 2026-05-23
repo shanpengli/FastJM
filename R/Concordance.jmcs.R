@@ -1,13 +1,12 @@
 ##' @title Concordance for joint models
-##' @name Concordancejmcs
-##' @aliases Concordancejmcs
+##' @name Concordance
+##' @aliases Concordance.jmcs
 ##' @param seed a numeric value of seed to be specified for cross validation.
 ##' @param object object of class 'jmcs'.
 ##' @param opt Optimization method to fit a linear mixed effects model, either nlminb (default) or optim.
 ##' @param n.cv number of folds for cross validation. Default is 3.
 ##' @param maxiter the maximum number of iterations of the EM algorithm that the 
 ##' function will perform. Default is 10000.
-##' @param initial.optimizer Method for numerical optimization to be used. Default is \code{BFGS}.
 ##' @param initial.para Initial guess of parameters for cross validation. Default is FALSE.
 ##' @param ... Further arguments passed to or from other methods.
 ##' @return a list of matrices with conditional probabilities for subjects.
@@ -16,8 +15,8 @@
 ##' @export
 ##' 
 
-Concordancejmcs <- function(seed = 100, object, opt = "nlminb", n.cv = 3, maxiter = 10000,
-                              initial.optimizer = "BFGS", initial.para = TRUE, ...) {
+Concordance.jmcs <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
+                            initial.para = TRUE, ...) {
   
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' xs.\n")
@@ -59,12 +58,23 @@ Concordancejmcs <- function(seed = 100, object, opt = "nlminb", n.cv = 3, maxite
     train.cdata <- cdata[folds[[t]], ]
     train.ydata <- ydata[ydata[, ID] %in% train.cdata[, ID], ]
     
-    fit <- try(jmcs(cdata = train.cdata, ydata = train.ydata, 
-                      long.formula = long.formula,
-                      surv.formula = surv.formula,
-                      quadpoint = object$quadpoint, random = object$random, 
-                      maxiter = maxiter, opt = opt, 
-                      tol = object$tol, initial.para = initial.para), silent = TRUE)
+    fit <- try(
+      jmcs(
+        cdata = train.cdata,
+        ydata = train.ydata,
+        long.formula = long.formula,
+        surv.formula = surv.formula,
+        random = object$random,
+        control = jmcs_control(
+          quadpoint = object$quadpoint,
+          maxiter = maxiter,
+          tol = object$tol,
+          initial.para = initial.para,
+          opt = object$opt
+        )
+      ),
+      silent = TRUE
+    )
     
     if ('try-error' %in% class(fit)) {
       writeLines(paste0("Error occured in the ", t, " th training!"))
@@ -114,7 +124,7 @@ Concordancejmcs <- function(seed = 100, object, opt = "nlminb", n.cv = 3, maxite
         mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
         
         Posttheta <- GetBayes(beta, sigma, gamma1, gamma2, nu1, nu2, H01, H02, 
-                              Sig, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, initial.optimizer)
+                              Sig, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, "BFGS")
         
         X <- cbind(X2, Posttheta)
         para1 <- c(gamma1, nu1)
@@ -159,7 +169,7 @@ Concordancejmcs <- function(seed = 100, object, opt = "nlminb", n.cv = 3, maxite
         mdataS[2:n] <- mdataCum[2:n] - mdata2[2:n]
         
         Posttheta <- GetBayesSF(beta, sigma, gamma1, nu1, H01, 
-                              Sig, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, initial.optimizer)
+                              Sig, Z, X1, Y, X2, survtime, cmprsk, mdata, mdataS, "BFGS")
         
         X <- cbind(X2, Posttheta)
         para1 <- c(gamma1, nu1)
