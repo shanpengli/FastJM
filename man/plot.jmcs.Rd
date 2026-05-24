@@ -26,9 +26,7 @@ fit <- jmcs(ydata = ydata, cdata = cdata,
             surv.formula = Surv(surv, failure_type) ~ x1 + gender + x2 + race, 
             random =  ~ time| ID)
 
-oldpar <- par(mfrow = c(2, 2))
 plot(fit)
-par(oldpar)
 }
 
 }
