@@ -14,4 +14,5 @@
 #' @importFrom utils combn head read.table
 #' @importFrom caret groupKFold
 #' @importFrom rlang .data
+#' @importFrom tidycmprsk cuminc
 NULL
