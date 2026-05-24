@@ -158,7 +158,7 @@ simJMWSVdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 
         sd <- sqrt(exp(tau[1] + tau[2]*Z[i, 1] + tau[3]*Z[i, 2] + tau[4]*Z[i, 3] + tau[5]*j*increment + bwi[i, 3]))
         suby[j+1, 2] <- beta[1] + beta[2]*Z[i, 1] + beta[3]*Z[i, 2] + beta[4]*Z[i, 3] + beta[5]*j*increment + 
           bwi[i, 1] + bwi[i, 2]*j + rnorm(1, mean = 0, sd = sd) 
-        suby[j+1, 3] <- j
+        suby[j+1, 3] <- j*increment
       }
     }
     YdataRaw <- rbind(YdataRaw, suby)
