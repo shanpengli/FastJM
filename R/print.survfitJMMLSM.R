@@ -30,7 +30,7 @@ print.survfitJMMLSM <- function (x, ...) {
     d
   }
   if (!is.null(x$quadpoint)) {
-    cat("\nPrediction of Conditional Probabilities of Event\nbased on the ", x$quadmethod, " Guass-Hermite quadrature rule with", x$quadpoint,
+    cat("\nPrediction of Conditional Probabilities of Event\nbased on the ", x$quadmethod, " Gauss-Hermite quadrature rule with", x$quadpoint,
         "quadrature points\n")
   } else {
     cat("\nPrediction of Conditional Probabilities of Event\nbased on the first order approximation\n")

@@ -95,10 +95,9 @@ plot_biomarker_trajectories <- function(data,
   }
   
   subtitle_txt <- if (!is.null(visit_col)) {
-    "Dark line: visit-level mean, grey lines: individual patients"
+    "Dark line: visit-level mean"
   } else {
-    paste0("Dark: time-bin mean (bin width = ", time_bin_width,
-           "), grey lines: individual patients")
+    paste0("Dark: time-bin mean (bin width = ", time_bin_width, ")")
   }
   
   p <- ggplot2::ggplot()
