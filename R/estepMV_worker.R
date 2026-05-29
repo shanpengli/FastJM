@@ -5,23 +5,29 @@ estepMV_worker<- function(j, data,pREtotal) {
   subHAZ02 <- data$HAZ02[j]
   subcmprsk <- data$cmprsk[j]
   subW <- t(data$W[j, , drop = FALSE])
+
   
   subdata <- list(
     beta   = data$beta,  
     gamma1 = data$gamma1,
     gamma2 = data$gamma2,
-    alpha  = data$alpha,
+    alphaList  = data$alpha,
     sigma  = data$sigma,
     Z      = data$Z[[j]],
-    X1     = data$X1[[j]],
+    X      = data$X1[[j]],
     Y      = data$Y[[j]],
     Sig    = data$Sig,
-    CUH01  = subCUH01,
-    CUH02  = subCUH02,
+    CH01  = subCUH01,
+    CH02  = subCUH02,
     HAZ01  = subHAZ01,
     HAZ02  = subHAZ02,
-    cmprsk = subcmprsk,
-    W      = subW
+    Wcmprsk = subcmprsk,
+    W      = subW,
+    landmark = data$landmark,
+    latAsso = data$latAsso,
+    s = data$s,
+    Xs_i = if (!is.null(data$Xs)) data$Xs[[j]] else NULL,
+    Zs_i = if (!is.null(data$Zs)) data$Zs[[j]] else NULL
   )
   
   opt <- optim(
