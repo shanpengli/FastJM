@@ -260,11 +260,26 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
-    dat <- data.frame(x$gamma1, x$segamma1, x$gamma1/x$segamma1, 2 * pnorm(-abs(x$gamma1/x$segamma1)))
+    
+    # ~~~~~~~~~~~~~~~~~
+    # print gamma est
+    # ~~~~~~~~~~~~~~~~~
+    gamma1 <- unname(x$gamma1)
+    segamma1 <- unname(x$segamma1)
+    
+    dat <- data.frame(
+      gamma1,
+      segamma1,
+      gamma1 / segamma1,
+      2 * pnorm(-abs(gamma1 / segamma1))
+    )
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
-    dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
+    rownames(dat) <- paste0("gamma", seq_along(gamma1))
+    
+    dat[, 1:3] <- round(dat[, 1:3], digits + 1)
+    dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
+
     
     # ~~~~~
     # Alpha
@@ -284,7 +299,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
         
         if (pRE == 1){
           
-          tempName[ind] <- paste0("(Intercept)_1bio", g)
+          tempName[ind] <- paste0("(Intercept)_bio", g)
           
         } else {
           
