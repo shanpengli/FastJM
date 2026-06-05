@@ -28,6 +28,14 @@
 ##'   \item{\code{cpu.cores}}{Number of CPU cores used for parallel computation.
 ##'   The default is \code{NULL}.}
 ##' }
+##' @param latAsso Latent association structure. Options are \code{"sre"},
+##' \code{"present"}, and \code{"presentlp"}. The default is \code{"sre"}.
+##' @param landmark Logical value indicating whether landmarking is used.
+##' The default is \code{FALSE}.
+##' @param s Landmark time. Required when \code{landmark = TRUE} and
+##' \code{latAsso} is \code{"present"} or \code{"presentlp"}.
+##' @param ytime Name of the longitudinal time variable. Required when
+##' landmarking is used.
 ##' @return
 ##' An object of class \code{mvjmcs}, returned as a list containing:
 ##' \describe{
@@ -127,7 +135,8 @@
 
 mvjmcs <- function(ydata, cdata, long.formula,
                    random = NULL, surv.formula,
-                   control = mvjmcs_control()) {
+                   control = mvjmcs_control(),
+                   latAsso = "sre", landmark = FALSE, s = NULL, ytime = NULL) {
   
   control <- modifyList(mvjmcs_control(), control)
   
@@ -139,6 +148,29 @@ mvjmcs <- function(ydata, cdata, long.formula,
   cpu.cores    <- control$cpu.cores
   
   start_time <- Sys.time()
+  
+
+  
+  if(!(latAsso %in% c("sre", "present", "presentlp"))){
+    stop("latent value method currently does not work")
+  }
+  
+  if(!(latAsso %in% c("present", "presentlp") && !landmark && is.null(s) )){
+    stop("landmark=FALSE but method currently requires landmarking")
+  }
+  
+  
+  if(!(latAsso %in% c("present", "presentlp") && !landmark)){
+    warning("landmark=FALSE but method currently requires landmarking")
+  }
+  
+  
+  if (landmark && is.null(s)){
+    warning("landmark=TRUE but s is NULL; landmarking disabled and full data will be used.")
+    landmark <- FALSE
+  }
+  
+
   
   # ---- Longitudinal setup ----
   if(is.list(long.formula)){
@@ -164,15 +196,16 @@ mvjmcs <- function(ydata, cdata, long.formula,
   } else {
     for(g in 1:numBio){
       random.form[[g]] <- all.vars(random)
-      if(!is.list(random)){
-        # RE[[g]] <- NULL
+      
+      if (length(random.form[[g]]) == 1) {
         model[[g]] <- "intercept"
       } else {
-        RE[[g]] <- random.form[[g]][-length(all.vars(random))]
+        RE[[g]] <- random.form[[g]][-length(random.form[[g]])]
         model[[g]] <- "interslope"
       }
     }
     ID <- random.form[[g]][length(all.vars(random))]
+  
   }
   
   lengthb <- length(long.formula)
@@ -236,29 +269,30 @@ mvjmcs <- function(ydata, cdata, long.formula,
   cdata <- getinit$cdata
   
   survival <- all.vars(surv.formula)
+  
   status <- as.vector(cdata[, survival[2]])
-  if (prod(c(0, 1, 2) %in% unique(status))) {
-    ## initialize parameters
-    
+  
+  if (!all(status %in% c(0, 1, 2))) {
+    stop("Status variable must be coded as 0 = censored, 1 = event type 1, and 2 = event type 2.")
+  }
+  
+  if (any(status == 2)) {
     getriskset <- Getriskset(cdata = cdata, surv.formula = surv.formula)
     
-    ## number of distinct survival time
+    # number of distinct survival time
     H01 <- getriskset$tablerisk1
     H02 <- getriskset$tablerisk2
     
     CompetingRisk <- TRUE
   } else {
-    getriskset <- Getriskset(cdata = cdata, surv.formula = surv.formula)
+    getriskset <- GetrisksetSF(cdata = cdata, surv.formula = surv.formula)
+    
     
     ## number of distinct survival time
     H01 <- getriskset$tablerisk1
+    
     CompetingRisk <- FALSE
   }
-  
-  # GH.val  <- gauss.quad.prob(quadpoint)
-  # weight.c <- GH.val$weights # weights
-  # abscissas.c <- GH.val$nodes # abscissas
-  
   
   survtime <- getinit$survtime
   cmprsk <- getinit$cmprsk
@@ -293,7 +327,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     
     numSubj <- n
-    # opt <- list()
     pos.mode <- vector("list", numSubj)
     subX1 <- subY <- subZ <- vector("list", numSubj)
     pos.cov <- list()
@@ -327,8 +360,39 @@ mvjmcs <- function(ydata, cdata, long.formula,
       }
     }
     
-    survtime <- getinit$survtime
-    cmprsk <- getinit$cmprsk
+    subXs <- subZs <- vector("list", numSubj)
+    
+    if (landmark && latAsso %in% c("present", "presentlp")) {
+      
+      Xs <- getinit$Xs
+      Zs <- getinit$Zs
+      
+      for (j in seq_len(numSubj)) {
+        subZs[[j]] <- vector("list", numBio)
+        
+        if (latAsso == "present") {
+          subXs[[j]] <- vector("list", numBio)
+        }
+        
+        index <- 1
+        
+        for (g in seq_len(numBio)) {
+          qg <- pREvec[g]
+          
+          if (latAsso == "present") {
+            subXs[[j]][[g]] <- Xs[[g]][j, , drop = FALSE]
+          }
+          
+          subZs[[j]][[g]] <- Zs[g, index:(index + qg - 1), drop = FALSE]
+          index <- index + qg
+        }
+      }
+      
+    } else {
+      subXs <- NULL
+      subZs <- NULL
+    }
+    
     W <- getinit$W
     ngamma <- ncol(W)
     
@@ -382,11 +446,15 @@ mvjmcs <- function(ydata, cdata, long.formula,
       }
       
       data <- list(
-        beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
-        alpha = alphaList, sigma = sigma,
+        beta = betaList, 
+        gamma1 = gamma1, gamma2 = gamma2,
+        alpha = alphaList, 
+        sigma = sigma,
         Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
         CUH01 = CUH01, CUH02 = CUH02, HAZ01 = HAZ01, HAZ02 = HAZ02,
-        cmprsk = cmprsk, W = W
+        cmprsk = cmprsk, W = W, landmark = landmark, latAsso = latAsso, s = s,   
+        Xs = subXs,
+        Zs = subZs
       )
       
       res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, future.scheduling = 2,
@@ -394,14 +462,26 @@ mvjmcs <- function(ydata, cdata, long.formula,
       pos.mode <- lapply(res, `[[`, "mode")
       pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
       
-      output <- normalApprox(
-        subX1, subY, subZ, W,
-        mdataM, mdataSM,
-        pos.mode, sigma, pos.cov,
-        H01, H02, survtime, cmprsk,
-        gamma1, gamma2, alphaList,
-        CUH01, CUH02, HAZ01, HAZ02, Sig, betaList
-      )
+      if(latAsso == "sre"){
+        output <- normalApprox(
+          subX1, subY, subZ, W,
+          mdataM, mdataSM,
+          pos.mode, sigma, pos.cov,
+          H01, H02, survtime, cmprsk,
+          gamma1, gamma2, alphaList,
+          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList
+        )
+      } else if(latAsso == "presentlp" ||latAsso == "present"){
+        output <- normalApprox_lm(
+          subX1, subY, subZ, W,
+          mdataM, mdataSM,
+          pos.mode, sigma, pos.cov,
+          H01, H02, survtime, cmprsk,
+          gamma1, gamma2, alphaList,
+          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, s = s,  Xs = subXs,
+          Zs = getinit$Zs, latAsso = latAsso
+        )
+      }
       
       beta <- output$beta
       betaList <- output$betaList
@@ -414,17 +494,23 @@ mvjmcs <- function(ydata, cdata, long.formula,
       alpha2 <- output$phi2[(ngamma+1):(length(output$phi2))]
       alpha1g <- alpha2g <- vector("list", numBio)
       index = 0
-      for(g in 1:numBio){
-        alpha1g[[g]] <- alpha1[(index+1):(index + pREvec[g])]
-        alpha2g[[g]] <- alpha2[(index+1):(index + pREvec[g])]
-        index = index + pREvec[g]
+      if (latAsso == "sre") {
+        index <- 0
+        for (g in seq_len(numBio)) {
+          alpha1g[[g]] <- alpha1[(index + 1):(index + pREvec[g])]
+          alpha2g[[g]] <- alpha2[(index + 1):(index + pREvec[g])]
+          index <- index + pREvec[g]
+        }
+      } else {
+        for (g in seq_len(numBio)) {
+          alpha1g[[g]] <- alpha1[g]
+          alpha2g[[g]] <- alpha2[g]
+        }
       }
       
       alphaList <- list(alpha1g, alpha2g)
       H01 <- output$H01
       H02 <- output$H02
-      
-      
       
       if((mvDiffrelative(beta, prebeta, sigma, presigma, gamma1, pregamma1, gamma2, pregamma2,
                  alpha1, prealpha1, alpha2, prealpha2,
@@ -452,24 +538,37 @@ mvjmcs <- function(ydata, cdata, long.formula,
       CumuH02 <- cumsum(H02[, 3])
       getHazard(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
       
-      data <- list(beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
-                   alpha = alphaList, sigma = sigma,
-                   Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
-                   CUH01 = CUH01,  HAZ01 = HAZ01, CUH02 = CUH02,  HAZ02 = HAZ02,
-                   mdataM = mdataM, mdataSM = mdataSM,
-                   cmprsk = cmprsk, W = W)
+      data <- list(
+        beta = betaList, gamma1 = gamma1, gamma2 = gamma2,
+        alpha = alphaList, sigma = sigma,
+        Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
+        CUH01 = CUH01, CUH02 = CUH02, HAZ01 = HAZ01, HAZ02 = HAZ02,
+        cmprsk = cmprsk, W = W, landmark = landmark, latAsso = latAsso, s = s,   
+        Xs = subXs,
+        Zs = subZs
+      )
       
       res <- future.apply::future_lapply(seq_len(numSubj), estepMV_worker, future.seed = TRUE, future.scheduling = 2,
                                          data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
       pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
       
-      SEest <- getmvCov(beta, gamma1, gamma2,
+      if(latAsso == "sre"){
+        SEest <- getmvCov(beta, gamma1, gamma2,
                           alpha1, alpha2,
-                          H01, H02, pos.cov, Sig, sigma, 
-                          subX1, subY, subZ, getinit$W, 
+                          H01, H02, pos.cov, Sig, sigma,
+                          subX1, subY, subZ, getinit$W,
                           getinit$survtime,getinit$cmprsk,
                           mdataM, mdataSM, pos.mode)
+      }else{
+        SEest <- getmvCov_lm(beta, gamma1, gamma2,
+                             alpha1, alpha2,
+                             H01, H02, pos.cov, Sig, sigma,
+                             subX1, subY, subZ, W,
+                             survtime, cmprsk,
+                             mdataM, mdataSM, pos.mode,
+                             subXs, s, getinit$Zs, latAsso = latAsso)
+      }
       
       sebeta <- SEest$sebeta
       sesigma <- SEest$sesigma
@@ -502,16 +601,15 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     names(beta) <- unlist(namesbeta)
     
-    result <- list(beta = beta, betaList = output$betaList, gamma1 = gamma1, gamma2 = gamma2, 
+    result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, gamma2 = gamma2, 
                    alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
-                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, tol = tol,
-                   vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2, 
+                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
+                   vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2,
                    sealpha1 = sealpha1, sealpha2 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
-                   runtime = runtime)
-    
+                   runtime = runtime, latAsso = latAsso)
     
     class(result) <- "mvjmcs"
     
@@ -575,6 +673,39 @@ mvjmcs <- function(ydata, cdata, long.formula,
       }
     }
     
+    subXs <- subZs <- vector("list", numSubj)
+    
+    if (landmark && latAsso %in% c("present", "presentlp")) {
+      
+      Xs <- getinit$Xs
+      Zs <- getinit$Zs
+      
+      for (j in seq_len(numSubj)) {
+        subZs[[j]] <- vector("list", numBio)
+        
+        if (latAsso == "present") {
+          subXs[[j]] <- vector("list", numBio)
+        }
+        
+        index <- 1
+        
+        for (g in seq_len(numBio)) {
+          qg <- pREvec[g]
+          
+          if (latAsso == "present") {
+            subXs[[j]][[g]] <- Xs[[g]][j, , drop = FALSE]
+          }
+          
+          subZs[[j]][[g]] <- Zs[g, index:(index + qg - 1), drop = FALSE]
+          index <- index + qg
+        }
+      }
+      
+    } else {
+      subXs <- NULL
+      subZs <- NULL
+    }
+    
     survtime <- getinit$survtime
     cmprsk <- getinit$cmprsk
     W <- getinit$W
@@ -624,7 +755,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    alpha = alphaList, sigma = sigma,
                    Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
                    CUH01 = CUH01, HAZ01 = HAZ01, 
-                   cmprsk = cmprsk, W = W)
+                   cmprsk = cmprsk, W = W, landmark = landmark, latAsso = latAsso, s = s)
       
       # specify cpu amounts
       
@@ -633,12 +764,25 @@ mvjmcs <- function(ydata, cdata, long.formula,
       pos.mode <- lapply(res, `[[`, "mode")
       pos.cov <- lapply(res, function(x) crossprod(x$ccov)) 
       
-      output <- normalApproxSF(subX1,subY, subZ, W,
-                               mdataM, mdataSM,
-                               pos.mode,  sigma, pos.cov,
-                               H01, survtime, cmprsk,
-                               gamma1, alphaList,
-                               CUH01,HAZ01, Sig, beta)
+      
+      if(latAsso == "sre"){
+        output <- normalApproxSF(subX1,subY, subZ, W,
+                                 mdataM, mdataSM,
+                                 pos.mode,  sigma, pos.cov,
+                                 H01, survtime, cmprsk,
+                                 gamma1, alphaList,
+                                 CUH01,HAZ01, Sig, beta)
+      } else{
+        output <- normalApprox_lmSF(
+          subX1, subY, subZ, W,
+          mdataM, mdataSM,
+          pos.mode, sigma, pos.cov,
+          H01, survtime, cmprsk,
+          gamma1, alphaList,
+          CUH01, HAZ01, Sig, betaList, s = s,  Xs = subXs,
+          Zs = getinit$Zs, latAsso = latAsso
+        )
+      }
       
       beta <- output$beta
       betaList <- output$betaList
@@ -649,9 +793,17 @@ mvjmcs <- function(ydata, cdata, long.formula,
       alpha1 <- output$phi1[(ngamma+1):(length(output$phi1))]
       alpha1g <- vector("list", numBio)
       index = 0
-      for(g in 1:numBio){
-        alpha1g[[g]] <- alpha1[(index+1):(index + pREvec[g])]
-        index = index + pREvec[g]
+      
+      if (latAsso == "sre") {
+        index <- 0
+        for (g in seq_len(numBio)) {
+          alpha1g[[g]] <- alpha1[(index + 1):(index + pREvec[g])]
+          index <- index + pREvec[g]
+        }
+      } else {
+        for (g in seq_len(numBio)) {
+          alpha1g[[g]] <- alpha1[g]
+        }
       }
       
       alphaList <- list(alpha1g)
@@ -682,22 +834,36 @@ mvjmcs <- function(ydata, cdata, long.formula,
       CumuH01 <- cumsum(H01[, 3])
       getHazardSF(CumuH01, survtime, cmprsk, H01, CUH01, HAZ01)
       
-      data <- list(beta = betaList, gamma1 = gamma1,
-                   alpha = alphaList, sigma = sigma,
-                   Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
-                   CUH01 = CUH01, HAZ01 = HAZ01,
-                   cmprsk = cmprsk, W = W)
+      data <- list(
+        beta = betaList, gamma1 = gamma1,
+        alpha = alphaList, sigma = sigma,
+        Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
+        CUH01 = CUH01, HAZ01 = HAZ01,
+        cmprsk = cmprsk, W = W, landmark = landmark, latAsso = latAsso, s = s,   
+        Xs = subXs,
+        Zs = subZs
+      )
       
       res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, future.scheduling = 2, data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
       pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
       
-      SEest <- getmvCovSF(beta, gamma1,
-                          alpha1,  
-                          H01, pos.cov, Sig, sigma, 
-                          subX1, subY, subZ, getinit$W, 
+      if(latAsso == "sre"){
+        SEest <- getmvCovSF(beta, gamma1, 
+                          alpha1, 
+                          H01, pos.cov, Sig, sigma,
+                          subX1, subY, subZ, getinit$W,
                           getinit$survtime,getinit$cmprsk,
                           mdataM, mdataSM, pos.mode)
+      }else{
+        SEest <- getmvCov_lmSF(beta, gamma1,
+                             alpha1, 
+                             H01, pos.cov, Sig, sigma,
+                             subX1, subY, subZ, W,
+                             survtime, cmprsk,
+                             mdataM, mdataSM, pos.mode,
+                             subXs, s, getinit$Zs, latAsso = latAsso)
+      }
       
       sebeta <- SEest$sebeta
       sesigma <- SEest$sesigma
@@ -711,6 +877,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     end_time <- Sys.time()
     runtime <- end_time - start_time
+    
+    writeLines("runtime is:")
+    print(runtime <- end_time - start_time)
     
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
     call <- match.call()
@@ -736,7 +905,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
-                   runtime = runtime)
+                   runtime = runtime, latAsso = latAsso)
     
     class(result) <- "mvjmcs"
     

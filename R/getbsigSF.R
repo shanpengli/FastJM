@@ -6,14 +6,15 @@ getbSigSF <- function(bSig, data){
   # sigma: vector of error variance for each biomarker
   # unique to each value
   
-  names(data) <- c("beta", "gamma1", "alphaList",
-                   "sigma", "Z", "X", "Y", "Sig", # "b", "Sig",
-                   "CH01",
-                   "HAZ01", "Wcmprsk", "Wx")
+  latAsso <- data$latAsso
+  s <- data$s
   
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for
   Z <- data$Z
+  
+  Xs_i <- data$Xs_i
+  Zs_i <- data$Zs_i
   
   beta <- data$beta
   
@@ -41,7 +42,7 @@ getbSigSF <- function(bSig, data){
       pREvec[g] <- ncol(Z[[g]])
     }
   }else{
-    pREvec[g] <- ncol(Z)
+    pREvec[1] <- ncol(Z)
   }
   
   q = sum(pREvec)
@@ -90,12 +91,25 @@ getbSigSF <- function(bSig, data){
     # double check if it is squared
     
     # sum alpha'b
-    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
+    if(latAsso == "sre"){
+      sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
+    } else if(latAsso  == "presentlp"){
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      # if(length(alpha1g)== 1){
+      latent <- as.numeric(Zs_ig %*% bi)
+      sum.alpha1i <- sum.alpha1i + alpha1g * latent #alpha1
+    } else if(latAsso == "present"){
+      Xs_ig <- as.matrix(Xs_i[[g]])
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      
+      latent <- as.numeric(Xs_ig %*% betai + Zs_ig %*% bi)
+      sum.alpha1i <- sum.alpha1i + alpha1g * latent #alpha1
+    } 
+    
   }
   
   # latent structure for each loop
-  latent1 <- as.matrix(sum.alpha1i, nrow = 1)
-  CH01 <- as.matrix(CH01)
+  latent1 <- as.numeric(sum.alpha1i)
   
   # CH01 Might be wrong here
   

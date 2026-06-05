@@ -16,7 +16,12 @@ estepMV_workerSF<- function(j, data,pREtotal) {
     CUH01  = subCUH01,
     HAZ01  = subHAZ01,
     cmprsk = subcmprsk,
-    W      = subW
+    W      = subW,
+    landmark = data$landmark,
+    latAsso = data$latAsso,
+    s = data$s,
+    Xs_i = if (!is.null(data$Xs)) data$Xs[[j]] else NULL,
+    Zs_i = if (!is.null(data$Zs)) data$Zs[[j]] else NULL
   )
   
   opt <- optim(

@@ -6,29 +6,21 @@ getbSig <- function(bSig, data){
   # Sig: covariance matrix of B
   # sigma: vector of error variance for each biomarker
   # unique to each value
-  
-  names(data) <- c("beta", "gamma1", "gamma2", "alphaList",
-                   "sigma", "Z", "X", "Y", "Sig",
-                   "CH01", "CH02",
-                   "HAZ01", "HAZ02", "Wcmprsk", "Wx", "landmark", "latent", "s")
-  
-  landmark <- data$landmark
-  latent <- data$latent
+
+  latAsso <- data$latAsso
   s <- data$s
   
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for
   Z <- data$Z
   
+  Xs_i <- data$Xs_i
+  Zs_i <- data$Zs_i
+  
   beta <- data$beta
   
   alphaList <- data$alphaList
   sigma <- data$sigma
-  # SigList <- data$SigList # need to be 4x4
-  
-  # how to get Sig1,2
-  # can do (0,0,0,0) for now; email shangpeng later
-  
   Sig <- data$Sig
   
   # Sig11 <- SigList[[1]]
@@ -42,7 +34,7 @@ getbSig <- function(bSig, data){
   HAZ01 <- data$HAZ01
   HAZ02 <- data$HAZ02
   Wcmprsk <- data$Wcmprsk
-  Wx <- as.matrix(data$Wx)
+  Wx <- as.matrix(data$W)
   if(ncol(Wx) ==1){
     Wx <- t(Wx)
   }
@@ -85,11 +77,14 @@ getbSig <- function(bSig, data){
     
     Yi <- as.matrix(Y[[g]])
     Xi <- as.matrix(X[[g]])
+
     if(is.list(beta)){
       betai <- as.matrix(beta[[g]])
     }else{
       betai <- as.matrix(beta)
     }
+  
+    
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[g]
@@ -102,53 +97,38 @@ getbSig <- function(bSig, data){
       alpha2g <- alpha2[[g]] # alpha2
     }else{
       alpha1g <- alpha1
-      alpha2g <- alpha26
+      alpha2g <- alpha2
     }
     
     # log likelihood part 1
     total <- total + sum((Yi - Xi %*% betai - Zi %*% bi)^2 / (2 * sigmai) + 0.5 * log(sigmai))
     
     
-    
-    # double check if it is squared
-    
     # sum alpha'b
     
-    if(data$latent == "shared"){
+    if(latAsso == "sre"){
       sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
       sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
-    } else if(latent == "presentlp"){
+    } else if(latAsso  == "presentlp"){
+        Zs_ig <- as.matrix(Zs_i[[g]])
           # if(length(alpha1g)== 1){
-            sum.alpha1i <- sum.alpha1i + alpha1g %*% Zi[nrow(Zi),] %*% bi #alpha1
-            sum.alpha2i <- sum.alpha2i + alpha2g %*% Zi[nrow(Zi),] %*% bi #alpha2
-          # }else if(length(alpha1g) == 2){
-          #   sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% rbind(Zi[nrow(Zi),], c(0,1)) %*% bi #alpha1
-          #   sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% rbind(Zi[nrow(Zi),], c(0,1)) %*% bi #alpha2
-          # }
-    } else if(latent == "present"){
-        sum.alpha1i <- sum.alpha1i + alpha1g %*% (Xi[nrow(Xi),] %*% betai - Zi[nrow(Zi),] %*% bi) #alpha1
-        sum.alpha2i <- sum.alpha2i + alpha2g[k] %*% (Xi[nrow(Xi),] %*% betai - Zi[nrow(Zi),] %*% bi) #alpha2
-     
-    } else{
-      # error
-    }
-
+        latent <- as.numeric(Zs_ig %*% bi)
+            sum.alpha1i <- sum.alpha1i + alpha1g * latent #alpha1
+            sum.alpha2i <- sum.alpha2i + alpha2g * latent #alpha2
+    } else if(latAsso == "present"){
+      Xs_ig <- as.matrix(Xs_i[[g]])
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      
+      latent <- as.numeric(Xs_ig %*% betai + Zs_ig %*% bi)
+        sum.alpha1i <- sum.alpha1i + alpha1g * latent #alpha1
+        sum.alpha2i <- sum.alpha2i + alpha2g * latent #alpha2
+    } 
   }
-  # print("first")
-  # print(total)
-  # if (landmark) {
-  #   # CH0(s,T) = CH0(0,T) - CH0(0,s)
-  #   CH01 <- CH01 - data$CH01_s
-  #   CH02 <- CH02 - data$CH02_s
-  # } else {
-  #   CH01 <- CH01
-  #   CH02 <- CH02
-  # }
 
-  
+
   # latent structure for each loop
-  latent1 <- as.matrix(sum.alpha1i, nrow = 1)
-  latent2 <- as.matrix(sum.alpha2i, nrow = 1)
+  latent1 <- as.numeric(sum.alpha1i)
+  latent2 <- as.numeric(sum.alpha2i)
   
   total <- total + CH01 * exp(Wx %*% gamma1 + latent1) + ## part 2 change this part
     CH02 * exp(Wx %*% gamma2 + latent2) +
@@ -164,8 +144,7 @@ getbSig <- function(bSig, data){
   if (Wcmprsk == 2) {
     total <- total - log(HAZ02) - (Wx %*% gamma2 + latent2)  # adjusts for status == 2
   }
-  # print(total)
-  # print("end")
+
   
   total <- unname(total)
   

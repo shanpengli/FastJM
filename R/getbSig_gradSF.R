@@ -7,12 +7,9 @@ getbSig_gradSF <- function(bSig, data){
   # sigma: vector of error variance for each biomarker
   # unique to each value
   
-  names(data) <- c("beta", "gamma1", "alphaList",
-                   "sigma", "Z", "X", "Y", "Sig", # "b", "Sig",
-                   "CH01", 
-                   "HAZ01", "Wcmprsk", "Wx")
-  
-  # don't need mdata
+  latAsso <- data$latAsso
+  Xs_i <- data$Xs_i
+  Zs_i <- data$Zs_i
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for
   Z <- data$Z
@@ -21,10 +18,6 @@ getbSig_gradSF <- function(bSig, data){
   
   alphaList <- data$alphaList
   sigma <- data$sigma
-  # SigList <- data$SigList # need to be 4x4
-  
-  # how to get Sig1,2
-  # can do (0,0,0,0) for now; email shangpeng later
   
   Sig <- data$Sig
   
@@ -53,8 +46,8 @@ getbSig_gradSF <- function(bSig, data){
     for(g in 1:length(Z)){
       pREvec[g] <- ncol(Z[[g]])
     }
-  }else{
-    pREvec[g] <- ncol(Z)
+  } else {
+    pREvec[1] <- ncol(Z)
   }
   
   q = sum(pREvec)
@@ -72,9 +65,9 @@ getbSig_gradSF <- function(bSig, data){
   
   total <- c()
   sum.alpha1i <- 0
-  sum.alpha2i <- 0
   
   # need to generalize here
+  dEta1 <- numeric(q)
   
   # longitudinal portion
   index <- 0
@@ -82,11 +75,13 @@ getbSig_gradSF <- function(bSig, data){
     
     Yi <- as.matrix(Y[[g]])
     Xi <- as.matrix(X[[g]])
+    
     if(is.list(beta)){
       betai <- as.matrix(beta[[g]])
     }else{
       betai <- as.matrix(beta)
     }
+    
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[g]
@@ -100,26 +95,61 @@ getbSig_gradSF <- function(bSig, data){
     }
     
     pRE <- pREvec[g]
-    total[(index+1):(index+pRE)] <- - 2*t(Zi) %*% (Yi - Xi %*% betai - Zi %*% bi) / (2 * sigmai)
-    index <- index + pRE
+    resid <- Yi - Xi %*% betai - Zi %*% bi
+    
+    total[(index + 1):(index + pRE)] <- - t(Zi) %*% resid / sigmai
     
     # double check if it is squared
     
     # sum alpha'b
-    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
+    if (latAsso == "sre") {
+      
+      sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi
+      
+      dEta1[(index + 1):(index + pRE)] <- as.numeric(alpha1g)
+      
+    } else if (latAsso == "presentlp") {
+      
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      
+      latent <- as.numeric(Zs_ig %*% bi)
+      
+      sum.alpha1i <- sum.alpha1i + alpha1g * latent
+      
+      dEta1[(index + 1):(index + pRE)] <- as.numeric(alpha1g * t(Zs_ig))
+      
+    } else if (latAsso == "present") {
+      
+      Xs_ig <- as.matrix(Xs_i[[g]])
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      
+      latent <- as.numeric(Xs_ig %*% betai + Zs_ig %*% bi)
+      
+      sum.alpha1i <- sum.alpha1i + alpha1g * latent
+      
+      dEta1[(index + 1):(index + pRE)] <- as.numeric(alpha1g * t(Zs_ig))
+      
+    } else {
+      stop("Unknown latent association")
+    }
+    
+    index <- index + pRE
   }
   
   # latent structure for each loop
-  latent1 <- sum.alpha1i
+  latent1 <- as.matrix(sum.alpha1i, nrow = 1)
   CH01 <- as.matrix(CH01)
   
-  # CH01 Might be wrong here
+  latent1 <- as.numeric(sum.alpha1i)
   
-  total <- total + as.numeric(CH01 * exp(Wx%*% gamma1 + latent1))*unlist(alpha1) + ## part 2 change this part
- + solve(Sig) %*% bfull  # part 3
+  eta1 <- as.numeric(Wx %*% gamma1 + latent1)
+  
+  total <- total +
+    as.numeric(CH01 * exp(eta1)) * dEta1 +
+    as.numeric(solve(Sig) %*% bfull)
   
   if (Wcmprsk == 1) {
-    total <- total - unlist(alpha1) # adjusts for status == 1
+    total <- total - dEta1# adjusts for status == 1
   }
   
   total <- unname(total)

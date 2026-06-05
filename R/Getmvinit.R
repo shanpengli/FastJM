@@ -1,4 +1,4 @@
-Getmvinitlm <- function(cdata, ydata, long.formula, surv.formula,
+Getmvinit <- function(cdata, ydata, long.formula, surv.formula,
                         model, ID, RE, REML, random, opt, initial.para,
                         latAsso = "sre", landmark = TRUE,  s = NULL, ytime = NULL) {
   
