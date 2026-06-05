@@ -155,12 +155,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
     stop("latent value method currently does not work")
   }
   
-  if(!(latAsso %in% c("present", "presentlp") && !landmark && is.null(s) )){
+  if((latAsso %in% c("present", "presentlp") && !landmark && is.null(s) )){
     stop("landmark=FALSE but method currently requires landmarking")
   }
   
   
-  if(!(latAsso %in% c("present", "presentlp") && !landmark)){
+  if((latAsso %in% c("present", "presentlp") && !landmark)){
     warning("landmark=FALSE but method currently requires landmarking")
   }
   
@@ -240,7 +240,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
   getinit <- Getmvinit(cdata = cdata, ydata = ydata, long.formula = long.formula,
                        surv.formula = surv.formula,
                        model = model, ID = ID, RE = RE,
-                       REML = TRUE, random = random, opt = opt, initial.para)
+                       REML = TRUE, random = random, opt = opt, initial.para, latAsso = latAsso, landmark = landmark, s = s, ytime = ytime)
+  
   
   if (is.null(getinit)) {
     stop("Numerical failure occurred when fitting a linear mixed effects model for initial guess.")
@@ -271,6 +272,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
   survival <- all.vars(surv.formula)
   
   status <- as.vector(cdata[, survival[2]])
+  getriskset <- Getriskset(cdata = cdata, surv.formula = surv.formula)
   
   if (!all(status %in% c(0, 1, 2))) {
     stop("Status variable must be coded as 0 = censored, 1 = event type 1, and 2 = event type 2.")
@@ -278,17 +280,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
   
   if (any(status == 2)) {
     getriskset <- Getriskset(cdata = cdata, surv.formula = surv.formula)
-    
     # number of distinct survival time
     H01 <- getriskset$tablerisk1
     H02 <- getriskset$tablerisk2
     
     CompetingRisk <- TRUE
   } else {
-    getriskset <- GetrisksetSF(cdata = cdata, surv.formula = surv.formula)
-    
-    
-    ## number of distinct survival time
+    getriskset <- Getriskset(cdata = cdata, surv.formula = surv.formula)
     H01 <- getriskset$tablerisk1
     
     CompetingRisk <- FALSE
@@ -755,7 +753,9 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    alpha = alphaList, sigma = sigma,
                    Z = subZ, X1 = subX1, Y = subY, Sig = Sig,
                    CUH01 = CUH01, HAZ01 = HAZ01, 
-                   cmprsk = cmprsk, W = W, landmark = landmark, latAsso = latAsso, s = s)
+                   cmprsk = cmprsk, W = W, landmark = landmark, latAsso = latAsso, s = s,   
+                   Xs = subXs,
+                   Zs = subZs)
       
       # specify cpu amounts
       

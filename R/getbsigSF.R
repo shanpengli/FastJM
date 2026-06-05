@@ -28,7 +28,7 @@ getbSigSF <- function(bSig, data){
   CH01 <- data$CH01
   HAZ01 <- data$HAZ01
   Wcmprsk <- data$Wcmprsk
-  Wx <- as.matrix(data$Wx)
+  Wx <- as.matrix(data$W)
   if(ncol(Wx) ==1){
     Wx <- t(Wx)
   }

@@ -112,7 +112,6 @@ Rcpp::List getmvCovSF(const Eigen::VectorXd beta,
   Eigen::VectorXd TRN = Eigen::VectorXd::Zero(pREtotal);
   Eigen::VectorXd TRNN = Eigen::VectorXd::Zero(pREtotal);
   Eigen::MatrixXd TRNN1 = Eigen::MatrixXd::Zero(pREtotal,numSubj);
-  Eigen::MatrixXd TRNN2 = Eigen::MatrixXd::Zero(pREtotal,numSubj);
   Eigen::MatrixXd TNN1 = Eigen::MatrixXd::Zero(pREtotal,a);
   Eigen::MatrixXd TNN11 = Eigen::MatrixXd::Zero(pREtotal,a);
 
