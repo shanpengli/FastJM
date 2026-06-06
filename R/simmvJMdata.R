@@ -104,7 +104,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   writeLines(paste0("The risk 2 rate is: ", table[3, 2], "%"))
   ID <- c(1:N)
   cdata <- cbind(ID, survtimeraw$survtime, survtimeraw$cmprsk, X)
-  colnames(cdata) <- c("ID", "survtime", "cmprsk", "X21", "X22")
+  colnames(cdata) <- c("ID", "survtime", "cmprsk", "X1", "X2")
   
   ##fixed effects in longitudinal mean portion
   Ydata <- data.frame(c(1:N))
@@ -180,7 +180,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   
   X <- cbind(ID, X)
   X <- as.data.frame(X)
-  colnames(X)[2:3] <- c("X11", "X12")
+  colnames(X)[2:3] <- c("X1", "X2")
   Ydata <- as.data.frame(Ydata)
   ydata <- dplyr::left_join(Ydata, X, by = "ID")
   cdata <- as.data.frame(cdata)
@@ -224,7 +224,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
     writeLines(paste0("The risk 1 rate is: ", table[2, 2], "%"))
     ID <- c(1:N)
     cdata <- cbind(ID, survtimeraw$survtime, survtimeraw$cmprsk, X)
-    colnames(cdata) <- c("ID", "survtime", "cmprsk", "X21", "X22")
+    colnames(cdata) <- c("ID", "survtime", "cmprsk", "X1", "X2")
   
     ##fixed effects in longitudinal mean portion
     Ydata <- data.frame(c(1:N))
@@ -296,7 +296,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   
   X <- cbind(ID, X)
   X <- as.data.frame(X)
-  colnames(X)[2:3] <- c("X11", "X12")
+  colnames(X)[2:3] <- c("X1", "X2")
   Ydata <- as.data.frame(Ydata)
   ydata <- dplyr::left_join(Ydata, X, by = "ID")
   cdata <- as.data.frame(cdata)

@@ -1,5 +1,5 @@
 ##' @title Plot conditional probabilities for new subjects
-##' @name plot.survfitJMMLSM
+##' @name plot
 ##' @aliases plot.survfitJMMLSM
 ##' @description Plot conditional probabilities for new subjects. 
 ##' If \code{CompetingRisk = FALSE}, print the survival probabilities. 
