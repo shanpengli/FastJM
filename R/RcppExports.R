@@ -257,6 +257,14 @@ getmvCovSF <- function(beta, gamma1, alpha1, H01, sigmaiList, Sig, sigmaVec, XLi
     .Call(`_FastJM_getmvCovSF`, beta, gamma1, alpha1, H01, sigmaiList, Sig, sigmaVec, XList, YList, ZList, W, survtime, cmprsk, mdata, mdataSList, bList)
 }
 
+getmvCov_lm <- function(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, sigmaiList, Sig, sigmaVec, XList, YList, ZList, W, survtime, cmprsk, mdata, mdataSList, bList, XsList, s, Zs, latAsso) {
+    .Call(`_FastJM_getmvCov_lm`, beta, gamma1, gamma2, alpha1, alpha2, H01, H02, sigmaiList, Sig, sigmaVec, XList, YList, ZList, W, survtime, cmprsk, mdata, mdataSList, bList, XsList, s, Zs, latAsso)
+}
+
+getmvCov_lmSF <- function(beta, gamma1, alpha1, H01, sigmaiList, Sig, sigmaVec, XList, YList, ZList, W, survtime, cmprsk, mdata, mdataSList, bList, XsList, s, Zs, latAsso) {
+    .Call(`_FastJM_getmvCov_lmSF`, beta, gamma1, alpha1, H01, sigmaiList, Sig, sigmaVec, XList, YList, ZList, W, survtime, cmprsk, mdata, mdataSList, bList, XsList, s, Zs, latAsso)
+}
+
 getQuadMix <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList) {
     .Call(`_FastJM_getQuadMix`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaList, sigmaiList, weight, absc, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList)
 }
@@ -267,5 +275,13 @@ normalApprox <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigma
 
 normalApproxSF <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, survtime, cmprsk, gamma1, alphaList, CUH01, HAZ01, Sig, betaList) {
     .Call(`_FastJM_normalApproxSF`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, survtime, cmprsk, gamma1, alphaList, CUH01, HAZ01, Sig, betaList)
+}
+
+normalApprox_lm <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, XsList, s, Zs, latAsso) {
+    .Call(`_FastJM_normalApprox_lm`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, XsList, s, Zs, latAsso)
+}
+
+normalApprox_lmSF <- function(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, survtime, cmprsk, gamma1, alphaList, CUH01, HAZ01, Sig, betaList, XsList, s, Zs, latAsso) {
+    .Call(`_FastJM_normalApprox_lmSF`, XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, survtime, cmprsk, gamma1, alphaList, CUH01, HAZ01, Sig, betaList, XsList, s, Zs, latAsso)
 }
 

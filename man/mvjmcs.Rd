@@ -10,7 +10,11 @@ mvjmcs(
   long.formula,
   random = NULL,
   surv.formula,
-  control = mvjmcs_control()
+  control = mvjmcs_control(),
+  latAsso = "sre",
+  landmark = FALSE,
+  s = NULL,
+  ytime = NULL
 )
 }
 \arguments{
@@ -46,6 +50,18 @@ indicator, and covariates in the survival submodel.}
   \item{\code{cpu.cores}}{Number of CPU cores used for parallel computation.
   The default is \code{NULL}.}
 }}
+
+\item{latAsso}{Latent association structure. Options are \code{"sre"},
+\code{"present"}, and \code{"presentlp"}. The default is \code{"sre"}.}
+
+\item{landmark}{Logical value indicating whether landmarking is used.
+The default is \code{FALSE}.}
+
+\item{s}{Landmark time. Required when \code{landmark = TRUE} and
+\code{latAsso} is \code{"present"} or \code{"presentlp"}.}
+
+\item{ytime}{Name of the longitudinal time variable. Required when
+landmarking is used.}
 }
 \value{
 An object of class \code{mvjmcs}, returned as a list containing:
