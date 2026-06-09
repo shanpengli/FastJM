@@ -253,7 +253,7 @@ Rcpp::List getmvCov_lm(const Eigen::VectorXd beta,
     // 
     tausq = alpha2.transpose() * BAssociation * alpha2;
     FUNEC(1,i) = exp(alpha2.dot(latent_i) + 0.5 * tausq);
-    FUNBEC.col(i).segment(index + numBio, numBio) = exp(alpha1.dot(latent_i) + 0.5 * tausq) * (BAssociation * alpha2 + latent_i);
+    FUNBEC.col(i).segment(index + numBio, numBio) = exp(alpha2.dot(latent_i) + 0.5 * tausq) * (BAssociation * alpha2 + latent_i);
   }
   
   SZ = Eigen::VectorXd::Zero(p);
