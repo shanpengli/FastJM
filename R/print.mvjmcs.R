@@ -25,15 +25,14 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     }
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and competing risks data", "\n\n")
     cat("Model summary:\n")
-    if (!is.null(x$runtime)) {
-      cat("Runtime:", format_runtime(x$runtime), "\n")
-    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard\n\n")
     
     cat("Fixed effects in the longitudinal sub-model: ",
         sprintf(format(paste(deparse(x$LongitudinalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
+    
+    
     
     # ~~~~~~~~~~~~~~~~~~~~~~~
     # print beta coefficients
@@ -64,15 +63,40 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
-    dat <- data.frame(x$gamma1, x$segamma1, x$gamma1/x$segamma1, 2 * pnorm(-abs(x$gamma1/x$segamma1)))
+    
+    # ~~~~~~~~~~~~~~~~~
+    # print gamma est
+    # ~~~~~~~~~~~~~~~~~
+    
+    gamma1 <- unname(x$gamma1)
+    segamma1 <- unname(x$segamma1)
+    gamma2 <- unname(x$gamma2)
+    segamma2 <- unname(x$segamma2)
+    
+    dat <- data.frame(
+      gamma1,
+      segamma1,
+      gamma1 / segamma1,
+      2 * pnorm(-abs(gamma1 / segamma1))
+    )
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
     
-    dat2 <- data.frame(x$gamma2, x$segamma2, x$gamma2/x$segamma2, 2 * pnorm(-abs(x$gamma2/x$segamma2)))
+    dat2 <- data.frame(
+      gamma2,
+      segamma2,
+      gamma2 / segamma2,
+      2 * pnorm(-abs(gamma2 / segamma2))
+    )
     colnames(dat2) <- c("Estimate", "SE", "Z value", "p-val")
+    
     dat <- rbind(dat, dat2)
     dat[, 1:3] <- round(dat[, 1:3], digits+1)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
+    
+    # ~~~~~~~~~~~~~~~~~
+    # print association est
+    # ~~~~~~~~~~~~~~~~~
     
     cat("\nAssociation parameters:                 \n")
     dat <- data.frame(x$alpha1, x$sealpha1, x$alpha1/x$sealpha1, 2 * pnorm(-abs(x$alpha1/x$sealpha1)))
@@ -84,25 +108,45 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     ind = 1
     
     for(g in 1:numBio){
-      pRE <- length(all.vars(x$random[[g]]))
-      if (pRE == 1){
-        tempName[ind] <- paste0("(Intercept)_1","bio",g)
-      } else{
-        temp <- c(paste0("(Intercept)_1","bio",g))
-        tempName[ind:(ind+pRE-1)] <- c(temp, paste0(all.vars(x$random[[g]])[-pRE],"_1","bio", g))
-      }  
+      if (x$latAsso == "sre") {
+        
+        pRE <- length(all.vars(x$random[[g]]))
+        temp <- all.vars(x$random[[g]])
+        
+        tempName[ind:(ind+pRE-1)] <-
+          paste0(c("(Intercept)", temp[-length(temp)]), "_1bio", g)
+        
+      } else if (x$latAsso %in% c("present", "presentlp", "pv", "pvlp")) {
+        
+        pRE <- 1
+        tempName[ind] <- paste0("alpha1_bio", g)
+        
+      } else {
+        stop("Unknown latent association structure.")
+      }
+      
       ind <- ind + pRE
     }
     
     for(g in 1:numBio){
       
-      pRE <- length(all.vars(x$random[[g]]))
-      if (pRE == 1){
-        tempName[ind] <- paste0("(Intercept)_2","bio",g)
-      } else{
-        temp <- c(paste0("(Intercept)_2","bio",g))
-        tempName[ind:(ind+pRE-1)] <- c(temp, paste0(all.vars(x$random[[g]])[-pRE],"_2","bio", g))
-      }  
+      if (x$latAsso == "sre") {
+        
+        pRE <- length(all.vars(x$random[[g]]))
+        temp <- all.vars(x$random[[g]])
+        
+        tempName[ind:(ind+pRE-1)] <-
+          paste0(c("(Intercept)", temp[-length(temp)]), "_2bio", g)
+        
+      } else if (x$latAsso %in% c("present", "presentlp", "pv", "pvlp")) {
+        
+        pRE <- 1
+        tempName[ind] <- paste0("alpha2_bio", g)
+        
+      } else {
+        stop("Unknown latent association structure.")
+      }
+      
       ind <- ind + pRE
       
       
@@ -181,9 +225,6 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     cat("Proportion of events:", round(x$PropEventType[2, 2]/nrow(x$cdata)*100, 2), "%\n")
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and survival data", "\n\n")
     cat("Model summary:\n")
-    if (!is.null(x$runtime)) {
-      cat("Runtime:", format_runtime(x$runtime), "\n")
-    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: Cox proportional hazard model with non-parametric baseline hazard\n\n")
     cat("Fixed effects in the longitudinal submodel: ",
@@ -219,11 +260,26 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
-    dat <- data.frame(x$gamma1, x$segamma1, x$gamma1/x$segamma1, 2 * pnorm(-abs(x$gamma1/x$segamma1)))
+    
+    # ~~~~~~~~~~~~~~~~~
+    # print gamma est
+    # ~~~~~~~~~~~~~~~~~
+    gamma1 <- unname(x$gamma1)
+    segamma1 <- unname(x$segamma1)
+    
+    dat <- data.frame(
+      gamma1,
+      segamma1,
+      gamma1 / segamma1,
+      2 * pnorm(-abs(gamma1 / segamma1))
+    )
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
-    dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
+    rownames(dat) <- paste0("gamma", seq_along(gamma1))
+    
+    dat[, 1:3] <- round(dat[, 1:3], digits + 1)
+    dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
+
     
     # ~~~~~
     # Alpha
@@ -236,13 +292,35 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     ind = 1
     
     for(g in 1:numBio){
-      pRE <- length(all.vars(x$random[[g]]))
-      if (pRE == 1){
-        tempName[ind] <- paste0("(Intercept)_1","bio",g)
-      } else{
-        temp <- c(paste0("(Intercept)_1","bio",g))
-        tempName[ind:(ind+pRE-1)] <- c(temp, paste0(all.vars(x$random[[g]])[-pRE],"_1","bio", g))
-      }  
+      if (x$latAsso == "sre") {
+        
+        pRE <- length(all.vars(x$random[[g]]))
+        temp <- all.vars(x$random[[g]])
+        
+        if (pRE == 1){
+          
+          tempName[ind] <- paste0("(Intercept)_bio", g)
+          
+        } else {
+          
+          tempName[ind:(ind+pRE-1)] <-
+            paste0(
+              c("(Intercept)", temp[-length(temp)]),
+              "_1bio", g
+            )
+        }
+        
+      } else if (x$latAsso %in% c("pv", "pvlp", "present", "presentlp")) {
+        
+        pRE <- 1
+        tempName[ind] <- paste0("alpha1_bio", g)
+        
+      } else {
+        
+        stop("Unknown latent association structure.")
+        
+      }
+      
       ind <- ind + pRE
     }
     

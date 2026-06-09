@@ -7,24 +7,26 @@ getbSig_grad <- function(bSig, data){
   # sigma: vector of error variance for each biomarker
   # unique to each value
   
-  names(data) <- c("beta", "gamma1", "gamma2", "alphaList",
-                   "sigma", "Z", "X", "Y", "Sig", # "b", "Sig",
-                   "CH01", "CH02",
-                   "HAZ01", "HAZ02", "Wcmprsk", "Wx")
+  # names(data) <- c("beta", "gamma1", "gamma2", "alphaList",
+  #                  "sigma", "Z", "X", "Y", "Sig",
+  #                  "CH01", "CH02",
+  #                  "HAZ01", "HAZ02", "Wcmprsk", "Wx", "landmark", "latent", "s")
+  # 
+
+  latAsso <- data$latAsso
+  s <- data$s
   
-  # don't need mdata
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for
   Z <- data$Z
+  
+  Xs_i <- data$Xs_i
+  Zs_i <- data$Zs_i
   
   beta <- data$beta
   
   alphaList <- data$alphaList
   sigma <- data$sigma
-  # SigList <- data$SigList # need to be 4x4
-  
-  # how to get Sig1,2
-  # can do (0,0,0,0) for now; email shangpeng later
   
   Sig <- data$Sig
   
@@ -37,7 +39,7 @@ getbSig_grad <- function(bSig, data){
   HAZ01 <- data$HAZ01
   HAZ02 <- data$HAZ02
   Wcmprsk <- data$Wcmprsk
-  Wx <- as.matrix(data$Wx)
+  Wx <- as.matrix(data$W)
   gamma1 <- as.matrix(data$gamma1) # vector
   gamma2 <- as.matrix(data$gamma2)
   
@@ -79,64 +81,109 @@ getbSig_grad <- function(bSig, data){
   
   # need to generalize here
   
-  # longitudinal portion
+  dEta1 <- numeric(q)
+  dEta2 <- numeric(q)
+  
   index <- 0
   for (g in 1:length(Y)) {
     
     Yi <- as.matrix(Y[[g]])
     Xi <- as.matrix(X[[g]])
-    if(is.list(beta)){
+    
+    if (is.list(beta)) {
       betai <- as.matrix(beta[[g]])
-    }else{
+    } else {
       betai <- as.matrix(beta)
     }
+    
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[g]
-    alpha1 <- alphaList[[1]] # risk 1
-    alpha2 <- alphaList[[2]] # risk 2
-    # gets for each biomarker
     
-    if(is.list(alpha1)){
-      alpha1g <- alpha1[[g]] # alpha1
-    }else{
+    alpha1 <- alphaList[[1]]
+    alpha2 <- alphaList[[2]]
+    
+    if (is.list(alpha1)) {
+      alpha1g <- alpha1[[g]]
+    } else {
       alpha1g <- alpha1
     }
     
-    if(is.list(alpha2)){
-      alpha2g <- alpha2[[g]] # alpha2
-    }else{
+    if (is.list(alpha2)) {
+      alpha2g <- alpha2[[g]]
+    } else {
       alpha2g <- alpha2
     }
+    
     pRE <- pREvec[g]
-    total[(index+1):(index+pRE)] <- - 2*t(Zi) %*% (Yi - Xi %*% betai - Zi %*% bi) / (2 * sigmai)
+    
+    resid <- Yi - Xi %*% betai - Zi %*% bi
+    
+    total[(index + 1):(index + pRE)] <-
+      - t(Zi) %*% resid / sigmai
+    
+    if (latAsso == "sre") {
+      
+      sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi
+      sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi
+      
+      dEta1[(index + 1):(index + pRE)] <- as.numeric(alpha1g)
+      dEta2[(index + 1):(index + pRE)] <- as.numeric(alpha2g)
+      
+    } else if (latAsso == "presentlp") {
+      
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      
+      latent <- as.numeric(Zs_ig %*% bi)
+      
+      sum.alpha1i <- sum.alpha1i + alpha1g * latent
+      sum.alpha2i <- sum.alpha2i + alpha2g * latent
+      
+      dEta1[(index + 1):(index + pRE)] <- as.numeric(alpha1g * t(Zs_ig))
+      dEta2[(index + 1):(index + pRE)] <- as.numeric(alpha2g * t(Zs_ig))
+      
+    } else if (latAsso == "present") {
+      
+      Xs_ig <- as.matrix(Xs_i[[g]])
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      
+      latent <- as.numeric(Xs_ig %*% betai + Zs_ig %*% bi)
+      
+      sum.alpha1i <- sum.alpha1i + alpha1g * latent
+      sum.alpha2i <- sum.alpha2i + alpha2g * latent
+      
+      dEta1[(index + 1):(index + pRE)] <- as.numeric(alpha1g * t(Zs_ig))
+      dEta2[(index + 1):(index + pRE)] <- as.numeric(alpha2g * t(Zs_ig))
+      
+    } else {
+      stop("Unknown latent association")
+    }
+    
     index <- index + pRE
-    
-    # double check if it is squared
-    
-    # sum alpha'b
-    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
-    sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
   }
   
   # latent structure for each loop
-  latent1 <- sum.alpha1i
-  latent2 <- sum.alpha2i
+  latent1 <- as.matrix(sum.alpha1i, nrow = 1)
+  latent2 <- as.matrix(sum.alpha2i, nrow = 1)
   CH01 <- as.matrix(CH01)
   
-  # CH01 Might be wrong here
+  latent1 <- as.numeric(sum.alpha1i)
+  latent2 <- as.numeric(sum.alpha2i)
   
-  total <- total + as.numeric(CH01 * exp(Wx%*% gamma1 + latent1))*unlist(alpha1) + ## part 2 change this part
-    as.numeric(CH02 * exp(Wx %*% gamma2 + latent2))*unlist(alpha2) +
-    + solve(Sig) %*% bfull  # part 3
+  eta1 <- as.numeric(Wx %*% gamma1 + latent1)
+  eta2 <- as.numeric(Wx %*% gamma2 + latent2)
+  
+  total <- total +
+    as.numeric(CH01 * exp(eta1)) * dEta1 +
+    as.numeric(CH02 * exp(eta2)) * dEta2 +
+    as.numeric(solve(Sig) %*% bfull)
   
   if (Wcmprsk == 1) {
-    # should be HAZ?, double check though
-    total <- total - unlist(alpha1) # adjusts for status == 1
+    total <- total - dEta1
   }
   
   if (Wcmprsk == 2) {
-    total <- total - unlist(alpha2)  # adjusts for status == 2
+    total <- total - dEta2
   }
   
   total <- unname(total)

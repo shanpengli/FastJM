@@ -6,25 +6,21 @@ getbSig <- function(bSig, data){
   # Sig: covariance matrix of B
   # sigma: vector of error variance for each biomarker
   # unique to each value
-  
-  names(data) <- c("beta", "gamma1", "gamma2", "alphaList",
-                   "sigma", "Z", "X", "Y", "Sig",
-                   "CH01", "CH02",
-                   "HAZ01", "HAZ02", "Wcmprsk", "Wx")
+
+  latAsso <- data$latAsso
+  s <- data$s
   
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for
   Z <- data$Z
   
+  Xs_i <- data$Xs_i
+  Zs_i <- data$Zs_i
+  
   beta <- data$beta
   
   alphaList <- data$alphaList
   sigma <- data$sigma
-  # SigList <- data$SigList # need to be 4x4
-  
-  # how to get Sig1,2
-  # can do (0,0,0,0) for now; email shangpeng later
-  
   Sig <- data$Sig
   
   # Sig11 <- SigList[[1]]
@@ -33,10 +29,12 @@ getbSig <- function(bSig, data){
   # survival
   CH01 <- data$CH01
   CH02 <- data$CH02
+  
+
   HAZ01 <- data$HAZ01
   HAZ02 <- data$HAZ02
   Wcmprsk <- data$Wcmprsk
-  Wx <- as.matrix(data$Wx)
+  Wx <- as.matrix(data$W)
   if(ncol(Wx) ==1){
     Wx <- t(Wx)
   }
@@ -57,6 +55,7 @@ getbSig <- function(bSig, data){
   q = sum(pREvec)
   
   index = 0
+  
   b <- vector("list", length(pREvec))
   bfull <- c()
   for(p in 1:length(pREvec)){
@@ -78,11 +77,14 @@ getbSig <- function(bSig, data){
     
     Yi <- as.matrix(Y[[g]])
     Xi <- as.matrix(X[[g]])
+
     if(is.list(beta)){
       betai <- as.matrix(beta[[g]])
     }else{
       betai <- as.matrix(beta)
     }
+  
+    
     Zi <- as.matrix(Z[[g]])
     bi <- as.matrix(b[[g]])
     sigmai <- sigma[g]
@@ -102,36 +104,47 @@ getbSig <- function(bSig, data){
     total <- total + sum((Yi - Xi %*% betai - Zi %*% bi)^2 / (2 * sigmai) + 0.5 * log(sigmai))
     
     
-    
-    # double check if it is squared
-    
     # sum alpha'b
-    sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
-    sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
+    
+    if(latAsso == "sre"){
+      sum.alpha1i <- sum.alpha1i + t(alpha1g) %*% bi #alpha1
+      sum.alpha2i <- sum.alpha2i + t(alpha2g) %*% bi #alpha2
+    } else if(latAsso  == "presentlp"){
+        Zs_ig <- as.matrix(Zs_i[[g]])
+          # if(length(alpha1g)== 1){
+        latent <- as.numeric(Zs_ig %*% bi)
+            sum.alpha1i <- sum.alpha1i + alpha1g * latent #alpha1
+            sum.alpha2i <- sum.alpha2i + alpha2g * latent #alpha2
+    } else if(latAsso == "present"){
+      Xs_ig <- as.matrix(Xs_i[[g]])
+      Zs_ig <- as.matrix(Zs_i[[g]])
+      
+      latent <- as.numeric(Xs_ig %*% betai + Zs_ig %*% bi)
+        sum.alpha1i <- sum.alpha1i + alpha1g * latent #alpha1
+        sum.alpha2i <- sum.alpha2i + alpha2g * latent #alpha2
+    } 
   }
 
-  
+
   # latent structure for each loop
-  latent1 <- as.matrix(sum.alpha1i, nrow = 1)
-  latent2 <- as.matrix(sum.alpha2i, nrow = 1)
-  
-  
+  latent1 <- as.numeric(sum.alpha1i)
+  latent2 <- as.numeric(sum.alpha2i)
   
   total <- total + CH01 * exp(Wx %*% gamma1 + latent1) + ## part 2 change this part
     CH02 * exp(Wx %*% gamma2 + latent2) +
     0.5 * q *log(2*pi) +
     0.5*log(det(Sig)) + t(bfull) %*% solve(Sig) %*% bfull / 2  # part 3
   
-  
+  # print(total)
   
   if (Wcmprsk == 1) {
-    # should be HAZ?, double check though
     total <- total - log(HAZ01) - (Wx %*% gamma1 + latent1) # adjusts for status == 1
   }
   
   if (Wcmprsk == 2) {
     total <- total - log(HAZ02) - (Wx %*% gamma2 + latent2)  # adjusts for status == 2
   }
+
   
   total <- unname(total)
   
