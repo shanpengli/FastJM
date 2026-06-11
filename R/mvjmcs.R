@@ -98,11 +98,10 @@
 ##'   \item{\code{call}}{The matched function call.}
 ##'   \item{\code{id}}{The grouping vector for the longitudinal outcomes.}
 ##'   \item{\code{runtime}}{The total computation time.}
+##'   \item{\code{latAsso}}{The pre-specified latent association structure.}
 ##' }
 ##'
 ##' @examples
-##' 
-##' 
 ##'   require(FastJM)
 ##'   require(survival)
 ##'   require(future)
@@ -170,8 +169,33 @@ mvjmcs <- function(ydata, cdata, long.formula,
     landmark <- FALSE
   }
   
+  if (isTRUE(landmark)) {
+    
+    if (is.null(ytime) || !is.character(ytime) || length(ytime) != 1) {
+      stop("When landmark = TRUE, 'ytime' must be specified as a single column name.")
+    }
+    
+    long.vars <- lapply(long.formula, all.vars)
+    
+    ytime.in.long <- vapply(
+      long.vars,
+      function(v) ytime %in% v,
+      logical(1)
+    )
+    
+    if (!all(ytime.in.long)) {
+      missing.forms <- which(!ytime.in.long)
+      
+      stop(
+        "When landmark = TRUE, the time variable specified by 'ytime' must be included ",
+        "in every component of 'long.formula'. The variable '", ytime,
+        "' is missing from long.formula component(s): ",
+        paste(missing.forms, collapse = ", "),
+        "."
+      )
+    }
+  }
 
-  
   # ---- Longitudinal setup ----
   if(is.list(long.formula)){
     numBio = length(long.formula)
@@ -877,9 +901,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     end_time <- Sys.time()
     runtime <- end_time - start_time
-    
-    writeLines("runtime is:")
-    print(runtime <- end_time - start_time)
     
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
     call <- match.call()

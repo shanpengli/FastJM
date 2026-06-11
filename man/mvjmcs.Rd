@@ -125,6 +125,7 @@ An object of class \code{mvjmcs}, returned as a list containing:
   \item{\code{call}}{The matched function call.}
   \item{\code{id}}{The grouping vector for the longitudinal outcomes.}
   \item{\code{runtime}}{The total computation time.}
+  \item{\code{latAsso}}{The pre-specified latent association structure.}
 }
 }
 \description{

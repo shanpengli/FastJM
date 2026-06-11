@@ -30,7 +30,19 @@
   ...
 )
 
-\method{plot}{survfitmvjmcs}(x, subject = NULL, risk = 1, include.y = TRUE, ...)
+\method{plot}{survfitmvjmcs}(
+  x,
+  subject = NULL,
+  risk = 1,
+  include.y = TRUE,
+  surv.panel = "first",
+  xlab = "Time",
+  ylab = NULL,
+  xlim = NULL,
+  ylim.long = NULL,
+  ylim.surv = c(0, 1),
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class \code{survfitmvjmcs}.}
@@ -57,6 +69,12 @@ subjects in \code{x$Last.time} are plotted. Default is \code{NULL}.}
 
 \item{risk}{Failure type to plot when \code{x$CompetingRisk = TRUE}.
 Default is \code{1}.}
+
+\item{surv.panel}{A character to specify where the predicted
+survival or cumulative incidence curve is displayed. Options are
+\code{"first"} to overlay the curve on the first biomarker panel,
+\code{"last"} to overlay it on the last biomarker panel, \code{"all"} to
+overlay it on all biomarker panels. Default is \code{"first"}.}
 }
 \value{
 plots of conditional probabilities over different pre-specified time points for subjects. 

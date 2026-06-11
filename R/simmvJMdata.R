@@ -148,9 +148,20 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
           }
           
           if (Visit[j] == 1) {
-            suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
-              Z%*%bi[i, (index + 1):(index + pRE[g])] + 
-              rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            if (length(alpha1[[g]]) == 3) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                subbeta[4]*j*increment + subbeta[5]*(j*increment)^2 +
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else if (length(alpha1[[g]]) == 2) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g]))
+            }
           } else {
             suby[j+1, 3] <- NA
           }
@@ -264,9 +275,20 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
           }
           
           if (Visit[j] == 1) {
-            suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
-              Z%*%bi[i,  (index + 1):(index + pRE[g])] + 
-              rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            if (length(alpha1[[g]]) == 3) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                subbeta[4]*j*increment + subbeta[5]*(j*increment)^2 +
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else if (length(alpha1[[g]]) == 2) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g]))
+            }
           } else {
             suby[j+1, 3] <- NA
           }

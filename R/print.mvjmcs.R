@@ -25,6 +25,9 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     }
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and competing risks data", "\n\n")
     cat("Model summary:\n")
+    if (!is.null(x$runtime)) {
+      cat("Runtime:", format_runtime(x$runtime), "\n")
+    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard\n\n")
     
@@ -67,11 +70,10 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     # ~~~~~~~~~~~~~~~~~
     # print gamma est
     # ~~~~~~~~~~~~~~~~~
-    
-    gamma1 <- unname(x$gamma1)
-    segamma1 <- unname(x$segamma1)
-    gamma2 <- unname(x$gamma2)
-    segamma2 <- unname(x$segamma2)
+    gamma1 <- x$gamma1
+    segamma1 <- x$segamma1
+    gamma2 <- x$gamma2
+    segamma2 <- x$segamma2
     
     dat <- data.frame(
       gamma1,
@@ -116,7 +118,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
         tempName[ind:(ind+pRE-1)] <-
           paste0(c("(Intercept)", temp[-length(temp)]), "_1bio", g)
         
-      } else if (x$latAsso %in% c("present", "presentlp", "pv", "pvlp")) {
+      } else if (x$latAsso %in% c("present", "presentlp")) {
         
         pRE <- 1
         tempName[ind] <- paste0("alpha1_bio", g)
@@ -138,7 +140,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
         tempName[ind:(ind+pRE-1)] <-
           paste0(c("(Intercept)", temp[-length(temp)]), "_2bio", g)
         
-      } else if (x$latAsso %in% c("present", "presentlp", "pv", "pvlp")) {
+      } else if (x$latAsso %in% c("present", "presentlp")) {
         
         pRE <- 1
         tempName[ind] <- paste0("alpha2_bio", g)
@@ -225,6 +227,9 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     cat("Proportion of events:", round(x$PropEventType[2, 2]/nrow(x$cdata)*100, 2), "%\n")
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and survival data", "\n\n")
     cat("Model summary:\n")
+    if (!is.null(x$runtime)) {
+      cat("Runtime:", format_runtime(x$runtime), "\n")
+    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: Cox proportional hazard model with non-parametric baseline hazard\n\n")
     cat("Fixed effects in the longitudinal submodel: ",
@@ -264,9 +269,8 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     # ~~~~~~~~~~~~~~~~~
     # print gamma est
     # ~~~~~~~~~~~~~~~~~
-    gamma1 <- unname(x$gamma1)
-    segamma1 <- unname(x$segamma1)
-    
+    gamma1 <- x$gamma1
+    segamma1 <- x$segamma1
     dat <- data.frame(
       gamma1,
       segamma1,
