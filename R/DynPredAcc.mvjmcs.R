@@ -34,7 +34,7 @@ DynPredAcc.mvjmcs <- function(seed = 100,
   }
   
   if (is.null(maxiter)) {
-    maxiter <- 1000
+    maxiter <- 10000
   }
   
   metrics[metrics == "Brier Score"] <- "Brier Score"

@@ -58,7 +58,7 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
   survdata <- cdata[, surv.var[1:2]]
   colnames(survdata) <- c("time", "status")
   km_fit <- survival::survfit(survival::Surv(time, status != 0) ~ 1,data = survdata)
-  marsurv <- as.data.frame(fit$fittedSurv)
+
   plot(
     marsurv$V2 ~ marsurv$V1,
     type = "l",
@@ -77,7 +77,7 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
   )
   
   legend(
-    "bottomleft",
+    "topright",
     legend = c("Estimated", "Kaplan-Meier"),
     lty = c(1, 2),
     lwd = 2,
@@ -112,7 +112,7 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
   )
   
   legend(
-    "bottomright",
+    "topleft",
     legend = c("Estimated", "Nelson-Aalen"),
     lty = c(1, 2),
     lwd = 2,

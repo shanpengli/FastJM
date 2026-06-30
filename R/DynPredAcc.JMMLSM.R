@@ -30,7 +30,7 @@ DynPredAcc.JMMLSM <- function(seed = 100, object, landmark.time = NULL,
   }
   
   if (is.null(maxiter)) {
-    maxiter <- 1000
+    maxiter <- 10000
   }
   
   if (is.null(quadpoint)) {
