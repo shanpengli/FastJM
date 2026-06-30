@@ -3,7 +3,7 @@ DynPredAcc.mvjmcs <- function(seed = 100,
                              landmark.time = NULL,
                              horizon.time = NULL,
                              obs.time = NULL,
-                             maxiter = 1000,
+                             maxiter = NULL,
                              n.cv = 3,
                              quantile.width = 0.25,
                              opt = c("nlminb", "optim"),
@@ -31,6 +31,10 @@ DynPredAcc.mvjmcs <- function(seed = 100,
     if (!obs.time %in% colnames(object$ydata)) {
       stop(paste0(obs.time, " is not found in object$ydata."))
     }
+  }
+  
+  if (is.null(maxiter)) {
+    maxiter <- 1000
   }
   
   metrics[metrics == "Brier Score"] <- "Brier Score"

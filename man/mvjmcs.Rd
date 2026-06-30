@@ -132,8 +132,6 @@ An object of class \code{mvjmcs}, returned as a list containing:
 Joint modeling of multivariate longitudinal and competing risks data
 }
 \examples{
-
-
   require(FastJM)
   require(survival)
   require(future)

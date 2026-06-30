@@ -52,20 +52,71 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
   
   marsurv <- as.data.frame(x$fittedSurv)
   
+  cdata <- x$cdata
+  surv.formula <- x$SurvivalSubmodel
+  surv.var <- all.vars(surv.formula)
+  survdata <- cdata[, surv.var[1:2]]
+  colnames(survdata) <- c("time", "status")
+  km_fit <- survival::survfit(survival::Surv(time, status != 0) ~ 1,data = survdata)
+  marsurv <- as.data.frame(fit$fittedSurv)
   plot(
     marsurv$V2 ~ marsurv$V1,
     type = "l",
+    lty = 1,
+    lwd = 2,
     main = "Marginal Survival",
     ylab = "Survival Probability",
-    xlab = "Time"
+    xlab = "Time",
+    ylim = c(0, 1)
+  )
+  lines(
+    km_fit,
+    lty = 2,
+    lwd = 2,
+    conf.int = FALSE
   )
   
+  legend(
+    "bottomleft",
+    legend = c("Estimated", "Kaplan-Meier"),
+    lty = c(1, 2),
+    lwd = 2,
+    bty = "n"
+  )
+
+  na_fit <- survival::survfit(survival::Surv(time, status != 0) ~ 1,data = survdata, type = "fh2")
   plot(
-    -log(marsurv$V2) ~ marsurv$V1,
+    marsurv$V1,
+    -log(marsurv$V2),
     type = "l",
+    lwd = 2,
+    lty = 1,
+    ylim = c(
+      0,
+      max(
+        -log(marsurv$V2),
+        na_fit$cumhaz,
+        na.rm = TRUE
+      )
+    ),
     main = "Marginal Cumulative Hazard",
     ylab = "Cumulative Hazard",
     xlab = "Time"
+  )
+  
+  lines(
+    na_fit$time,
+    na_fit$cumhaz,
+    lty = 2,
+    lwd = 2
+  )
+  
+  legend(
+    "bottomright",
+    legend = c("Estimated", "Nelson-Aalen"),
+    lty = c(1, 2),
+    lwd = 2,
+    bty = "n"
   )
   
   invisible()

@@ -31,7 +31,7 @@ DynPredAcc.jmcs <- function(seed = 100, object, landmark.time = NULL, horizon.ti
   }
   
   if (is.null(maxiter)) {
-    maxiter <- 10000
+    maxiter <- 1000
   }
   
   allowed.metrics <- c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")

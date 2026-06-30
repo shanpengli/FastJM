@@ -3,12 +3,12 @@
 ##' @aliases timeplot
 ##'
 ##' @description
-##' Creates diagnostic plots for a fitted \code{jmcs} object from the
-##' \pkg{FastJM} package, specifically longitudinal biomarker trajectory, 
-##' log residual variance, and event curve. The function always produces:
+##' Creates diagnostic plots for a fitted \code{jmcs} object. The function
+##' always produces a longitudinal biomarker trajectory plot and an event curve.
+##' Optionally, it can also produce a log residual variance plot.
 ##' \enumerate{
 ##'   \item a longitudinal biomarker trajectory plot, and
-##'   \item a plot of log residual variance over follow-up time.
+##'   \item a plot of log residual variance over follow-up time (optional).
 ##' }
 ##'
 ##' It also produces one event plot based on \code{object$CompetingRisk}:
@@ -45,6 +45,8 @@
 ##'   \code{visit_col} is not supplied or not found. Default is \code{180}. For
 ##'   small-scale time variables, such as time ranging from 0 to 5, use a smaller
 ##'   value such as \code{0.5} or \code{1}.
+##' @param show_logvar Logical; if \code{TRUE}, produces an additional plot of
+##'   log residual variance over follow-up time. Default is \code{FALSE}.
 ##' @param biomarker_y_lab Optional character string for the y-axis label of the
 ##'   biomarker trajectory plot. If \code{NULL}, the name of \code{biomarker}
 ##'   is used.
@@ -154,6 +156,7 @@
 ##'     observations per subject and visit/bin after window-based filtering.}
 ##'   \item{\code{grouping_used}}{A character string indicating whether summaries
 ##'     were based on an observed visit variable or derived time bins.}
+##'   \item{\code{show_logvar}}{a logic value to indicate whether a log residual variance plot is presented.}
 ##' }
 ##'
 ##' @seealso
@@ -230,6 +233,7 @@ timeplot <- function(object,
                      seed = 100,
                      window_days = 50,
                      time_bin_width = 180,
+                     show_logvar = FALSE,
                      biomarker_y_lab = NULL,
                      logvar_y_lab = "Log Residual Variance",
                      event_x_lab = NULL,
@@ -253,7 +257,7 @@ timeplot <- function(object,
     stop("Use only with 'jmcs' objects.\n")
   
   if (is.null(n.obs) | !is.numeric(n.obs))
-    stop("Specify a numbers of subjects to be plotted.")
+    stop("Specify a number of subjects to be plotted.")
   
   ydata <- object$ydata
   cdata <- object$cdata
@@ -266,9 +270,7 @@ timeplot <- function(object,
   id_nm        <- rlang::as_name(id_col)
   time_nm      <- rlang::as_name(time_col)
   
-  if (is.null(x_lab)) {
-    x_lab <- time_nm
-  }
+  if (is.null(x_lab)) x_lab <- time_nm
   
   required_y_cols <- c(biomarker_nm, id_nm, time_nm)
   if (!all(required_y_cols %in% names(ydata))) {
@@ -288,8 +290,7 @@ timeplot <- function(object,
       visit_source <- "observed visit"
     } else {
       warning("`visit_col` was supplied but not found in object$ydata: ",
-              visit_nm,
-              ". Using derived time bins instead.")
+              visit_nm, ". Using derived time bins instead.")
       ydata <- ydata %>%
         dplyr::mutate(.visit_group = floor(.data[[time_nm]] / time_bin_width))
       visit_source <- "derived time bin"
@@ -336,80 +337,86 @@ timeplot <- function(object,
     p1 <- p1 + ggplot2::coord_cartesian(ylim = ylim_mean)
   }
   
-  subtitle2 <- if (visit_source == "observed visit") {
-    "Dark: visit-level variance"
-  } else {
-    paste0("Dark: time-bin variance (bin width = ", time_bin_width, ")")
+  p2 <- NULL
+  mean_biomarkerOneBin <- NULL
+  obs_per_subject_visit <- NULL
+  
+  if (isTRUE(show_logvar)) {
+    
+    subtitle2 <- if (visit_source == "observed visit") {
+      "Dark: visit-level variance"
+    } else {
+      paste0("Dark: time-bin variance (bin width = ", time_bin_width, ")")
+    }
+    
+    ydata_for_p2 <- ydata %>%
+      dplyr::filter(.data[[id_nm]] %in% traj_res$ids_mean)
+    
+    mean_biomarker <- ydata_for_p2 %>%
+      dplyr::group_by(.data[[".visit_group"]]) %>%
+      dplyr::summarise(
+        VisitTime      = mean(.data[[time_nm]], na.rm = TRUE),
+        LowerVisitTime = VisitTime - window_days,
+        UpperVisitTime = VisitTime + window_days,
+        .groups = "drop"
+      )
+    
+    ydataNew <- ydata_for_p2 %>%
+      dplyr::left_join(mean_biomarker, by = ".visit_group") %>%
+      dplyr::filter(
+        .data[[time_nm]] >= LowerVisitTime,
+        .data[[time_nm]] <= UpperVisitTime
+      )
+    
+    obs_per_subject_visit <- ydataNew %>%
+      dplyr::group_by(.data[[id_nm]], .data[[".visit_group"]]) %>%
+      dplyr::summarise(
+        n_obs = dplyr::n(),
+        .groups = "drop"
+      )
+    
+    mean_biomarkerOneBin <- ydataNew %>%
+      dplyr::group_by(.data[[".visit_group"]]) %>%
+      dplyr::summarise(
+        meanday = mean(.data[[time_nm]], na.rm = TRUE),
+        mean_biomarker = mean(.data[[biomarker_nm]], na.rm = TRUE),
+        meanres = mean(residual, na.rm = TRUE),
+        varres = stats::var(residual, na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      as.data.frame()
+    
+    p2 <- ggplot2::ggplot(
+      mean_biomarkerOneBin,
+      ggplot2::aes(x = meanday, y = log(varres))
+    ) +
+      ggplot2::geom_line(linewidth = 1.1, color = "grey5", na.rm = TRUE) +
+      ggplot2::geom_point(size = 1.4, color = "grey5", na.rm = TRUE) +
+      ggplot2::scale_x_continuous(
+        breaks = if (is.null(x_break_by)) {
+          ggplot2::waiver()
+        } else {
+          seq(
+            floor(min(mean_biomarkerOneBin$meanday, na.rm = TRUE)),
+            ceiling(max(mean_biomarkerOneBin$meanday, na.rm = TRUE)),
+            by = x_break_by
+          )
+        },
+        expand = ggplot2::expansion(mult = c(0.02, 0.02))
+      ) +
+      ggplot2::labs(
+        title = "Log residual variance over time",
+        subtitle = subtitle2,
+        x = x_lab,
+        y = logvar_y_lab
+      ) +
+      theme_timeplot_clean(base_size = 12)
+    
+    if (!is.null(ylim_logvar)) {
+      p2 <- p2 + ggplot2::coord_cartesian(ylim = ylim_logvar)
+    }
   }
   
-  ydata_for_p2 <- ydata %>%
-    dplyr::filter(.data[[id_nm]] %in% traj_res$ids_mean)
-  
-  mean_biomarker <- ydata_for_p2 %>%
-    dplyr::group_by(.data[[".visit_group"]]) %>%
-    dplyr::summarise(
-      VisitTime      = mean(.data[[time_nm]], na.rm = TRUE),
-      LowerVisitTime = VisitTime - window_days,
-      UpperVisitTime = VisitTime + window_days,
-      .groups = "drop"
-    )
-  
-  ydataNew <- ydata_for_p2 %>%
-    dplyr::left_join(mean_biomarker, by = ".visit_group") %>%
-    dplyr::filter(
-      .data[[time_nm]] >= LowerVisitTime,
-      .data[[time_nm]] <= UpperVisitTime
-    )
-  
-  obs_per_subject_visit <- ydataNew %>%
-    dplyr::group_by(.data[[id_nm]], .data[[".visit_group"]]) %>%
-    dplyr::summarise(
-      n_obs = dplyr::n(),
-      .groups = "drop"
-    )
-  
-  mean_biomarkerOneBin <- ydataNew %>%
-    dplyr::group_by(.data[[".visit_group"]]) %>%
-    dplyr::summarise(
-      meanday = mean(.data[[time_nm]], na.rm = TRUE),
-      mean_biomarker = mean(.data[[biomarker_nm]], na.rm = TRUE),
-      meanres = mean(residual, na.rm = TRUE),
-      varres = stats::var(residual, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    as.data.frame()
-  
-  p2 <- ggplot2::ggplot(
-    mean_biomarkerOneBin,
-    ggplot2::aes(x = meanday, y = log(varres))
-  ) +
-    ggplot2::geom_line(linewidth = 1.1, color = "grey5", na.rm = TRUE) +
-    ggplot2::geom_point(size = 1.4, color = "grey5", na.rm = TRUE) +
-    ggplot2::scale_x_continuous(
-      breaks = if (is.null(x_break_by)) {
-        ggplot2::waiver()
-      } else {
-        seq(
-          floor(min(mean_biomarkerOneBin$meanday, na.rm = TRUE)),
-          ceiling(max(mean_biomarkerOneBin$meanday, na.rm = TRUE)),
-          by = x_break_by
-        )
-      },
-      expand = ggplot2::expansion(mult = c(0.02, 0.02))
-    ) +
-    ggplot2::labs(
-      title = "Log residual variance over time",
-      subtitle = subtitle2,
-      x = x_lab,
-      y = logvar_y_lab
-    ) +
-    theme_timeplot_clean(base_size = 12)
-  
-  if (!is.null(ylim_logvar)) {
-    p2 <- p2 + ggplot2::coord_cartesian(ylim = ylim_logvar)
-  }
-  
-  # Infer event time/status columns from jmcs survival formula when not supplied.
   if (!is.null(object$SurvivalSubmodel)) {
     surv_vars <- all.vars(object$SurvivalSubmodel)
     
@@ -434,7 +441,6 @@ timeplot <- function(object,
   status_values <- sort(unique(stats::na.omit(cdata[[event_status_col]])))
   event_values <- setdiff(status_values, censor_code)
   
-  # Infer fail_code for single-failure models if possible.
   if (!isTRUE(object$CompetingRisk) && is.null(fail_code)) {
     if (length(event_values) == 1) {
       fail_code <- event_values[1]
@@ -447,7 +453,6 @@ timeplot <- function(object,
     }
   }
   
-  # For competing-risk models, the primary event cannot be inferred from the model alone.
   if (isTRUE(object$CompetingRisk) && is.null(fail_code)) {
     stop(
       "This jmcs object contains competing risks. Please supply `fail_code` to indicate the primary event. ",
@@ -456,7 +461,6 @@ timeplot <- function(object,
     )
   }
   
-  # Infer cr_code if there is exactly one other event code.
   if (isTRUE(object$CompetingRisk) && is.null(cr_code)) {
     possible_cr_codes <- setdiff(event_values, fail_code)
     
@@ -472,7 +476,11 @@ timeplot <- function(object,
   }
   
   event_res <- NULL
-  plot_list <- list(p1, p2)
+  plot_list <- list(p1)
+  
+  if (isTRUE(show_logvar)) {
+    plot_list <- append(plot_list, list(p2))
+  }
   
   if (isTRUE(object$CompetingRisk)) {
     event_res <- plot_km_or_cif(
@@ -491,6 +499,11 @@ timeplot <- function(object,
       show_cif = TRUE
     )
     
+    if (!is.null(event_y_lab)) {
+      event_res$cif_plot <- event_res$cif_plot +
+        ggplot2::labs(y = event_y_lab)
+    }
+    
     plot_list <- append(plot_list, list(event_res$cif_plot))
     
   } else {
@@ -501,7 +514,7 @@ timeplot <- function(object,
       fail_code = fail_code,
       cr_code = NULL,
       censor_code = censor_code,
-      x_lab = event_time_col,
+      x_lab = if (is.null(event_x_lab)) event_time_col else event_x_lab,
       primary_event_label = primary_event_label,
       competing_event_label = NULL,
       km_title = km_title,
@@ -510,12 +523,12 @@ timeplot <- function(object,
       show_cif = FALSE
     )
     
+    if (!is.null(event_y_lab)) {
+      event_res$km_plot <- event_res$km_plot +
+        ggplot2::labs(y = event_y_lab)
+    }
+    
     plot_list <- append(plot_list, list(event_res$km_plot))
-  }
-  
-  if (!is.null(event_y_lab)) {
-    event_res$cif_plot <- event_res$cif_plot + ggplot2::labs(y = event_y_lab)
-    event_res$km_plot  <- event_res$km_plot  + ggplot2::labs(y = event_y_lab)
   }
   
   n_plots <- length(plot_list)
@@ -551,18 +564,11 @@ timeplot <- function(object,
       heights = c(1, 1)
     )
     
-  } else if (n_plots == 3) {
-    combined <- ggpubr::ggarrange(
-      plotlist = plot_list,
-      ncol = 1,
-      nrow = 3
-    )
-    
   } else {
     combined <- ggpubr::ggarrange(
       plotlist = plot_list,
-      ncol = 2,
-      nrow = ceiling(n_plots / 2)
+      ncol = 1,
+      nrow = n_plots
     )
   }
   
@@ -583,6 +589,7 @@ timeplot <- function(object,
     censor_code = censor_code,
     summary_data = mean_biomarkerOneBin,
     obs_per_subject_visit = obs_per_subject_visit,
-    grouping_used = visit_source
+    grouping_used = visit_source,
+    show_logvar = show_logvar
   ))
 }

@@ -55,8 +55,8 @@ plot.survfitjmcs <- function(
     for (i in 1:nrow(x$Last.time)) {
       if (show[i] && !return) {
         
-        times <- c(0, as.numeric(x$Last.time[i, 2]), x$Pred[[i]][, 1])
-        probmean <- c(1, 1, x$Pred[[i]][, 2])
+        times <- c(as.numeric(x$Last.time[i, 2]), x$Pred[[i]][, 1])
+        probmean <- c(1, x$Pred[[i]][, 2])
         
         if (is.null(xlim)) xlim <- c(0, max(x$Pred[[i]][, 1]))
         
@@ -177,8 +177,8 @@ plot.survfitjmcs <- function(
         
         if (show[(i - 1) * 2 + j] && !return) {
           
-          times <- c(0, as.numeric(x$Last.time[i, 2]), x$Pred[[i]][, 1])
-          probmean <- c(0, 0, x$Pred[[i]][, j + 1])
+          times <- c(as.numeric(x$Last.time[i, 2]), x$Pred[[i]][, 1])
+          probmean <- c(0, x$Pred[[i]][, j + 1])
           
           if (!include.y) {
             
@@ -186,14 +186,10 @@ plot.survfitjmcs <- function(
               times,
               probmean,
               xlab = xlab,
-              ylab = expression(
-                paste(
-                  "Pr(", T[i] <= u, ",", D[i] == k, " | ",
-                  T[i] > s, ", ", y[i]^(s), ", ", Psi, ")",
-                  sep = " "
-                )
+              ylab = bquote(
+                Pr(T[i] <= u, D[i] == .(j) ~ "|" ~ T[i] > s, ~ y[i]^(s), ~ Psi)
               ),
-              main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "),
+              main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "),
               col = "red",
               type = "l",
               ylim = ylim.surv,
@@ -233,7 +229,7 @@ plot.survfitjmcs <- function(
               probmean,
               xlab = "",
               ylab = "",
-              main = paste("Subject", x$Last.time[i, 1], "k =", j, sep = " "),
+              main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "),
               col = "red",
               type = "l",
               ylim = ylim.surv,
@@ -244,15 +240,11 @@ plot.survfitjmcs <- function(
             axis(side = 4, at = pretty(range(ylim.surv)), line = 0)
             
             mtext(
-              expression(
-                paste(
-                  "Pr(", T[i] <= u, ",", D[i] == k, " | ",
-                  T[i] > s, ", ", y[i]^(s), ", ", Psi, ")",
-                  sep = " "
-                )
+              bquote(
+                Pr(T[i] <= u, D[i] == .(j) ~ "|" ~ T[i] > s, ~ y[i]^(s), ~ Psi)
               ),
               side = 4,
-              line = 2.5
+              line = 3.5
             )
             
             segments(

@@ -1,7 +1,7 @@
 DynPredAcc.JMMLSM <- function(seed = 100, object, landmark.time = NULL,
                              horizon.time = NULL, obs.time = NULL,
                              method = c("Laplace", "GH"),
-                             quadpoint = NULL, maxiter = 1000,
+                             quadpoint = NULL, maxiter = NULL,
                              n.cv = 3,
                              quantile.width = 0.25,
                              opt = c("nlminb", "optim"),
@@ -27,6 +27,10 @@ DynPredAcc.JMMLSM <- function(seed = 100, object, landmark.time = NULL,
     if (!obs.time %in% colnames(object$ydata)) {
       stop(paste0(obs.time, " is not found in ynewdata."))
     }
+  }
+  
+  if (is.null(maxiter)) {
+    maxiter <- 1000
   }
   
   if (is.null(quadpoint)) {
