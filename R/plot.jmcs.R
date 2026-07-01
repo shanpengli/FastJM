@@ -28,27 +28,27 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
   op <- par(mfrow = c(2, 2))
   on.exit(par(op), add = TRUE)
   
-  residuals <- x$fitted$resid
+  resid.values <- x$fitted$resid
   fitted <- x$fitted$fitted
   
   plot(
-    fitted, residuals,
+    fitted, resid.values,
     xlab = "Fitted Values",
     ylab = "Residuals",
     main = "Residuals vs Fitted"
   )
   if (isTRUE(add.smooth)) {
     abline(h = 0, lty = 3, col = "grey", lwd = 2)
-    panel.smooth(fitted, residuals, lwd = 2)
+    panel.smooth(fitted, resid.values, lwd = 2)
   }
   
   qqnorm(
-    residuals,
+    resid.values,
     ylab = "Standardized Residuals",
     main = "Normal Q-Q",
     ...
   )
-  qqline(residuals, lty = 3, col = "grey50")
+  qqline(resid.values, lty = 3, col = "grey50")
   
   marsurv <- as.data.frame(x$fittedSurv)
   

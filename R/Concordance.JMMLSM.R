@@ -1,19 +1,3 @@
-##' @title Concordance for joint models
-##' @name Concordance
-##' @aliases Concordance.JMMLSM
-##' @param seed a numeric value of seed to be specified for cross validation.
-##' @param object object of class 'JMMLSM'.
-##' @param n.cv number of folds for cross validation. Default is 3.
-##' @param maxiter the maximum number of iterations of the EM algorithm that the 
-##' function will perform. Default is 10000.
-##' @param initial.para Initial guess of parameters for cross validation. Default is FALSE.
-##' @param ... Further arguments passed to or from other methods.
-##' @return a list of matrices with conditional probabilities for subjects.
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{JMMLSM}}
-##' @export
-##' 
-
 Concordance.JMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
                               initial.para = TRUE, ...) {
   
@@ -195,7 +179,7 @@ Concordance.JMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
   }
   result <- list(n.cv = n.cv, Concordance.cv = Concordance.cv, PI.cv = PI.cv,
                  CompetingRisk = CompetingRisk, seed = seed)
-  class(result) <- "ConcordanceJMMLSM"
+  class(result) <- "Concordance"
   
   return(result)
   

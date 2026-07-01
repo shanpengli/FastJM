@@ -1,6 +1,7 @@
 ##' @title Residuals for joint models
-##' @name residuals
+##' @name residuals.jmcs
 ##' @aliases residuals.jmcs
+##' @method residuals jmcs
 ##' @description Extract residuals for joint models.
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param type what type of residuals to calculate. 

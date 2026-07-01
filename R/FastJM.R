@@ -8,7 +8,7 @@
 #' @importFrom MASS mvrnorm
 #' @importFrom pec ipcw
 #' @importFrom magrittr %>%
-#' @importFrom stats sd as.formula fitted median na.omit rexp rnorm optim pnorm qqline qqnorm quantile vcov model.matrix model.frame runif pchisq complete.cases rbeta
+#' @importFrom stats sd as.formula fitted median na.omit rexp residuals rnorm optim pnorm qqline qqnorm quantile vcov model.matrix model.frame runif pchisq complete.cases rbeta
 #' @importFrom future plan multisession
 #' @importFrom future.apply future_lapply
 #' @importFrom utils combn head read.table
