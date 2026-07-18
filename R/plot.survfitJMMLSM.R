@@ -59,7 +59,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
         } else {
           if (is.null(ylab)) ylab = "Longitudinal outcome"
           plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = xlim, axes = TRUE, xlab = xlab, 
-               ylab = "", type = "p", pch = 8, ylim = ylim.long)
+               ylab = "", type = "b", pch = 8, ylim = ylim.long)
           title(ylab = ylab, line=2.5)
           par(new = TRUE)    
           plot(times, probmean, xlab = "", ylab = "", 
@@ -113,7 +113,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
           } else {
             if (is.null(ylab)) ylab = "Longitudinal outcome"
             plot(x$y.obs[[i]][, 1], x$y.obs[[i]][, 2], xlim = xlim, axes = TRUE, 
-                 xlab = xlab, ylab = "", type = "p", pch = 8, ylim = ylim.long)
+                 xlab = xlab, ylab = "", type = "b", pch = 8, ylim = ylim.long)
             title(ylab = ylab, line=2.5)
             par(new = TRUE)    
             plot(times, probmean, xlab = "", ylab = "", 

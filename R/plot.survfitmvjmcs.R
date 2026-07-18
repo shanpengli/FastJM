@@ -1,4 +1,4 @@
-##' @title Plot predictions from a multivariate joint model
+##' @title Plot conditional probabilities for new subjects
 ##' @name plot
 ##' @aliases plot.survfitmvjmcs
 ##'
@@ -17,58 +17,43 @@
 ##' @param include.y Logical; retained for consistency with other plotting
 ##' methods. The current method always displays longitudinal biomarker panels.
 ##' Default is \code{TRUE}.
-##' @param surv.panel A character to specify where the predicted
-##' survival or cumulative incidence curve is displayed. Options are
-##' \code{"first"} to overlay the curve on the first biomarker panel,
-##' \code{"last"} to overlay it on the last biomarker panel, \code{"all"} to
-##' overlay it on all biomarker panels. Default is \code{"first"}.
 ##' @param xlab X axis label.
 ##' @param ylab Y axis label.
 ##' @param xlim X axis support.
-##' @param ylim.long Y axis support for the longitudinal outcome.
 ##' @param ylim.surv Y axis support for the event / survival probability.
 ##' @param ... Additional graphical arguments passed to the biomarker point plot.
 ##'
-##' @return Invisibly returns \code{x}. The function is called for its plotting
-##' side effect.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @seealso \code{\link{survfitmvjmcs}}
 ##' @export
 
-plot.survfitmvjmcs <- function(
-    x,
-    subject = NULL,
-    risk = 1,
-    include.y = TRUE,
-    surv.panel = "first",
-    xlab = "Time", 
-    ylab = NULL, 
-    xlim = NULL, 
-    ylim.long = NULL, 
-    ylim.surv = c(0, 1),
-    ...
-) {
+plot.survfitmvjmcs <- function(x,
+                               subject = NULL,
+                               risk = 1,
+                               include.y = TRUE,
+                               xlab = NULL, ylab = NULL, 
+                               xlim = NULL,
+                               ylim.surv = NULL, 
+                               ...) {
   
   if (!inherits(x, "survfitmvjmcs")) {
     stop("Use only with 'survfitmvjmcs' objects.\n")
   }
   
-  # Reset plotting overlay state in case a previous failed plot left par(new = TRUE).
-  # This helps avoid warnings like:
+  # Reset plotting overlay state in case a previous failed plot left par(new = TRUE)
+  # Helps avoid warnings like:
   #   "calling par(new=TRUE) with no plot"
   par(new = FALSE)
   
-  xlab <- "Time"
-  xlim <- NULL
-  ylim.long <- NULL
-  ylim.surv <- c(0, 1)
+  if (is.null(xlab)) xlab <- "Time"
+  if (is.null(ylim.surv)) ylim.surv <- c(0, 1)
   
   col.surv <- "red"
   lwd.surv <- 2.5
   
   col.points <- "black"
-  pch <- 8
-  cex.points <- 1.2
+  pch.points <- 16
+  cex.points <- 0.75
   
   lwd.landmark <- 1.2
   lwd.box <- 1.3
@@ -81,14 +66,14 @@ plot.survfitmvjmcs <- function(
   subject.ids <- x$Last.time[, 1]
   subject.ids.char <- as.character(subject.ids)
   
-  # If subject is NULL, plot every subject in x$Last.time.
+  # If subject is NULL, plot every subject in x$Last.time
   if (is.null(subject)) {
     
     subject.indices <- seq_along(subject.ids)
     
   } else {
     
-    # First try matching by actual subject ID.
+    # First try matching by actual subject ID
     subject.match <- match(as.character(subject), subject.ids.char)
     
     if (all(!is.na(subject.match))) {
@@ -100,7 +85,7 @@ plot.survfitmvjmcs <- function(
       all(subject %in% seq_along(subject.ids))
     ) {
       
-      # If matching by subject ID fails, allow numeric indexing.
+      # If matching by subject ID fails, allow numeric indexing
       subject.indices <- as.integer(subject)
       
     } else {
@@ -112,36 +97,19 @@ plot.survfitmvjmcs <- function(
     }
   }
   
-  
   numBio <- length(x$y.obs)
   
   if (numBio < 1) {
     stop("No longitudinal biomarker data found in x$y.obs.")
   }
   
-  
-  # Decide which stacked panel gets the red survival/CIF curve
-  if (identical(surv.panel, "all")) {
-    
-    surv.panels <- seq_len(numBio)
-    
-  } else if (identical(surv.panel, "last")) {
-    
-    surv.panels <- numBio
-    
-  } else if (identical(surv.panel, "first")) {
-    
-    surv.panels <- 1
-    
-  } else if (is.numeric(surv.panel) && surv.panel %in% seq_len(numBio)) {
-    
-    surv.panels <- as.integer(surv.panel)
-    
-  } else {
-    
-    stop("surv.panel must be 'all', 'last', 'first', or a valid biomarker number.")
+  if (!x$CompetingRisk) {
+    stop("This panel plot is intended for competing-risk survfitmvjmcs objects.")
   }
   
+  if (length(subject.indices) < 2) {
+    stop("Need at least two subjects, e.g., subject = c(2432, 4157).")
+  }
   
   # Recover real biomarker names
   biomarker.names <- names(x$y.obs)
@@ -176,8 +144,7 @@ plot.survfitmvjmcs <- function(
     })
   }
   
-  ylab <- biomarker.names
-  
+  if (is.null(ylab)) ylab <- biomarker.names
   
   # Plot dimensions / graphical parameters
   oldpar <- par(c("mfrow", "mar", "oma", "mgp", "tcl", "ask"))
@@ -187,306 +154,262 @@ plot.survfitmvjmcs <- function(
     do.call(par, oldpar)
   }, add = TRUE)
   
+  n.subjects.panel <- length(subject.indices)
+  n.rows.panel <- numBio + 1
   
-  # If plotting multiple subjects interactively, show one subject at a time.
-  if (length(subject.indices) > 1 && interactive()) {
-    par(ask = TRUE)
+  # Use one page for all selected subjects
+  # Rows = biomarkers + CIF row
+  # Columns = selected subjects
+  par(
+    mfrow = c(n.rows.panel, n.subjects.panel),
+    oma = c(3.0, 3.8, 3.0, 1.5),
+    mgp = c(1.8, 0.5, 0),
+    tcl = -0.25,
+    ask = FALSE
+  )
+  
+  # Same x-axis range across all panels
+  all.panel.times <- c()
+  
+  for (ii in subject.indices) {
+    
+    all.panel.times <- c(all.panel.times, x$Pred[[ii]][, 1])
+    
+    for (g in seq_len(numBio)) {
+      if (!is.null(x$y.obs[[g]][[ii]])) {
+        all.panel.times <- c(all.panel.times, x$y.obs[[g]][[ii]][, 1])
+      }
+    }
   }
   
+  xlim <- c(0, max(all.panel.times, na.rm = TRUE))
   
-  # Looping over subjects
-  for (i in subject.indices) {
+  # Same y-axis range for each biomarker across all selected subjects
+  # This makes side-by-side subject comparisons easier
+  ylim.panel.long <- vector("list", numBio)
+  
+  for (g in seq_len(numBio)) {
     
-    subject.id <- x$Last.time[i, 1]
-    last.time <- as.numeric(x$Last.time[i, 2])
+    all.y.g <- c()
     
-    # Extract prediction curve for subject.
-    pred.times.full <- x$Pred[[i]][, 1]
-    
-    # Keep prediction times only at or after the landmark time.
-    #
-    # This removes the artificial flat red line before the vertical landmark.
-    # In the older version, the curve used:
-    #   times <- c(0, last.time, pred.times)
-    # which forced a red line from time 0 to last.time.
-    #
-    # Now the curve starts at last.time instead.
-    keep.pred <- pred.times.full >= last.time
-    pred.times <- pred.times.full[keep.pred]
-    
-    
-    # Single failure type case
-    
-    if (!x$CompetingRisk) {
+    for (ii in subject.indices) {
       
-      # Single failure / survival probability case.
-      pred.probs <- x$Pred[[i]][keep.pred, 2]
+      ydat.g <- x$y.obs[[g]][[ii]]
       
-      # Start curve at landmark time.
-      #
-      # Survival probability is 1 at the landmark because the plotted quantity
-      # is conditional on the subject surviving past the landmark time s.
-      times <- c(last.time, pred.times)
-      probmean <- c(1, pred.probs)
-      
-      prob.ylab <- expression(
-        paste(
-          "Pr(", T[i] >= u, " | ", T[i] > s,
-          ", ", y[i]^(s), ", ", Psi, ")",
-          sep = " "
-        )
-      )
-      
-      main.title <- paste("Subject", subject.id, "- Single failure type")
-      
-    } else {
-      
-      # Competing risk / cumulative incidence case.
-      n.risks <- ncol(x$Pred[[i]]) - 1
-      
-      if (!risk %in% seq_len(n.risks)) {
-        stop("Requested risk is not available in x$Pred[[subject]].")
+      if (!is.null(ydat.g) && nrow(ydat.g) > 0) {
+        all.y.g <- c(all.y.g, ydat.g[, 2])
       }
-      
-      pred.probs <- x$Pred[[i]][keep.pred, risk + 1]
-      
-      # Start curve at landmark time.
-      #
-      # CIF is 0 at the landmark because the plotted quantity is conditional
-      # on no event occurring before landmark time s.
-      times <- c(last.time, pred.times)
-      probmean <- c(0, pred.probs)
-      
-      prob.ylab <- bquote(
-        Pr(T[i] <= u, D[i] == .(risk) ~ "|" ~
-             T[i] > s, y[i]^{(s)}, Psi)
-      )
-      
-      main.title <- paste(
-        "Subject",
-        subject.id,
-        "- Competing risks: risk",
-        risk
-      )
     }
     
+    ylim.g <- range(all.y.g, na.rm = TRUE)
     
-    # x-axis specifications
-    if (is.null(xlim)) {
-      
-      all.long.times <- c()
-      
-      for (g in seq_len(numBio)) {
-        if (!is.null(x$y.obs[[g]][[i]])) {
-          all.long.times <- c(all.long.times, x$y.obs[[g]][[i]][, 1])
-        }
-      }
-      
-      xlim.i <- c(
-        0,
-        max(c(pred.times.full, all.long.times), na.rm = TRUE)
-      )
-      
-    } else {
-      
-      xlim.i <- xlim
+    if (diff(ylim.g) == 0) {
+      ylim.g <- ylim.g + c(-0.5, 0.5)
     }
     
+    ylim.panel.long[[g]] <- ylim.g
+  }
+  
+  # Plot biomarker rows.
+  for (g in seq_len(numBio)) {
     
-    # Stacked layout for each subject
-    par(
-      mfrow = c(numBio, 1),
-      oma = c(2.6, 0, 2.0, 3.2),
-      mgp = c(1.8, 0.5, 0),
-      tcl = -0.25
-    )
-    
-    
-    # Plot one biomarker per row
-    for (g in seq_len(numBio)) {
+    for (col.i in seq_along(subject.indices)) {
       
-      ydat <- x$y.obs[[g]][[i]]
+      ii <- subject.indices[col.i]
+      
+      subject.id.panel <- x$Last.time[ii, 1]
+      last.time.panel <- as.numeric(x$Last.time[ii, 2])
+      
+      ydat <- x$y.obs[[g]][[ii]]
+      
+      # PANEL MARGINS
+      if (g == 1) {
+        
+        # Top biomarker row.
+        par(mar = c(0.3, 3.2, 1.4, 0.6))
+        
+      } else {
+        
+        # Middle biomarker rows.
+        par(mar = c(0.3, 3.2, 0.3, 0.6))
+      }
       
       if (is.null(ydat) || nrow(ydat) == 0) {
+        
+        plot(
+          NA,
+          NA,
+          xlim = xlim,
+          ylim = ylim.panel.long[[g]],
+          xlab = "",
+          ylab = "",
+          axes = FALSE
+        )
+        
         warning(
           paste(
             "No longitudinal observations found for biomarker",
             g,
             "and subject",
-            subject.id
+            subject.id.panel
           )
         )
-        next
-      }
-      
-      ytime <- ydat[, 1]
-      yvalue <- ydat[, 2]
-      
-      
-      # Biomarker y-axis
-      if (is.null(ylim.long)) {
-        
-        ylim.g <- range(yvalue, na.rm = TRUE)
-        
-        if (diff(ylim.g) == 0) {
-          ylim.g <- ylim.g + c(-0.5, 0.5)
-        }
-        
-      } else if (is.list(ylim.long)) {
-        
-        ylim.g <- ylim.long[[g]]
         
       } else {
         
-        ylim.g <- ylim.long
+        ytime <- ydat[, 1]
+        yvalue <- ydat[, 2]
+        
+        plot(
+          ytime,
+          yvalue,
+          xlim = xlim,
+          ylim = ylim.panel.long[[g]],
+          xlab = "",
+          ylab = "",
+          type = "b",
+          pch = pch.points,
+          cex = cex.points,
+          lwd = 1.1,
+          col = col.points,
+          axes = FALSE,
+          ...
+        )
       }
       
-      
-      # PANEL MARGINS
-      if (numBio == 1) {
+      # Left y-axis only for the first column
+      if (col.i == 1) {
+        axis(
+          side = 2,
+          lwd = lwd.axis,
+          lwd.ticks = lwd.axis,
+          cex.axis = cex.axis
+        )
         
-        par(mar = c(3.0, 3.8, 1.5, 3.2))
-        
-      } else if (g == 1) {
-        
-        # Top panel: small bottom margin
-        par(mar = c(0.3, 3.8, 0.9, 3.2))
-        
-      } else if (g == numBio) {
-        
-        # Bottom panel: small top margin
-        par(mar = c(2.4, 3.8, 0.3, 3.2))
-        
-      } else {
-        
-        # Middle panels: minimal vertical margin
-        par(mar = c(0.3, 3.8, 0.3, 3.2))
+        mtext(
+          ylab[g],
+          side = 2,
+          line = 2.3,
+          cex = cex.lab
+        )
       }
       
+      # Top title only on first biomarker row.
+      if (g == 1) {
+        title(
+          main = paste("Subject", subject.id.panel),
+          cex.main = 0.95,
+          line = 0.4
+        )
+      }
       
-      # Main biomarker plot
-      plot(
-        ytime,
-        yvalue,
-        xlim = xlim.i,
-        ylim = ylim.g,
-        xlab = "",
-        ylab = "",
-        type = "p",
-        pch = pch,
-        cex = cex.points,
-        col = col.points,
-        axes = FALSE,
-        ...
+      box(lwd = lwd.box)
+      
+      # Landmark line.
+      segments(
+        x0 = last.time.panel,
+        x1 = last.time.panel,
+        y0 = ylim.panel.long[[g]][1],
+        y1 = ylim.panel.long[[g]][2],
+        lwd = lwd.landmark,
+        col = "black"
       )
-      
-      
-      # Left biomarker axis
+    }
+  }
+  
+  # Plot bottom CIF row
+  for (col.i in seq_along(subject.indices)) {
+    
+    ii <- subject.indices[col.i]
+    
+    last.time.panel <- as.numeric(x$Last.time[ii, 2])
+    pred.times.full.panel <- x$Pred[[ii]][, 1]
+    
+    keep.pred.panel <- pred.times.full.panel >= last.time.panel
+    pred.times.panel <- pred.times.full.panel[keep.pred.panel]
+    
+    n.risks.panel <- ncol(x$Pred[[ii]]) - 1
+    
+    if (!risk %in% seq_len(n.risks.panel)) {
+      stop("Requested risk is not available in x$Pred[[subject]].")
+    }
+    
+    pred.probs.panel <- x$Pred[[ii]][keep.pred.panel, risk + 1]
+    
+    # Start curve at landmark time.
+    #
+    # CIF is 0 at the landmark because the plotted quantity is conditional
+    # on no event occurring before landmark time s
+    times.panel <- c(last.time.panel, pred.times.panel)
+    probmean.panel <- c(0, pred.probs.panel)
+    
+    par(mar = c(2.4, 3.2, 0.3, 0.6))
+    
+    plot(
+      times.panel,
+      probmean.panel,
+      xlim = xlim,
+      ylim = ylim.surv,
+      xlab = "",
+      ylab = "",
+      type = "l",
+      col = col.surv,
+      lwd = lwd.surv,
+      axes = FALSE
+    )
+    
+    # Left y-axis only for first column.
+    if (col.i == 1) {
       axis(
         side = 2,
+        at = pretty(ylim.surv),
         lwd = lwd.axis,
         lwd.ticks = lwd.axis,
         cex.axis = cex.axis
       )
       
-      
-      # Left biomarker label
       mtext(
-        ylab[g],
+        "CIF",
         side = 2,
-        line = 2.4,
+        line = 2.3,
         cex = cex.lab
       )
-      
-      
-      # Bottom time axis only on final biomarker panel
-      if (g == numBio) {
-        axis(
-          side = 1,
-          lwd = lwd.axis,
-          lwd.ticks = lwd.axis,
-          cex.axis = cex.axis
-        )
-      }
-      
-      
-      # Border before overlay
-      box(lwd = lwd.box)
-      
-      
-      # Landmark line
-      segments(
-        x0 = last.time,
-        x1 = last.time,
-        y0 = ylim.g[1],
-        y1 = ylim.g[2],
-        lwd = lwd.landmark,
-        col = "black"
-      )
-      
-      
-      # Survival/CIF overlay
-      if (g %in% surv.panels) {
-        
-        # Plotting survival/CIF curve.
-        par(new = TRUE)
-        
-        plot(
-          times,
-          probmean,
-          xlim = xlim.i,
-          ylim = ylim.surv,
-          xlab = "",
-          ylab = "",
-          type = "l",
-          col = col.surv,
-          lwd = lwd.surv,
-          axes = FALSE
-        )
-        
-        # Right probability axis for this panel.
-        axis(
-          side = 4,
-          at = pretty(ylim.surv),
-          las = 2,
-          lwd = lwd.axis,
-          lwd.ticks = lwd.axis,
-          cex.axis = cex.axis
-        )
-        
-        # Redraw border after overlay.
-        box(lwd = lwd.box)
-      }
     }
     
-    
-    # Labels
-    mtext(
-      main.title,
-      side = 3,
-      outer = TRUE,
-      line = 0.5,
-      font = 2,
-      cex = cex.main
-    )
-    
-    mtext(
-      xlab,
+    # Bottom x-axis for the CIF row
+    axis(
       side = 1,
-      outer = TRUE,
-      line = 1.1,
-      cex = cex.lab
+      lwd = lwd.axis,
+      lwd.ticks = lwd.axis,
+      cex.axis = cex.axis
     )
     
-    # Centered right-side probability label across all biomarker panels.
-    mtext(
-      prob.ylab,
-      side = 4,
-      outer = TRUE,
-      line = 2.0,
-      cex = cex.lab
+    box(lwd = lwd.box)
+    
+    # Landmark line
+    segments(
+      x0 = last.time.panel,
+      x1 = last.time.panel,
+      y0 = ylim.surv[1],
+      y1 = ylim.surv[2],
+      lwd = lwd.landmark,
+      col = "black"
     )
   }
+  
+  # Labels.
+  mtext(paste("Competing risks: risk", risk),
+        side = 3,
+        outer = TRUE,
+        line = 1.0,
+        font = 2,
+        cex = cex.main)
+  
+  mtext(xlab,
+        side = 1,
+        outer = TRUE,
+        line = 1.1,
+        cex = cex.lab)
   
   invisible(x)
 }

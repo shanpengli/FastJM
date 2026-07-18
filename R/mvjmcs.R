@@ -99,6 +99,9 @@
 ##'   \item{\code{id}}{The grouping vector for the longitudinal outcomes.}
 ##'   \item{\code{runtime}}{The total computation time.}
 ##'   \item{\code{latAsso}}{The pre-specified latent association structure.}
+##'   \item{\code{landmark}}{The logical value indicating whether landmarking is used.}
+##'   \item{\code{s}}{The pre-specified landmark time.}
+##'   \item{\code{ytime}}{The name of the longitudinal time variable.}
 ##' }
 ##'
 ##' @examples
@@ -631,7 +634,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
-                   runtime = runtime, latAsso = latAsso)
+                   runtime = runtime, latAsso = latAsso, landmark = landmark, s = s, ytime = ytime)
     
     class(result) <- "mvjmcs"
     
@@ -926,7 +929,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
-                   runtime = runtime, latAsso = latAsso)
+                   runtime = runtime, latAsso = latAsso, landmark = landmark, s = s, ytime = ytime)
     
     class(result) <- "mvjmcs"
     

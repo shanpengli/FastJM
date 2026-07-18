@@ -103,7 +103,7 @@ plot.survfitjmcs <- function(
             axes = TRUE,
             xlab = xlab,
             ylab = "",
-            type = "p",
+            type = "b",
             pch = 8,
             ylim = ylim.long
           )
@@ -215,7 +215,7 @@ plot.survfitjmcs <- function(
               axes = TRUE,
               xlab = xlab,
               ylab = "",
-              type = "p",
+              type = "b",
               pch = 8,
               ylim = ylim.long
             )

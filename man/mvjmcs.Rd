@@ -126,6 +126,9 @@ An object of class \code{mvjmcs}, returned as a list containing:
   \item{\code{id}}{The grouping vector for the longitudinal outcomes.}
   \item{\code{runtime}}{The total computation time.}
   \item{\code{latAsso}}{The pre-specified latent association structure.}
+  \item{\code{landmark}}{The logical value indicating whether landmarking is used.}
+  \item{\code{s}}{The pre-specified landmark time.}
+  \item{\code{ytime}}{The name of the longitudinal time variable.}
 }
 }
 \description{
