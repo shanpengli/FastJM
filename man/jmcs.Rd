@@ -162,9 +162,6 @@ summary(res, metric = "MAEQ")
 summary(res, metric = "AUC")
 summary(res, metric = "Cindex")
 
-# Print time-independent concordance index
-Concord <- Concordance(seed = 100, fit, n.cv = 3)
-summary(Concord)
 }
 
 }
