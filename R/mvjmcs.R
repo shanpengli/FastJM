@@ -63,6 +63,7 @@
 ##'   \item{\code{convergence}}{Convergence identifier: \code{1} indicates
 ##'   successful convergence, whereas \code{0} indicates a convergence problem,
 ##'   often requiring more iterations.}
+##'   \item{tol}{the convergence parameter.}
 ##'   \item{\code{vcov}}{The variance-covariance matrix of all fixed-effect
 ##'   parameters.}
 ##'   \item{\code{FisherInfo}}{The empirical Fisher information matrix.}
@@ -628,7 +629,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, gamma2 = gamma2, 
                    alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
-                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
+                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, tol = tol,
                    vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2,
                    sealpha1 = sealpha1, sealpha2 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 

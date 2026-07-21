@@ -4,6 +4,10 @@ output: github_document
 
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
+  fig.width = 12,
+  fig.height = 12,
+  out.width = "100%",
+  dpi = 150,
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-"
@@ -107,7 +111,7 @@ summary(res, metric = "Cindex")
 
 Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
 ```{r}
-Concord <- Concordance.jmcs(seed = 100, fit, n.cv = 3)
+Concord <- Concordance(seed = 100, fit, n.cv = 3)
 summary(Concord)
 ```
 
@@ -186,6 +190,25 @@ summary(res, metric = "AUC")
 summary(res, metric = "Cindex")
 ```
 
+### Landmark Multivariate Joint Model
+
+An alternative approach to characterize flexible latent associations is a landmark multivariate joint model, which specifies a landmark time so that only subjects who remain event-free beyond the landmark time contribute to the model fitting. Here, we consider the current value of the latent process as the association structure in the survival sub-model.
+```{r}
+fit.mvlm <- mvjmcs(ydata = mvydata, cdata = mvcdata,
+                   long.formula = list(Y1 ~ X11 + X12 + time,
+                                       Y2 ~ X11 + X12 + time),
+                   random = list(~ time | ID,
+                            ~ 1 | ID),
+                   surv.formula = Surv(survtime, cmprsk) ~ X21 + X22,
+                   control = mvjmcs_control(opt = "optim",
+                                            cpu.cores = parallel::detectCores()),
+                   latAsso = "presentlp",
+                   landmark = TRUE,
+                   s = 4,
+                   ytime = "time")
+fit.mvlm
+```
+
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
 
 - ydatah: longitudinal data for a **single** biomarker per patient
@@ -233,12 +256,6 @@ summary(res, metric = "MAE")
 summary(res, metric = "MAEQ")
 summary(res, metric = "AUC")
 summary(res, metric = "Cindex")
-```
-
-Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
-```{r}
-Concord <- Concordance.JMMLSM(seed = 100, fit, n.cv = 3)
-summary(Concord)
 ```
 ### Simulate Data (Optional)
 

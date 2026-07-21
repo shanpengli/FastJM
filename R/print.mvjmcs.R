@@ -28,7 +28,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
       random <- x$random
       if (is.list(random)) {
         random.form <- all.vars(random[[1]])
-        ID <- random.form[length(random.form[[1]])]
+        ID <- random.form[length(random.form)]
       } else {
         random.form <- all.vars(random)
         ID <- random.form[length(random.form)]
@@ -266,7 +266,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
       random <- x$random
       if (is.list(random)) {
         random.form <- all.vars(random[[1]])
-        ID <- random.form[length(random.form[[1]])]
+        ID <- random.form[length(random.form)]
       } else {
         random.form <- all.vars(random)
         ID <- random.form[length(random.form)]
@@ -344,7 +344,6 @@ print.mvjmcs <- function(x, digits = 4, ...) {
       2 * pnorm(-abs(gamma1 / segamma1))
     )
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    rownames(dat) <- paste0("gamma", seq_along(gamma1))
     
     dat[, 1:3] <- round(dat[, 1:3], digits + 1)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])

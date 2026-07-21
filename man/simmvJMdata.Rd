@@ -12,13 +12,13 @@ simmvJMdata(
   sigma = c(0.5, 0.5),
   gamma1 = c(1, 0.5),
   gamma2 = c(-0.5, 0.5),
-  alpha1 = list(alpha11 = c(0.5), alpha12 = c(-0.5)),
-  alpha2 = list(alpha21 = c(0.5, 0.7), alpha22 = c(-0.5, 0.5)),
+  alpha1 = list(alpha11 = c(0.5), alpha12 = c(-0.5, 0.5)),
+  alpha2 = list(alpha21 = c(0.5), alpha22 = c(-0.5, 0.5)),
   lambda1 = 0.05,
   lambda2 = 0.025,
   CL = 5,
   CU = 10,
-  covb = diag(rep(1, 4)),
+  covb = diag(rep(1, 3)),
   missprob = 0,
   CR = TRUE
 )

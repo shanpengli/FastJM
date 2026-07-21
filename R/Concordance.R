@@ -4,7 +4,7 @@
 ##'
 ##' @param seed A numeric value used to set the random seed for cross-validation.
 ##' Default is \code{100}.
-##' @param object A fitted object of class \code{jmcs} or \code{JMMLSM}.
+##' @param object A fitted object of class \code{jmcs}, \code{JMMLSM}, or \code{mvjmcs}.
 ##' @param n.cv Number of cross-validation folds. Default is \code{3}.
 ##' @param maxiter Maximum number of EM iterations allowed when refitting the
 ##' model within each cross-validation fold. Default is \code{10000}.
@@ -27,8 +27,8 @@
 Concordance <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
                         initial.para = TRUE, ...) {
   
-  if (!any(class(object) %in% c("jmcs", "JMMLSM"))) {
-    stop("Use only with 'jmcs' or 'JMMLSM' objects.\n")
+  if (!any(class(object) %in% c("jmcs", "JMMLSM", "mvjmcs"))) {
+    stop("Use only with 'jmcs', 'JMMLSM', or 'mvjmcs' objects.\n")
   }
   
   if (inherits(object, "jmcs")) {
@@ -38,6 +38,13 @@ Concordance <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
                             maxiter = maxiter,
                             initial.para = initial.para,
                             ...)
+  } else if (inherits(object, "mvjmcs")) {
+    res <- Concordance.mvjmcs(seed = seed,
+                              object = object,
+                              n.cv = n.cv,
+                              maxiter = maxiter,
+                              initial.para = initial.para,
+                              ...)
   } else {
     res <- Concordance.JMMLSM(seed = seed,
                               object = object,

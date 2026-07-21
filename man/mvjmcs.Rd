@@ -90,6 +90,7 @@ An object of class \code{mvjmcs}, returned as a list containing:
   \item{\code{convergence}}{Convergence identifier: \code{1} indicates
   successful convergence, whereas \code{0} indicates a convergence problem,
   often requiring more iterations.}
+  \item{tol}{the convergence parameter.}
   \item{\code{vcov}}{The variance-covariance matrix of all fixed-effect
   parameters.}
   \item{\code{FisherInfo}}{The empirical Fisher information matrix.}

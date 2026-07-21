@@ -116,12 +116,12 @@ joint model.
 plot(fit)
 ```
 
-![](man/figures/README-unnamed-chunk-3-1.png)<!-- --> We can further
-examine the fitted joint model using diagnostic plots. The `timeplot()`
-function displays the longitudinal biomarker trajectories, the empirical
-log residual variance over follow-up time, and the event process. For
-competing-risk models, the event plot is shown as cumulative incidence
-curves for the specified event types.
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" /> We
+can further examine the fitted joint model using diagnostic plots. The
+`timeplot()` function displays the longitudinal biomarker trajectories,
+the empirical log residual variance over follow-up time, and the event
+process. For competing-risk models, the event plot is shown as
+cumulative incidence curves for the specified event types.
 
 The log residual variance plot is intended as an exploratory diagnostic.
 Apparent changes over time may reflect departures from constant residual
@@ -146,7 +146,7 @@ crplot <- timeplot(
 )
 ```
 
-![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
 The `FastJM` package can make dynamic prediction given the longitudinal
 history information. Below is a toy example for competing risks data.
@@ -166,7 +166,7 @@ survfit <- survfitJM(fit,
 survfit
 #> 
 #> Prediction of Conditional Probabilities of Event
-#> based on the pseudo-adaptive Guass-Hermite quadrature rule with 6 quadrature points
+#> based on the pseudo-adaptive Gauss-Hermite quadrature rule with 6 quadrature points
 #> $`218`
 #>       times       CIF1      CIF2
 #> 1  2.441634 0.00000000 0.0000000
@@ -263,13 +263,13 @@ time period, evaluated by the linear predictor of the (cause-specific)
 Cox model.
 
 ``` r
-Concord <- Concordance.jmcs(seed = 100, fit, n.cv = 3)
+Concord <- Concordance(seed = 100, fit, n.cv = 3)
 #> The 1 th validation is done!
 #> The 2 th validation is done!
 #> The 3 th validation is done!
 summary(Concord)
 #>   Concordance1 Concordance2
-#> 1    0.6721619    0.7037879
+#> 1       0.6722       0.7038
 ```
 
 ## Multi-biomarker Joint Model (`mvjmcs`)
@@ -306,7 +306,7 @@ mvfit
 #> Model Type: joint modeling of multivariate longitudinal continuous and competing risks data 
 #> 
 #> Model summary:
-#> Runtime: 33.05 seconds 
+#> Runtime: 25.95 seconds 
 #> Longitudinal process: linear mixed effects model
 #> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
 #> 
@@ -418,19 +418,6 @@ failure will be presented.
 
 ``` r
 require(dplyr)
-#> Loading required package: dplyr
-#> Warning: package 'dplyr' was built under R version 4.5.2
-#> 
-#> Attaching package: 'dplyr'
-#> The following object is masked from 'package:MASS':
-#> 
-#>     select
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 set.seed(08252025)
 sampleID <- sample(mvcdata$ID, 5, replace = FALSE)
 
@@ -545,6 +532,94 @@ summary(res, metric = "Cindex")
 #> 4.4          4.4  0.8256  0.6927
 ```
 
+### Landmark Multivariate Joint Model
+
+An alternative approach to characterize flexible latent associations is
+a landmark multivariate joint model, which specifies a landmark time so
+that only subjects who remain event-free beyond the landmark time
+contribute to the model fitting. Here, we consider the current value of
+the latent process as the association structure in the
+survival sub-model.
+
+``` r
+fit.mvlm <- mvjmcs(ydata = mvydata, cdata = mvcdata,
+                   long.formula = list(Y1 ~ X11 + X12 + time,
+                                       Y2 ~ X11 + X12 + time),
+                   random = list(~ time | ID,
+                            ~ 1 | ID),
+                   surv.formula = Surv(survtime, cmprsk) ~ X21 + X22,
+                   control = mvjmcs_control(opt = "optim",
+                                            cpu.cores = parallel::detectCores()),
+                   latAsso = "presentlp",
+                   landmark = TRUE,
+                   s = 4,
+                   ytime = "time")
+fit.mvlm
+#> 
+#> Call:
+#>  mvjmcs(ydata = mvydata, cdata = mvcdata, long.formula = list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time), random = list(~time | ID, ~1 | ID), surv.formula = Surv(survtime, cmprsk) ~ X21 + X22, control = mvjmcs_control(opt = "optim", cpu.cores = parallel::detectCores()), latAsso = "presentlp", landmark = TRUE, s = 4, ytime = "time") 
+#> 
+#> Data Summary:
+#> Number of observations: 4807 
+#> Number of groups: 456 
+#> 
+#> Proportion of competing risks: 
+#> Risk 1 : 12.94 %
+#> Risk 2 : 4.39 %
+#> 
+#> Model Type: joint modeling of multivariate longitudinal continuous and competing risks data 
+#> 
+#> Model summary:
+#> Landmark analysis: Yes (s = 4)
+#> Latent association: current value of the latent process
+#> Runtime: 31.33 seconds 
+#> Longitudinal process: linear mixed effects model
+#> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
+#> 
+#> Fixed effects in the longitudinal sub-model:  list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time) 
+#> 
+#>                  Estimate      SE   Z value  p-val
+#> (Intercept)_bio1  4.81410 0.07479  64.36981 0.0000
+#> X11_bio1          1.45697 0.10647  13.68391 0.0000
+#> X12_bio1          1.95987 0.02248  87.19712 0.0000
+#> time_bio1         0.75874 0.04255  17.83223 0.0000
+#> (Intercept)_bio2 10.19522 0.06624 153.91370 0.0000
+#> X11_bio2          1.09421 0.09421  11.61421 0.0000
+#> X12_bio2          2.07542 0.02055 101.01219 0.0000
+#> time_bio2         0.99419 0.00468 212.57345 0.0000
+#> 
+#>              Estimate      SE  Z value  p-val
+#> sigma^2_bio1  0.49695 0.01171 42.44140 0.0000
+#> sigma^2_bio2  0.50075 0.01140 43.92918 0.0000
+#> 
+#> Fixed effects in the survival sub-model:  Surv(survtime, cmprsk) ~ X21 + X22 
+#> 
+#>       Estimate      SE  Z value  p-val
+#> X21_1  0.96635 0.27747  3.48277 0.0005
+#> X22_1  0.49804 0.06135  8.11814 0.0000
+#> X21_2 -0.10523 0.53024 -0.19846 0.8427
+#> X22_2  0.39967 0.10655  3.75109 0.0002
+#> 
+#> Association parameters:                 
+#>             Estimate      SE  Z value  p-val
+#> alpha1_bio1  0.18663 0.03808  4.90054 0.0000
+#> alpha1_bio2 -0.46160 0.20328 -2.27072 0.0232
+#> alpha2_bio1  0.32175 0.06189  5.19871 0.0000
+#> alpha2_bio2 -0.51448 0.27022 -1.90394 0.0569
+#> 
+#> 
+#> Random effects:                 
+#>   bio 1 :  ~time | ID 
+#>   bio 2 :  ~1 | ID 
+#>                       Estimate      SE  Z value  p-val
+#> Intercept1             1.01139 0.08402 12.03780 0.0000
+#> time1                  0.89441 0.06412 13.94990 0.0000
+#> Intercept2             0.84360 0.06316 13.35689 0.0000
+#> Intercept1:time1      -0.14162 0.05521 -2.56522 0.0103
+#> Intercept1:Intercept2  0.05362 0.04936  1.08644 0.2773
+#> time1:Intercept2       0.00861 0.04904  0.17546 0.8607
+```
+
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
 
 - ydatah: longitudinal data for a **single** biomarker per patient
@@ -638,7 +713,7 @@ survfit <- survfitJM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata,
 survfit
 #> 
 #> Prediction of Conditional Probabilities of Event
-#> based on the  adaptive  Guass-Hermite quadrature rule with 6 quadrature points
+#> based on the  adaptive  Gauss-Hermite quadrature rule with 6 quadrature points
 #> $`122`
 #>      times       CIF1      CIF2
 #> 1 5.069089 0.00000000 0.0000000
@@ -660,7 +735,7 @@ oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, include.y = TRUE)
 ```
 
-![](man/figures/README-unnamed-chunk-13-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
 
 ``` r
 par(oldpar)
@@ -727,20 +802,6 @@ summary(res, metric = "Cindex")
 #> 6            6  0.6126  0.6463
 ```
 
-Or we can calculate the overall, time-independent Cindex over the entire
-time period, evaluated by the linear predictor of the (cause-specific)
-Cox model.
-
-``` r
-Concord <- Concordance.JMMLSM(seed = 100, fit, n.cv = 3)
-#> The 1 th validation is done!
-#> The 2 th validation is done!
-#> The 3 th validation is done!
-summary(Concord)
-#>   Concordance1 Concordance2
-#> 1    0.7943508    0.7413602
-```
-
 ### Simulate Data (Optional)
 
 In order to create simulated data for `mvjmcs`, we can use the
@@ -751,9 +812,9 @@ the function, it provides censoring and risk rates.
 ``` r
 # Simulate data
   sim <- simmvJMdata(seed = 100, N = 50) # returns list of cdata and ydata for a sample size of 50
-#> The censoring rate is: 44%
-#> The risk 1 rate is: 48%
-#> The risk 2 rate is: 8%
+#> The censoring rate is: 62%
+#> The risk 1 rate is: 32%
+#> The risk 2 rate is: 6%
   c_data <- sim$mvcdata # survival-side data, one row per ID
   y_data <- sim$mvydata # longitudinal measurements (multiple rows per ID)
 ```
@@ -764,13 +825,13 @@ measurement-level predictors for the longitudinal submodel.
 
 ``` r
 head(y_data)
-#>   ID time       Y1       Y2 X11       X12
-#> 1  1  0.0 2.325975 3.493627   0 -2.347892
-#> 2  1  0.7 2.328122 4.649502   0 -2.347892
-#> 3  1  1.4 2.793674 6.112850   0 -2.347892
-#> 4  1  2.1 2.221392 5.375753   0 -2.347892
-#> 5  1  2.8 1.864348 4.481401   0 -2.347892
-#> 6  1  3.5 3.988955 5.496069   0 -2.347892
+#>   ID time        Y1         Y2 X1        X2
+#> 1  1  0.0 -5.551971 -0.7761904  0 -4.794168
+#> 2  1  0.7 -5.745701  0.8160435  0 -4.794168
+#> 3  1  1.4 -3.862485  0.5496277  0 -4.794168
+#> 4  1  2.1 -5.006962  0.3542386  0 -4.794168
+#> 5  1  2.8 -4.058923  1.7075900  0 -4.794168
+#> 6  1  3.5 -5.524530  1.1352901  0 -4.794168
 ```
 
 Below is the simulated survival data wherein X21 and X22 represent
@@ -778,11 +839,11 @@ patient-level predictors for the survival model.
 
 ``` r
 head(c_data)
-#>   ID   survtime cmprsk X21        X22
-#> 1  1 6.10116281      0   0 -2.3478921
-#> 2  2 0.05456028      1   1  0.1826885
-#> 3  3 6.52978656      0   1  2.3791087
-#> 4  4 0.04942950      1   1  2.7961091
-#> 5  5 6.96785721      0   0 -3.8530560
-#> 6  6 7.20378227      0   0  1.1237335
+#>   ID survtime cmprsk X1        X2
+#> 1  1 7.556187      0  0 -4.794168
+#> 2  2 6.388553      0  0 -3.290310
+#> 3  3 6.803285      0  0  1.399665
+#> 4  4 7.187639      0  0 -3.350215
+#> 5  5 3.263251      1  1 -1.452772
+#> 6  6 7.603049      0  0 -3.135735
 ```

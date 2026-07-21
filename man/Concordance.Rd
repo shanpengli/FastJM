@@ -17,7 +17,7 @@ Concordance(
 \item{seed}{A numeric value used to set the random seed for cross-validation.
 Default is \code{100}.}
 
-\item{object}{A fitted object of class \code{jmcs} or \code{JMMLSM}.}
+\item{object}{A fitted object of class \code{jmcs}, \code{JMMLSM}, or \code{mvjmcs}.}
 
 \item{n.cv}{Number of cross-validation folds. Default is \code{3}.}
 
