@@ -1,13 +1,12 @@
-##' Simulate joint model data with heterogeneous within-subject variability
+##' Simulate single-biomarker joint model data
 ##'
-##' @title Simulate joint model data with heterogeneous within-subject variability
-##' @name simJMWSVdata
+##' @title Simulate single-biomarker joint model data
+##' @name simJMdata
 ##'
 ##' @description
-##' Simulates longitudinal biomarker data with heterogeneous within-subject
-##' variability and associated time-to-event data. The survival outcome may be
-##' generated either as a single-failure time-to-event outcome or as competing
-##' risks data with two failure types.
+##' Simulates single longitudinal biomarker data and associated time-to-event data. 
+##' The survival outcome may be generated either as a single-failure time-to-event outcome or 
+##' as competing risks data with two failure types.
 ##'
 ##' @param seed Integer random seed used for data generation. Default is
 ##'   \code{100}.
@@ -15,9 +14,9 @@
 ##' @param increment Numeric value specifying the increment of visit times for
 ##'   longitudinal measurements. Default is \code{0.7}.
 ##' @param beta Numeric vector of true fixed-effect parameters for the
-##'   longitudinal mean sub-model.
-##' @param tau Numeric vector of true parameters for the within-subject
-##'   variability sub-model.
+##'   longitudinal sub-model.
+##' @param sigma2 Scalar parameter of error variance for the
+##'   longitudinal sub-model.
 ##' @param gamma1 Numeric vector of true fixed-effect parameters in the
 ##'   cause-specific hazard sub-model for failure type 1.
 ##' @param gamma2 Numeric vector of true fixed-effect parameters in the
@@ -26,10 +25,6 @@
 ##'   longitudinal process to the cause-specific hazard for failure type 1.
 ##' @param alpha2 Numeric vector of association parameters individual mean linking the
 ##'   longitudinal process to the cause-specific hazard for failure type 2.
-##' @param vee1 Numeric association parameter of within-subject
-##'   variability linking the longitudinal process to the cause-specific hazard for failure type 1.
-##' @param vee2 Numeric association parameter of within-subject
-##'   variability linking the longitudinal process to the cause-specific hazard for failure type 2.
 ##' @param lambda1 Baseline hazard rate for failure type 1. An exponential
 ##'   baseline hazard with rate \code{lambda1} is assumed.
 ##' @param lambda2 Baseline hazard rate for failure type 2. An exponential
@@ -38,8 +33,8 @@
 ##'   times.
 ##' @param CU Upper bound of the uniform distribution used to generate censoring
 ##'   times.
-##' @param covbw Variance-covariance matrix for the random effects in the
-##'   longitudinal mean and within-subject variability sub-models.
+##' @param covb Variance-covariance matrix for the random effects in the
+##'   longitudinal sub-model.
 ##' @param CR Logical; if \code{TRUE}, competing risks data with two failure
 ##'   types are simulated. If \code{FALSE}, a single-failure time-to-event
 ##'   outcome is generated. Default is \code{TRUE}.
@@ -47,32 +42,30 @@
 ##' @return
 ##' A list with the following components:
 ##' \describe{
-##'   \item{\code{ydatah}}{A long-format data frame containing the simulated
+##'   \item{\code{ydata}}{A long-format data frame containing the simulated
 ##'   longitudinal biomarker measurements.}
-##'   \item{\code{cdatah}}{A data frame containing the simulated event-time data.}
+##'   \item{\code{cdata}}{A data frame containing the simulated event-time data.}
 ##' }
 ##'
 ##' @export
 
-simJMWSVdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 2, 1, 2),
-                         tau = c(0.5, 0.5, -0.2, 0.2, 0.05),
+simJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 2, 1, 2),
+                         sigma2 = 1,
                          gamma1 = c(1, 0.5, 0.5),
                          gamma2 = c(-0.5, 0.5, 0.25),
                          alpha1 = c(1, 0.7),
                          alpha2 = c(-1, -0.5),
-                         vee1 = 0.5,
-                         vee2 = -0.5,
                          lambda1 = 0.05,
                          lambda2 = 0.025,
                          CL = 5,
                          CU = 10,
-                         covbw = diag(rep(1, 3)),
+                         covb = diag(rep(1, 2)),
                          CR = TRUE
-                      ) {
+) {
   
   set.seed(seed)
   
-  bwi <- MASS::mvrnorm(n = N, c(0, 0, 0), covbw, tol = 1e-6, empirical = FALSE)
+  bi <- MASS::mvrnorm(n = N, c(0, 0), covb, tol = 1e-6, empirical = FALSE)
   
   ##covariate
   Z1 <- sample(c(0, 1), N, replace = TRUE, prob = c(0.5, 0.5))
@@ -88,9 +81,9 @@ simJMWSVdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 
     risk1 <- vector()
     risk2 <- vector()
     for (i in 1:N) {
-      temp=lambda1*exp(Z[i, ] %*% gamma1 + alpha1%*% bwi[i, 1:2] + vee1*bwi[i, 3])
+      temp=lambda1*exp(Z[i, ] %*% gamma1 + alpha1%*% bi[i, ])
       risk1[i] <- rexp(1, temp)
-      temp=lambda2*exp(Z[i, ] %*% gamma2 + alpha2%*% bwi[i, 1:2] + vee2*bwi[i, 3])
+      temp=lambda2*exp(Z[i, ] %*% gamma2 + alpha2%*% bi[i, ])
       risk2[i] <- rexp(1, temp)
     }
     survtimeraw <- cbind(risk1, risk2, C)
@@ -117,7 +110,7 @@ simJMWSVdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 
   } else {
     risk1 <- vector()
     for (i in 1:N) {
-      temp=lambda1*exp(Z[i, ] %*% gamma1 + alpha1%*% bwi[i, 1:2] + vee1*bwi[i, 3])
+      temp=lambda1*exp(Z[i, ] %*% gamma1 + alpha1%*% bi[i, ])
       risk1[i] <- rexp(1, temp)
     }
     survtimeraw <- cbind(risk1, C)
@@ -138,7 +131,7 @@ simJMWSVdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 
     writeLines(paste0("The censoring rate is: ", table[1, 2], "%"))
     writeLines(paste0("The event rate is: ", table[2, 2], "%"))
   }
-
+  
   ID <- c(1:N)
   cdata <- cbind(ID, survtimeraw$survtime, survtimeraw$cmprsk, Z)
   colnames(cdata) <- c("ID", "survtime", "cmprsk", "X1", "X2", "X3")
@@ -149,16 +142,14 @@ simJMWSVdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 
     ni <- floor(cdata[i, 2]/increment)
     suby <- matrix(0, nrow = ni+1, ncol = 3)
     suby[, 1] <- i
-    sd <- sqrt(exp(tau[1] + tau[2]*Z[i, 1] + tau[3]*Z[i, 2] + tau[4]*Z[i, 3] + bwi[i, 3]))
-    suby[1, 2] <- beta[1] + beta[2]*Z[i, 1] + beta[3]*Z[i, 2] + beta[4]*Z[i, 3] + bwi[i, 1] + rnorm(1, mean = 0, sd = sd)
+    suby[1, 2] <- beta[1] + beta[2]*Z[i, 1] + beta[3]*Z[i, 2] + beta[4]*Z[i, 3] + bi[i, 1] + rnorm(1, mean = 0, sd = sqrt(sigma2))
     suby[1, 3] <- 0
     if (ni==0) {
       colnames(suby) <- c("ID", "Y", "time")
     } else {
       for (j in 1:ni) {
-        sd <- sqrt(exp(tau[1] + tau[2]*Z[i, 1] + tau[3]*Z[i, 2] + tau[4]*Z[i, 3] + tau[5]*j*increment + bwi[i, 3]))
         suby[j+1, 2] <- beta[1] + beta[2]*Z[i, 1] + beta[3]*Z[i, 2] + beta[4]*Z[i, 3] + beta[5]*j*increment + 
-          bwi[i, 1] + bwi[i, 2]*j*increment + rnorm(1, mean = 0, sd = sd) 
+          bi[i, 1] + bi[i, 2]*j*increment + rnorm(1, mean = 0, sd = sqrt(sigma2)) 
         suby[j+1, 3] <- j*increment
       }
     }
@@ -171,7 +162,7 @@ simJMWSVdata <- function(seed = 100, N = 200, increment = 0.7, beta = c(5, 1.5, 
   ydata <- dplyr::left_join(YdataRaw, Z, by = "ID")
   cdata <- as.data.frame(cdata)
   a <- list(cdata, ydata)
-  names(a) <- c("cdatah", "ydatah")
+  names(a) <- c("cdata", "ydata")
   return(a)
 }
 

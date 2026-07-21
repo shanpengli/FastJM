@@ -12,7 +12,16 @@ vignette: >
 suppressPackageStartupMessages({
   library(FastJM)
 })
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", warning=FALSE, message=FALSE, eval=TRUE)
+knitr::opts_chunk$set(
+  fig.width = 12,
+  fig.height = 12,
+  out.width = "100%",
+  dpi = 150,
+  collapse = TRUE, 
+  comment = "#>", 
+  warning=FALSE, 
+  message=FALSE, 
+  eval=TRUE)
 ```
 
 # FastJM
@@ -65,13 +74,13 @@ fit
 
 The fitted `jmcs` object also provides a standard diagnostic plotting method through `plot()`. This function displays four panels: subject-specific residuals for the longitudinal process versus their corresponding fitted values; a normal Q-Q plot of the residuals of the standardized subject-specific residuals for the longitudinal process, an estimate of the marginal survival function for the event process, and an estimate of the marginal cumulative risk function for the event process. These plots provide a quick graphical summary of the longitudinal residual behavior and the estimated event-time process from the fitted joint model.
 
-```{r, fig.width=10, fig.height=8}
+```{r}
 plot(fit)
 ```
 We can further examine the fitted joint model using diagnostic plots. The `timeplot()` function displays the longitudinal biomarker trajectories, the empirical log residual variance over follow-up time, and the event process. For competing-risk models, the event plot is shown as cumulative incidence curves for the specified event types.
 
 The log residual variance plot is intended as an exploratory diagnostic. Apparent changes over time may reflect departures from constant residual variance, but they may also be affected by finite-sample variability, model fit, or changing subject composition over follow-up.
-```{r, fig.width=10, fig.height=8}
+```{r}
 crplot <- timeplot(
   object = fit,
   biomarker = response,
@@ -127,7 +136,7 @@ summary(res, metric = "Cindex")
 
 Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
 ```{r}
-Concord <- Concordance.jmcs(seed = 100, fit, n.cv = 3)
+Concord <- Concordance(seed = 100, fit, n.cv = 3)
 summary(Concord)
 ```
 
@@ -206,6 +215,26 @@ summary(res, metric = "AUC")
 summary(res, metric = "Cindex")
 ```
 
+### Landmark Multivariate Joint Model
+
+An alternative approach to characterize flexible latent associations is a landmark multivariate joint model, which specifies a landmark time so that only subjects who remain event-free beyond the landmark time contribute to the model fitting. Here, we consider the current value of the latent process as the association structure in the survival sub-model.
+```{r landmark-fit, eval=FALSE}
+data(mvydata)
+data(mvcdata)
+fit.mvlm <- mvjmcs(ydata = mvydata, cdata = mvcdata,
+                   long.formula = list(Y1 ~ X11 + X12 + time,
+                                       Y2 ~ X11 + X12 + time),
+                   random = list(~ time | ID,
+                            ~ 1 | ID),
+                   surv.formula = Surv(survtime, cmprsk) ~ X21 + X22,
+                   control = mvjmcs_control(opt = "optim"),
+                   latAsso = "presentlp",
+                   landmark = TRUE,
+                   s = 4,
+                   ytime = "time")
+fit.mvlm
+```
+
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
 
 - ydatah: longitudinal data for a **single** biomarker per patient
@@ -253,12 +282,6 @@ summary(res, metric = "MAE")
 summary(res, metric = "MAEQ")
 summary(res, metric = "AUC")
 summary(res, metric = "Cindex")
-```
-
-Or we can calculate the overall, time-independent Cindex over the entire time period, evaluated by the linear predictor of the (cause-specific) Cox model.
-```{r}
-Concord <- Concordance.JMMLSM(seed = 100, fit, n.cv = 3)
-summary(Concord)
 ```
 ### Simulate Data (Optional)
 

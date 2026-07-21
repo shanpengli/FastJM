@@ -17,22 +17,58 @@ print.mvjmcs <- function(x, digits = 4, ...) {
   
   if (x$CompetingRisk) {
     cat("Data Summary:\n")
-    cat("Number of observations:", nrow(x$ydata), "\n")
-    cat("Number of groups:", nrow(x$cdata), "\n\n")
+    if (x$latAsso == "sre") {
+      cat("Number of observations:", nrow(x$ydata), "\n")
+      cat("Number of groups:", nrow(x$cdata), "\n\n")
+    } else {
+      cdata <- x$cdata
+      ydata <- x$ydata
+      s <- x$s
+      time <- all.vars(x$SurvivalSubmodel)[1]
+      random <- x$random
+      if (is.list(random)) {
+        random.form <- all.vars(random[[1]])
+        ID <- random.form[length(random.form)]
+      } else {
+        random.form <- all.vars(random)
+        ID <- random.form[length(random.form)]
+      }
+      subcdata <- cdata %>%
+        dplyr::filter(.data[[time]] > s)
+      cID <- subcdata[, ID]
+      subydata <- ydata %>%
+        dplyr::filter(.data[[ID]] %in% cID)
+      cat("Number of observations:", nrow(subydata), "\n")
+      cat("Number of groups:", nrow(subcdata), "\n\n")
+    }
     cat("Proportion of competing risks: \n")
-    for (i in 1:2) {
-      cat("Risk", i, ":", round(x$PropEventType[i+1, 2]/nrow(x$cdata)*100, 2), "%\n")
+    if (x$latAsso == "sre") {
+      for (i in 1:2) {
+        cat("Risk", i, ":", round(x$PropEventType[i+1, 2]/nrow(x$cdata)*100, 2), "%\n")
+      }
+    } else {
+      status <- all.vars(x$SurvivalSubmodel)[2]
+      PropComp <- as.data.frame(table(subcdata[, status]))
+      for (i in 1:2) {
+        cat("Risk", i, ":", round(PropComp[i+1, 2]/nrow(subcdata)*100, 2), "%\n")
+      }
     }
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and competing risks data", "\n\n")
     cat("Model summary:\n")
+    if (x$latAsso != "sre") {
+      cat(sprintf("Landmark analysis: Yes (s = %s)\n", s))
+      if (x$latAsso == "presentlp") cat("Latent association: current value of the latent process\n")
+      if (x$latAsso == "present") cat("Latent association: current value\n")
+    }
+    if (!is.null(x$runtime)) {
+      cat("Runtime:", format_runtime(x$runtime), "\n")
+    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard\n\n")
     
     cat("Fixed effects in the longitudinal sub-model: ",
         sprintf(format(paste(deparse(x$LongitudinalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
-    
-    
     
     # ~~~~~~~~~~~~~~~~~~~~~~~
     # print beta coefficients
@@ -67,11 +103,10 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     # ~~~~~~~~~~~~~~~~~
     # print gamma est
     # ~~~~~~~~~~~~~~~~~
-    
-    gamma1 <- unname(x$gamma1)
-    segamma1 <- unname(x$segamma1)
-    gamma2 <- unname(x$gamma2)
-    segamma2 <- unname(x$segamma2)
+    gamma1 <- x$gamma1
+    segamma1 <- x$segamma1
+    gamma2 <- x$gamma2
+    segamma2 <- x$segamma2
     
     dat <- data.frame(
       gamma1,
@@ -116,7 +151,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
         tempName[ind:(ind+pRE-1)] <-
           paste0(c("(Intercept)", temp[-length(temp)]), "_1bio", g)
         
-      } else if (x$latAsso %in% c("present", "presentlp", "pv", "pvlp")) {
+      } else if (x$latAsso %in% c("present", "presentlp")) {
         
         pRE <- 1
         tempName[ind] <- paste0("alpha1_bio", g)
@@ -138,7 +173,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
         tempName[ind:(ind+pRE-1)] <-
           paste0(c("(Intercept)", temp[-length(temp)]), "_2bio", g)
         
-      } else if (x$latAsso %in% c("present", "presentlp", "pv", "pvlp")) {
+      } else if (x$latAsso %in% c("present", "presentlp")) {
         
         pRE <- 1
         tempName[ind] <- paste0("alpha2_bio", g)
@@ -220,11 +255,47 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     
   } else {
     cat("Data Summary:\n")
-    cat("Number of observations:", nrow(x$ydata), "\n")
-    cat("Number of groups:", nrow(x$cdata), "\n\n")
-    cat("Proportion of events:", round(x$PropEventType[2, 2]/nrow(x$cdata)*100, 2), "%\n")
+    if (x$latAsso == "sre") {
+      cat("Number of observations:", nrow(x$ydata), "\n")
+      cat("Number of groups:", nrow(x$cdata), "\n\n")
+    } else {
+      cdata <- x$cdata
+      ydata <- x$ydata
+      s <- x$s
+      time <- all.vars(x$SurvivalSubmodel)[1]
+      random <- x$random
+      if (is.list(random)) {
+        random.form <- all.vars(random[[1]])
+        ID <- random.form[length(random.form)]
+      } else {
+        random.form <- all.vars(random)
+        ID <- random.form[length(random.form)]
+      }
+      subcdata <- cdata %>%
+        dplyr::filter(.data[[time]] > s)
+      cID <- subcdata[, ID]
+      subydata <- ydata %>%
+        dplyr::filter(.data[[ID]] %in% cID)
+      cat("Number of observations:", nrow(subydata), "\n")
+      cat("Number of groups:", nrow(subcdata), "\n\n")
+    }
+    if (x$latAsso == "sre") {
+      cat("Proportion of events:", round(x$PropEventType[2, 2]/nrow(x$cdata)*100, 2), "%\n")
+    } else {
+      status <- all.vars(x$SurvivalSubmodel)[2]
+      PropComp <- as.data.frame(table(subcdata[, status]))
+      cat("Proportion of events:", round(PropComp[2, 2]/nrow(subcdata)*100, 2), "%\n")
+    }
     cat("\nModel Type: joint modeling of multivariate longitudinal continuous and survival data", "\n\n")
     cat("Model summary:\n")
+    if (x$latAsso != "sre") {
+      cat(sprintf("Landmark analysis: Yes (s = %s)\n", s))
+      if (x$latAsso == "presentlp") cat("Latent association: current value of the latent process\n")
+      if (x$latAsso == "present") cat("Latent association: current value\n")
+    }
+    if (!is.null(x$runtime)) {
+      cat("Runtime:", format_runtime(x$runtime), "\n")
+    }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: Cox proportional hazard model with non-parametric baseline hazard\n\n")
     cat("Fixed effects in the longitudinal submodel: ",
@@ -264,9 +335,8 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     # ~~~~~~~~~~~~~~~~~
     # print gamma est
     # ~~~~~~~~~~~~~~~~~
-    gamma1 <- unname(x$gamma1)
-    segamma1 <- unname(x$segamma1)
-    
+    gamma1 <- x$gamma1
+    segamma1 <- x$segamma1
     dat <- data.frame(
       gamma1,
       segamma1,
@@ -274,7 +344,6 @@ print.mvjmcs <- function(x, digits = 4, ...) {
       2 * pnorm(-abs(gamma1 / segamma1))
     )
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    rownames(dat) <- paste0("gamma", seq_along(gamma1))
     
     dat[, 1:3] <- round(dat[, 1:3], digits + 1)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])

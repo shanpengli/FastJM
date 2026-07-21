@@ -10,7 +10,11 @@ mvjmcs(
   long.formula,
   random = NULL,
   surv.formula,
-  control = mvjmcs_control()
+  control = mvjmcs_control(),
+  latAsso = "sre",
+  landmark = FALSE,
+  s = NULL,
+  ytime = NULL
 )
 }
 \arguments{
@@ -46,6 +50,18 @@ indicator, and covariates in the survival submodel.}
   \item{\code{cpu.cores}}{Number of CPU cores used for parallel computation.
   The default is \code{NULL}.}
 }}
+
+\item{latAsso}{Latent association structure. Options are \code{"sre"},
+\code{"present"}, and \code{"presentlp"}. The default is \code{"sre"}.}
+
+\item{landmark}{Logical value indicating whether landmarking is used.
+The default is \code{FALSE}.}
+
+\item{s}{Landmark time. Required when \code{landmark = TRUE} and
+\code{latAsso} is \code{"present"} or \code{"presentlp"}.}
+
+\item{ytime}{Name of the longitudinal time variable. Required when
+landmarking is used.}
 }
 \value{
 An object of class \code{mvjmcs}, returned as a list containing:
@@ -74,6 +90,7 @@ An object of class \code{mvjmcs}, returned as a list containing:
   \item{\code{convergence}}{Convergence identifier: \code{1} indicates
   successful convergence, whereas \code{0} indicates a convergence problem,
   often requiring more iterations.}
+  \item{tol}{the convergence parameter.}
   \item{\code{vcov}}{The variance-covariance matrix of all fixed-effect
   parameters.}
   \item{\code{FisherInfo}}{The empirical Fisher information matrix.}
@@ -109,14 +126,16 @@ An object of class \code{mvjmcs}, returned as a list containing:
   \item{\code{call}}{The matched function call.}
   \item{\code{id}}{The grouping vector for the longitudinal outcomes.}
   \item{\code{runtime}}{The total computation time.}
+  \item{\code{latAsso}}{The pre-specified latent association structure.}
+  \item{\code{landmark}}{The logical value indicating whether landmarking is used.}
+  \item{\code{s}}{The pre-specified landmark time.}
+  \item{\code{ytime}}{The name of the longitudinal time variable.}
 }
 }
 \description{
 Joint modeling of multivariate longitudinal and competing risks data
 }
 \examples{
-
-
   require(FastJM)
   require(survival)
   require(future)
@@ -134,15 +153,23 @@ Joint modeling of multivariate longitudinal and competing risks data
                               ~ 1 | ID),
                 surv.formula = Surv(survtime, cmprsk) ~ X21 + X22)
   fit
-  
   # Extract the parameter estimates of longitudinal sub-model fixed effects
   fixef(fit, process = "Longitudinal")
-  
   # Extract the parameter estimates of survival sub-model fixed effects
   fixef(fit, process = "Event")
-  
   # Obtain the random effects estimates for first 6 subjects 
   head(ranef(fit))
+  
+  set.seed(08252025)
+  sampleID <- sample(mvcdata$ID, 2, replace = FALSE)
+  subcdata <- mvcdata \%>\%
+    dplyr::filter(ID \%in\% sampleID)
+  subydata <- mvydata \%>\%
+    dplyr::filter(ID \%in\% sampleID)
+# Make predictions at the horizon times
+  survfit.mv <- survfitJM(fit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+                          u = c(7, 8, 9), obs.time = "time")
+  survfit.mv
   }
   
 }

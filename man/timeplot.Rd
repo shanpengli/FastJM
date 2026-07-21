@@ -14,6 +14,7 @@ timeplot(
   seed = 100,
   window_days = 50,
   time_bin_width = 180,
+  show_logvar = FALSE,
   biomarker_y_lab = NULL,
   logvar_y_lab = "Log Residual Variance",
   event_x_lab = NULL,
@@ -67,6 +68,9 @@ Default is \code{50}.}
 \code{visit_col} is not supplied or not found. Default is \code{180}. For
 small-scale time variables, such as time ranging from 0 to 5, use a smaller
 value such as \code{0.5} or \code{1}.}
+
+\item{show_logvar}{Logical; if \code{TRUE}, produces an additional plot of
+log residual variance over follow-up time. Default is \code{FALSE}.}
 
 \item{biomarker_y_lab}{Optional character string for the y-axis label of the
 biomarker trajectory plot. If \code{NULL}, the name of \code{biomarker}
@@ -165,15 +169,16 @@ Invisibly returns a list with components:
     observations per subject and visit/bin after window-based filtering.}
   \item{\code{grouping_used}}{A character string indicating whether summaries
     were based on an observed visit variable or derived time bins.}
+  \item{\code{show_logvar}}{a logic value to indicate whether a log residual variance plot is presented.}
 }
 }
 \description{
-Creates diagnostic plots for a fitted \code{jmcs} object from the
-\pkg{FastJM} package, specifically longitudinal biomarker trajectory, 
-log residual variance, and event curve. The function always produces:
+Creates diagnostic plots for a fitted \code{jmcs} object. The function
+always produces a longitudinal biomarker trajectory plot and an event curve.
+Optionally, it can also produce a log residual variance plot.
 \enumerate{
   \item a longitudinal biomarker trajectory plot, and
-  \item a plot of log residual variance over follow-up time.
+  \item a plot of log residual variance over follow-up time (optional).
 }
 
 It also produces one event plot based on \code{object$CompetingRisk}:

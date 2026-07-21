@@ -63,6 +63,7 @@
 ##'   \item{\code{convergence}}{Convergence identifier: \code{1} indicates
 ##'   successful convergence, whereas \code{0} indicates a convergence problem,
 ##'   often requiring more iterations.}
+##'   \item{tol}{the convergence parameter.}
 ##'   \item{\code{vcov}}{The variance-covariance matrix of all fixed-effect
 ##'   parameters.}
 ##'   \item{\code{FisherInfo}}{The empirical Fisher information matrix.}
@@ -98,11 +99,13 @@
 ##'   \item{\code{call}}{The matched function call.}
 ##'   \item{\code{id}}{The grouping vector for the longitudinal outcomes.}
 ##'   \item{\code{runtime}}{The total computation time.}
+##'   \item{\code{latAsso}}{The pre-specified latent association structure.}
+##'   \item{\code{landmark}}{The logical value indicating whether landmarking is used.}
+##'   \item{\code{s}}{The pre-specified landmark time.}
+##'   \item{\code{ytime}}{The name of the longitudinal time variable.}
 ##' }
 ##'
 ##' @examples
-##' 
-##' 
 ##'   require(FastJM)
 ##'   require(survival)
 ##'   require(future)
@@ -120,15 +123,23 @@
 ##'                               ~ 1 | ID),
 ##'                 surv.formula = Surv(survtime, cmprsk) ~ X21 + X22)
 ##'   fit
-##'   
 ##'   # Extract the parameter estimates of longitudinal sub-model fixed effects
 ##'   fixef(fit, process = "Longitudinal")
-##'   
 ##'   # Extract the parameter estimates of survival sub-model fixed effects
 ##'   fixef(fit, process = "Event")
-##'   
 ##'   # Obtain the random effects estimates for first 6 subjects 
 ##'   head(ranef(fit))
+##'   
+##'   set.seed(08252025)
+##'   sampleID <- sample(mvcdata$ID, 2, replace = FALSE)
+##'   subcdata <- mvcdata %>%
+##'     dplyr::filter(ID %in% sampleID)
+##'   subydata <- mvydata %>%
+##'     dplyr::filter(ID %in% sampleID)
+##' # Make predictions at the horizon times
+##'   survfit.mv <- survfitJM(fit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+##'                           u = c(7, 8, 9), obs.time = "time")
+##'   survfit.mv
 ##'   }
 ##'   
 ##' @export
@@ -138,7 +149,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    control = mvjmcs_control(),
                    latAsso = "sre", landmark = FALSE, s = NULL, ytime = NULL) {
   
-  control <- modifyList(mvjmcs_control(), control)
+  control <- utils::modifyList(mvjmcs_control(), control)
   
   maxiter      <- control$maxiter
   opt          <- control$opt
@@ -170,8 +181,33 @@ mvjmcs <- function(ydata, cdata, long.formula,
     landmark <- FALSE
   }
   
+  if (isTRUE(landmark)) {
+    
+    if (is.null(ytime) || !is.character(ytime) || length(ytime) != 1) {
+      stop("When landmark = TRUE, 'ytime' must be specified as a single column name.")
+    }
+    
+    long.vars <- lapply(long.formula, all.vars)
+    
+    ytime.in.long <- vapply(
+      long.vars,
+      function(v) ytime %in% v,
+      logical(1)
+    )
+    
+    if (!all(ytime.in.long)) {
+      missing.forms <- which(!ytime.in.long)
+      
+      stop(
+        "When landmark = TRUE, the time variable specified by 'ytime' must be included ",
+        "in every component of 'long.formula'. The variable '", ytime,
+        "' is missing from long.formula component(s): ",
+        paste(missing.forms, collapse = ", "),
+        "."
+      )
+    }
+  }
 
-  
   # ---- Longitudinal setup ----
   if(is.list(long.formula)){
     numBio = length(long.formula)
@@ -476,8 +512,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
           pos.mode, sigma, pos.cov,
           H01, H02, survtime, cmprsk,
           gamma1, gamma2, alphaList,
-          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, s = s,  Xs = subXs,
-          Zs = getinit$Zs, latAsso = latAsso
+          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, s,  subXs,
+          getinit$Zs, latAsso
         )
       }
       
@@ -601,13 +637,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
     
     result <- list(beta = beta, betaList = betaList, gamma1 = gamma1, gamma2 = gamma2, 
                    alpha1 = alpha1, alpha2 = alpha2, H01 = H01, H02 = H02, 
-                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, 
+                   Sig = Sig, sigma = sigma, iter = iter, convergence = convergence, tol = tol,
                    vcov = vcov, FisherInfo = FisherInfo, Score = Score, sebeta = sebeta, segamma1 = segamma1, segamma2 = segamma2,
                    sealpha1 = sealpha1, sealpha2 = sealpha2, seSig = seSig, sesigma = sesigma, pos.mode = pos.mode, pos.cov = pos.cov,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
-                   runtime = runtime, latAsso = latAsso)
+                   runtime = runtime, latAsso = latAsso, landmark = landmark, s = s, ytime = ytime)
     
     class(result) <- "mvjmcs"
     
@@ -779,8 +815,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
           pos.mode, sigma, pos.cov,
           H01, survtime, cmprsk,
           gamma1, alphaList,
-          CUH01, HAZ01, Sig, betaList, s = s,  Xs = subXs,
-          Zs = getinit$Zs, latAsso = latAsso
+          CUH01, HAZ01, Sig, betaList, s,  subXs,
+          getinit$Zs, latAsso
         )
       }
       
@@ -878,9 +914,6 @@ mvjmcs <- function(ydata, cdata, long.formula,
     end_time <- Sys.time()
     runtime <- end_time - start_time
     
-    writeLines("runtime is:")
-    print(runtime <- end_time - start_time)
-    
     PropComp <- as.data.frame(table(cdata[, survival[2]]))
     call <- match.call()
     
@@ -905,7 +938,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    CompetingRisk = CompetingRisk, ydata = rawydata, cdata = rawcdata, 
                    PropEventType = PropComp, LongitudinalSubmodel = long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
-                   runtime = runtime, latAsso = latAsso)
+                   runtime = runtime, latAsso = latAsso, landmark = landmark, s = s, ytime = ytime)
     
     class(result) <- "mvjmcs"
     

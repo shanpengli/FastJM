@@ -36,7 +36,7 @@ DynPredAcc.jmcs <- function(seed = 100, object, landmark.time = NULL, horizon.ti
   
   allowed.metrics <- c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
   if (length(metrics) < 1 || any(!metrics %in% allowed.metrics)) {
-    stop("Please choose metrics from: 'AUC', 'Cindex', 'Brier', 'MAE', 'MAEQ'.")
+    stop("Please choose metrics from: 'AUC', 'Cindex', 'Brier Score', 'MAE', 'MAEQ'.")
   }
   
   if ("MAEQ" %in% metrics) {

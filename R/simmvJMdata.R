@@ -37,14 +37,14 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
                         gamma1 = c(1, 0.5),
                         gamma2 = c(-0.5, 0.5),
                         alpha1 = list(alpha11 = c(0.5),
-                                      alpha12 = c(-0.5)),
-                        alpha2 = list(alpha21 = c(0.5, 0.7),
+                                      alpha12 = c(-0.5, 0.5)),
+                        alpha2 = list(alpha21 = c(0.5),
                                       alpha22 = c(-0.5, 0.5)),
                         lambda1 = 0.05,
                         lambda2 = 0.025,
                         CL = 5,
                         CU = 10,
-                        covb = diag(rep(1, 4)),
+                        covb = diag(rep(1, 3)),
                         missprob = 0,
                         CR = TRUE){
   
@@ -104,7 +104,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   writeLines(paste0("The risk 2 rate is: ", table[3, 2], "%"))
   ID <- c(1:N)
   cdata <- cbind(ID, survtimeraw$survtime, survtimeraw$cmprsk, X)
-  colnames(cdata) <- c("ID", "survtime", "cmprsk", "X21", "X22")
+  colnames(cdata) <- c("ID", "survtime", "cmprsk", "X1", "X2")
   
   ##fixed effects in longitudinal mean portion
   Ydata <- data.frame(c(1:N))
@@ -148,9 +148,20 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
           }
           
           if (Visit[j] == 1) {
-            suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
-              Z%*%bi[i, (index + 1):(index + pRE[g])] + 
-              rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            if (length(alpha1[[g]]) == 3) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                subbeta[4]*j*increment + subbeta[5]*(j*increment)^2 +
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else if (length(alpha1[[g]]) == 2) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g]))
+            }
           } else {
             suby[j+1, 3] <- NA
           }
@@ -180,7 +191,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   
   X <- cbind(ID, X)
   X <- as.data.frame(X)
-  colnames(X)[2:3] <- c("X11", "X12")
+  colnames(X)[2:3] <- c("X1", "X2")
   Ydata <- as.data.frame(Ydata)
   ydata <- dplyr::left_join(Ydata, X, by = "ID")
   cdata <- as.data.frame(cdata)
@@ -224,7 +235,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
     writeLines(paste0("The risk 1 rate is: ", table[2, 2], "%"))
     ID <- c(1:N)
     cdata <- cbind(ID, survtimeraw$survtime, survtimeraw$cmprsk, X)
-    colnames(cdata) <- c("ID", "survtime", "cmprsk", "X21", "X22")
+    colnames(cdata) <- c("ID", "survtime", "cmprsk", "X1", "X2")
   
     ##fixed effects in longitudinal mean portion
     Ydata <- data.frame(c(1:N))
@@ -264,9 +275,20 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
           }
           
           if (Visit[j] == 1) {
-            suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
-              Z%*%bi[i,  (index + 1):(index + pRE[g])] + 
-              rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            if (length(alpha1[[g]]) == 3) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                subbeta[4]*j*increment + subbeta[5]*(j*increment)^2 +
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else if (length(alpha1[[g]]) == 2) {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + subbeta[4]*j*increment + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g])) 
+            } else {
+              suby[j+1, 3] <- subbeta[1] + subbeta[2]*X[i, 1] + subbeta[3]*X[i, 2] + 
+                Z%*%bi[i, (index + 1):(index + pRE[g])] + 
+                rnorm(1, mean = 0, sd = sqrt(sigma[g]))
+            }
           } else {
             suby[j+1, 3] <- NA
           }
@@ -296,7 +318,7 @@ simmvJMdata <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 
   
   X <- cbind(ID, X)
   X <- as.data.frame(X)
-  colnames(X)[2:3] <- c("X11", "X12")
+  colnames(X)[2:3] <- c("X1", "X2")
   Ydata <- as.data.frame(Ydata)
   ydata <- dplyr::left_join(Ydata, X, by = "ID")
   cdata <- as.data.frame(cdata)

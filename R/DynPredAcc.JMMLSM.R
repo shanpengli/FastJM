@@ -1,7 +1,7 @@
 DynPredAcc.JMMLSM <- function(seed = 100, object, landmark.time = NULL,
                              horizon.time = NULL, obs.time = NULL,
                              method = c("Laplace", "GH"),
-                             quadpoint = NULL, maxiter = 1000,
+                             quadpoint = NULL, maxiter = NULL,
                              n.cv = 3,
                              quantile.width = 0.25,
                              opt = c("nlminb", "optim"),
@@ -29,13 +29,17 @@ DynPredAcc.JMMLSM <- function(seed = 100, object, landmark.time = NULL,
     }
   }
   
+  if (is.null(maxiter)) {
+    maxiter <- 10000
+  }
+  
   if (is.null(quadpoint)) {
     quadpoint <- object$quadpoint
   }
   
   allowed.metrics <- c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")
   if (length(metrics) < 1 || any(!metrics %in% allowed.metrics)) {
-    stop("Please choose metrics from: 'AUC', 'Cindex', 'Brier', 'MAE', 'MAEQ'.")
+    stop("Please choose metrics from: 'AUC', 'Cindex', 'Brier Score', 'MAE', 'MAEQ'.")
   }
   
   if ("MAEQ" %in% metrics) {

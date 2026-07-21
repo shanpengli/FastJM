@@ -123,9 +123,9 @@ fit <- JMMLSM(cdata = cdata, ydata = ydata,
 ## make dynamic prediction of two subjects
 cnewdata <- cdata[cdata$ID \%in\% c(122, 152), ]
 ynewdata <- ydata[ydata$ID \%in\% c(122, 152), ]
-survfit <- survfitJMMLSM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
-                         u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
-                         obs.time = "time", method = "GH")
+survfit <- survfitJM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
+                     u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
+                     obs.time = "time", method = "GH")
 oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, include.y = TRUE)
 par(oldpar)

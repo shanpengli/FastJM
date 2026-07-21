@@ -1,35 +1,137 @@
-##' Data simulation from the joint model of multivariate longitudinal biomarkers and time-to-event data
-##' @title Joint modeling of multivariate longitudinal and competing risks data
+##' Simulate multivariate longitudinal and time-to-event data from a joint model
+##'
+##' @title Data simulation for multivariate joint models conditional on a landmark time
 ##' @name simmvJMdatalm
-##' @param seed a random seed number specified for simulating a joint model dataset.
-##' @param N an integer to specify the sample size.
-##' @param increment a scalar to specify the increment of visit time for longitudinal measurements.
-##' @param beta a list of true parameters for the linear mixed effects sub-models. 
-##' Each component of the list correspond to a specific biomarker.
-##' @param sigma a vector of true error variance for all biomarkers.
-##' @param gamma1 a vector of true parameters of survival fixed effects for failure 1.
-##' @param gamma2 a vector of true parameters of survival fixed effects for failure 2.
-##' @param alpha1 a list of true parameters for the association parameters for failure 1. 
-##' Each component of the list correspond to a specific biomarker. 
-##' @param alpha2 a list of true parameters for the association parameters for failure 2. 
-##' Each component of the list correspond to a specific biomarker. 
-##' @param lambda1 the baseline hazard rate of failure 1. 
-##' An exponential distribution with a rate parameter of \code{lambda1} is assumed.
-##' @param lambda2 the baseline hazard rate of failure 2. 
-##' An exponential distribution with a rate parameter of \code{lambda2} is assumed.
-##' @param CL a lower limit of a uniform distribution to be specified for the censoring time.
-##' @param CU an upper limit of a uniform distribution to be specified for the censoring time.
-##' @param covb a matrix of variance-covariance matrix of random effects.
-##' @param missprob a scalar (ranging from 0 to 1) to specify the probability of 
-##' missing longitudinal observations. Default is 0.
-##' @param CR logical; if \code{TRUE}, simulate competing risks time-to-event data with 2 failures.
-##' Default is \code{TRUE}.
-##' @return  a list of datasets for both longitudinal and survival data with the elements
-##' \item{mvydata}{a long-format data frame of longitudinal data.} 
-##' \item{mvcdata}{a dataframe of survival data.} 
-##' 
+##'
+##' @description
+##' Simulate data from a joint model with multiple longitudinal biomarkers and
+##' either a single time-to-event outcome or competing risks outcomes. The
+##' longitudinal biomarkers are generated from biomarker-specific linear
+##' mixed-effects models, allowing different random-effects structures across
+##' biomarkers. The event-time process is generated from cause-specific
+##' proportional hazards models with associations induced through the
+##' biomarker-specific random-effects contribution or current biomarker value at
+##' a landmark time.
+##'
+##' @param seed Integer specifying the random seed used for data simulation.
+##' @param N Integer specifying the sample size.
+##' @param increment Numeric scalar specifying the time increment between
+##' scheduled longitudinal measurements.
+##' @param beta A list of numeric vectors specifying the true fixed-effect
+##' parameters for the longitudinal submodels. Each list component corresponds
+##' to one biomarker. The entries are interpreted as the intercept, covariate
+##' effects, and time effect; if quadratic time is included, the final entry
+##' corresponds to the quadratic time effect.
+##' @param sigma Numeric vector specifying the measurement error variances for
+##' the longitudinal biomarkers. The length of \code{sigma} should equal the
+##' number of biomarkers.
+##' @param gamma1 Numeric vector specifying the true survival fixed-effect
+##' parameters for failure type 1.
+##' @param gamma2 Numeric vector specifying the true survival fixed-effect
+##' parameters for failure type 2. Used when \code{CR = TRUE}.
+##' @param alpha1 A list of numeric vectors specifying the true association
+##' parameters between the longitudinal biomarkers and failure type 1. Each
+##' component corresponds to one biomarker and should have length matching the
+##' corresponding entry of \code{pRE}.
+##' @param alpha2 A list of numeric vectors specifying the true association
+##' parameters between the longitudinal biomarkers and failure type 2. Each
+##' component corresponds to one biomarker and should have length matching the
+##' corresponding entry of \code{pRE}. Used when \code{CR = TRUE}.
+##' @param lambda1 Numeric scalar specifying the constant baseline hazard rate
+##' for failure type 1. An exponential baseline hazard is assumed.
+##' @param lambda2 Numeric scalar specifying the constant baseline hazard rate
+##' for failure type 2. An exponential baseline hazard is assumed. Used when
+##' \code{CR = TRUE}.
+##' @param CL Numeric scalar specifying the lower bound of the uniform
+##' distribution used to generate censoring times.
+##' @param CU Numeric scalar specifying the upper bound of the uniform
+##' distribution used to generate censoring times.
+##' @param covb Variance-covariance matrix for the subject-specific random
+##' effects. Its dimension must be equal to \code{sum(pRE)}.
+##' @param missprob Numeric scalar between 0 and 1 specifying the probability
+##' that a scheduled longitudinal observation is missing. Default is \code{0}.
+##' @param landmark Logical; if \code{TRUE}, event times and censoring times are
+##' generated conditional on survival beyond a landmark time \code{s}. Default
+##' is \code{TRUE}.
+##' @param s Numeric scalar specifying the landmark time. Required when
+##' \code{landmark = TRUE}. Default is \code{NULL}.
+##' @param method Character string specifying how the longitudinal process is
+##' linked to the event-time process. Options are \code{"presentlp"} and
+##' \code{"present"}. If \code{method = "presentlp"}, the event-time model
+##' depends on the subject-specific random-effects contribution at the landmark
+##' time. If \code{method = "present"}, the event-time model depends on the full
+##' current biomarker value at the landmark time, including both fixed- and
+##' random-effects components. Default is \code{"presentlp"}.
+##' @param pRE Integer vector specifying the number of random effects for each
+##' biomarker. For example, \code{pRE = c(1, 2)} specifies a random-intercept
+##' model for biomarker 1, a random intercept-and-slope model for biomarker 2.
+##' If \code{NULL}, a random-intercept model is assumed for
+##' each biomarker. The sum of \code{pRE} must equal the dimension of
+##' \code{covb}. Default is \code{NULL}.
+##' @param CR Logical; if \code{TRUE}, simulate competing risks data with two
+##' failure types. If \code{FALSE}, simulate a single failure type with
+##' independent censoring. Default is \code{TRUE}.
+##'
+##' @return
+##' A list with two elements:
+##' \item{mvcdata}{A data frame containing survival data, including subject ID,
+##' observed event or censoring time, event indicator, and baseline covariates.}
+##' \item{mvydata}{A long-format data frame containing longitudinal biomarker
+##' measurements, visit times, subject ID, and baseline covariates.}
+##'
+##' @details
+##' The function generates two baseline covariates, \code{X1} and \code{X2}.
+##' The longitudinal biomarkers are generated from biomarker-specific linear
+##' mixed-effects models. The number of random effects for each biomarker is
+##' controlled by \code{pRE}. Currently, \code{pRE} values of 1 and 2 are
+##' supported, corresponding respectively to random intercept, random intercept
+##' and slope.
+##'
+##' When \code{landmark = TRUE}, event and censoring times are generated after
+##' the landmark time \code{s}. Under \code{method = "presentlp"}, the survival
+##' model uses only the random-effects contribution evaluated at \code{s}. Under
+##' \code{method = "present"}, the survival model uses the full current
+##' biomarker value at \code{s}.
+##'
+##' @examples
+##' \dontrun{
+##' dat <- simmvJMdatalm(
+##'   seed = 100,
+##'   N = 5000,
+##'   increment = 0.7,
+##'   beta = list(
+##'     beta1 = c(5, 1.5, 2, 1),
+##'     beta2 = c(10, 1, 2, 1),
+##'     beta3 = c(8, 1.2, 1.5, 0.8)
+##'   ),
+##'   sigma = rep(1, 3),
+##'   gamma1 = c(1, 0.5),
+##'   gamma2 = c(-0.5, 0.5),
+##'   alpha1 = list(
+##'     alpha11 = -0.5,
+##'     alpha12 = c(0.5, 0.7),
+##'     alpha13 = c(0.3, 0.4)
+##'   ),
+##'   alpha2 = list(
+##'     alpha21 = 0.5,
+##'     alpha22 = c(0.5, 0.8),
+##'     alpha23 = c(0.3, 0.1)
+##'   ),
+##'   lambda1 = 0.05,
+##'   lambda2 = 0.05,
+##'   covb = diag(c(5, 10, 1, 10, 1)),
+##'   pRE = c(1, 2, 2),
+##'   s = 2,
+##'   landmark = TRUE,
+##'   CR = TRUE
+##' )
+##'
+##' mvydata <- dat$mvydata
+##' mvcdata <- dat$mvcdata
+##' }
+##'
+##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @export
-##' 
 
 simmvJMdatalm <- function(seed = 100, N = 200, increment = 0.7, beta = list(beta1 = c(5, 1.5, 2, 1),
                                                                           beta2 = c(10, 1, 2, 1)),

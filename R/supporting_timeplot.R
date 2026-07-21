@@ -77,13 +77,16 @@ plot_biomarker_trajectories <- function(data,
   sum_syn <- temp %>%
     dplyr::group_by(.data[[VISIT]]) %>%
     dplyr::summarise(
-      mean_day   = mean(.data[[TIME]], na.rm = TRUE),
+      mean_day = mean(.data[[TIME]], na.rm = TRUE),
       mean_value = mean(.data[[BIO]], na.rm = TRUE),
-      se         = stats::sd(.data[[BIO]], na.rm = TRUE) / sqrt(sum(!is.na(.data[[BIO]]))),
-      lo         = mean_value - 1.96 * se,
-      hi         = mean_value + 1.96 * se,
-      n          = sum(!is.na(.data[[BIO]])),
-      .groups    = "drop"
+      se = stats::sd(.data[[BIO]], na.rm = TRUE) /
+        sqrt(sum(!is.na(.data[[BIO]]))),
+      n = sum(!is.na(.data[[BIO]])),
+      .groups = "drop"
+    ) %>%
+    dplyr::mutate(
+      lo = .data$mean_value - 1.96 * .data$se,
+      hi = .data$mean_value + 1.96 * .data$se
     )
   
   x_max <- max(temp[[TIME]], na.rm = TRUE)
@@ -105,7 +108,12 @@ plot_biomarker_trajectories <- function(data,
   if (isTRUE(show_ribbon)) {
     p <- p + ggplot2::geom_ribbon(
       data = sum_syn,
-      ggplot2::aes(x = mean_day, ymin = lo, ymax = hi),
+      ggplot2::aes(
+        x = .data$mean_day,
+        y = .data$mean_value,
+        ymin = .data$lo,
+        ymax = .data$hi
+      ),
       alpha = ribbon_alpha
     )
   }
@@ -121,13 +129,13 @@ plot_biomarker_trajectories <- function(data,
     ) +
     ggplot2::geom_line(
       data = sum_syn,
-      ggplot2::aes(x = mean_day, y = mean_value),
+      ggplot2::aes(x = .data$mean_day, y = .data$mean_value),
       linewidth = mean_width,
       color = mean_color
     ) +
     ggplot2::geom_point(
       data = sum_syn,
-      ggplot2::aes(x = mean_day, y = mean_value),
+      ggplot2::aes(x = .data$mean_day, y = .data$mean_value),
       size = mean_point_size,
       color = mean_color
     ) +

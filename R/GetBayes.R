@@ -179,3 +179,124 @@ GetBayes.JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, 
   return(posterior.mode)
   
 }
+
+GetBayesSF.mv <- function(beta, sigma, gamma1, alpha, H01,
+                          Sig, Z, X1, Y, W, survtime, cmprsk, mdataM, mdataSM, initial.optimizer) {
+  
+  
+  n <- nrow(W)
+  
+  pREvec <- c()
+  if(is.list(Z)){
+    for(g in 1:length(Z)){
+      pREvec[g] <- ncol(Z[[g]])
+    }
+  }else{
+    g <- 1
+    pREvec[g] <- ncol(Z)
+  }
+  numBio <- length(pREvec)
+  q <- sum(pREvec)
+  
+  CUH01 <- rep(0, n)
+  HAZ01 <- rep(0, n)
+  
+  CumuH01 <- cumsum(H01[, 3])
+  
+  getHazardSF(CumuH01, survtime, cmprsk, H01, CUH01, HAZ01)
+  
+  pos.mode <- matrix(NA, nrow = n, ncol = q)
+  subX1 <- subY <- subZ <- vector("list", n)
+  namesbeta <- vector("list", numBio)
+  for (j in 1:n) {
+    
+    subX1[[j]] <- vector("list", numBio)
+    for (g in 1:numBio) {
+      
+      numRep <- mdataM[[g]][j]
+      indexStart <- mdataSM[[g]][j]
+      
+      subX1[[j]][[g]] <- X1[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+      subY[[j]][[g]] <- Y[[g]][indexStart:(indexStart+numRep-1)]
+      subZ[[j]][[g]] <- Z[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+    }
+    
+    CH001 <- CUH01[j]
+    HAZ001 <- 1e-3
+    
+    data <- list(subY[[j]], subX1[[j]], subZ[[j]], t(as.matrix(W[j, ])), CH001, 
+                 HAZ001, beta, sigma, gamma1, alpha, 
+                 Sig, cmprsk[j])
+    names(data) <- c("Y", "X", "Z", "W", "CH01", 
+                     "HAZ01", "beta", "sigma",
+                     "gamma1", "alphaList", "Sig", "Wcmprsk")
+    opt <- optim(rep(0, q), logLik.learn.mv, data = data, method = initial.optimizer, hessian = FALSE)
+    pos.mode[j, ] <- opt$par
+  }
+  
+  return(pos.mode)
+  
+}
+
+GetBayes.mv <- function(beta, sigma, gamma1, gamma2, alpha, H01, H02, 
+                        Sig, Z, X1, Y, W, survtime, cmprsk, mdataM, mdataSM, initial.optimizer) {
+  
+  
+  n <- nrow(W)
+  
+  pREvec <- c()
+  if(is.list(Z)){
+    for(g in 1:length(Z)){
+      pREvec[g] <- ncol(Z[[g]])
+    }
+  }else{
+    g <- 1
+    pREvec[g] <- ncol(Z)
+  }
+  numBio <- length(pREvec)
+  q <- sum(pREvec)
+  
+  CUH01 <- rep(0, n)
+  CUH02 <- rep(0, n)
+  HAZ01 <- rep(0, n)
+  HAZ02 <- rep(0, n)
+  
+  CumuH01 <- cumsum(H01[, 3])
+  CumuH02 <- cumsum(H02[, 3])
+  
+  getHazard(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
+  
+  pos.mode <- matrix(NA, nrow = n, ncol = q)
+  subX1 <- subY <- subZ <- vector("list", n)
+  namesbeta <- vector("list", numBio)
+  for (j in 1:n) {
+    
+    subX1[[j]] <- vector("list", numBio)
+    for (g in 1:numBio) {
+      
+      numRep <- mdataM[[g]][j]
+      indexStart <- mdataSM[[g]][j]
+      
+      subX1[[j]][[g]] <- X1[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+      subY[[j]][[g]] <- Y[[g]][indexStart:(indexStart+numRep-1)]
+      subZ[[j]][[g]] <- Z[[g]][indexStart:(indexStart+numRep-1),, drop = FALSE]
+    }
+    
+    CH001 <- CUH01[j]
+    CH002 <- CUH02[j]
+    HAZ001 <- 1e-3
+    HAZ002 <- 1e-3
+    
+    data <- list(subY[[j]], subX1[[j]], subZ[[j]], t(as.matrix(W[j, ])), CH001, CH002, 
+                 HAZ001, HAZ002, beta, sigma, gamma1, gamma2, alpha, 
+                 Sig, cmprsk[j])
+    names(data) <- c("Y", "X", "Z", "W", "CH01", "CH02", 
+                     "HAZ01", "HAZ02", "beta", "sigma",
+                     "gamma1", "gamma2", "alphaList", "Sig", "Wcmprsk")
+    opt <- optim(rep(0, q), logLikCR.learn.mv, data = data, method = initial.optimizer, hessian = FALSE)
+    pos.mode[j, ] <- opt$par
+  }
+  
+  return(pos.mode)
+  
+}

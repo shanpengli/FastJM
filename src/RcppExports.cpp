@@ -1639,6 +1639,69 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getmvCov_lm
+Rcpp::List getmvCov_lm(const Eigen::VectorXd beta, const Eigen::VectorXd& gamma1, const Eigen::VectorXd& gamma2, const Eigen::VectorXd& alpha1, const Eigen::VectorXd& alpha2, const Eigen::MatrixXd& H01, const Eigen::MatrixXd& H02, Rcpp::List sigmaiList, const Eigen::MatrixXd& Sig, const Eigen::VectorXd sigmaVec, Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, const Eigen::VectorXd& survtime, const Eigen::VectorXd& cmprsk, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Rcpp::List XsList, double s, Eigen::MatrixXd Zs, std::string latAsso);
+RcppExport SEXP _FastJM_getmvCov_lm(SEXP betaSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP alpha1SEXP, SEXP alpha2SEXP, SEXP H01SEXP, SEXP H02SEXP, SEXP sigmaiListSEXP, SEXP SigSEXP, SEXP sigmaVecSEXP, SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP XsListSEXP, SEXP sSEXP, SEXP ZsSEXP, SEXP latAssoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type gamma1(gamma1SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type gamma2(gamma2SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type alpha1(alpha1SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type alpha2(alpha2SEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type H01(H01SEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type H02(H02SEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type sigmaiList(sigmaiListSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Sig(SigSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type sigmaVec(sigmaVecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type XList(XListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type YList(YListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type ZList(ZListSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type survtime(survtimeSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type cmprsk(cmprskSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdata(mdataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdataSList(mdataSListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type bList(bListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type XsList(XsListSEXP);
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type Zs(ZsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type latAsso(latAssoSEXP);
+    rcpp_result_gen = Rcpp::wrap(getmvCov_lm(beta, gamma1, gamma2, alpha1, alpha2, H01, H02, sigmaiList, Sig, sigmaVec, XList, YList, ZList, W, survtime, cmprsk, mdata, mdataSList, bList, XsList, s, Zs, latAsso));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getmvCov_lmSF
+Rcpp::List getmvCov_lmSF(const Eigen::VectorXd beta, const Eigen::VectorXd& gamma1, const Eigen::VectorXd& alpha1, const Eigen::MatrixXd& H01, Rcpp::List sigmaiList, const Eigen::MatrixXd& Sig, const Eigen::VectorXd sigmaVec, Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, const Eigen::VectorXd& survtime, const Eigen::VectorXd& cmprsk, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Rcpp::List XsList, double s, Eigen::MatrixXd Zs, std::string latAsso);
+RcppExport SEXP _FastJM_getmvCov_lmSF(SEXP betaSEXP, SEXP gamma1SEXP, SEXP alpha1SEXP, SEXP H01SEXP, SEXP sigmaiListSEXP, SEXP SigSEXP, SEXP sigmaVecSEXP, SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP XsListSEXP, SEXP sSEXP, SEXP ZsSEXP, SEXP latAssoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type gamma1(gamma1SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type alpha1(alpha1SEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type H01(H01SEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type sigmaiList(sigmaiListSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Sig(SigSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type sigmaVec(sigmaVecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type XList(XListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type YList(YListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type ZList(ZListSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type survtime(survtimeSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type cmprsk(cmprskSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdata(mdataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdataSList(mdataSListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type bList(bListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type XsList(XsListSEXP);
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type Zs(ZsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type latAsso(latAssoSEXP);
+    rcpp_result_gen = Rcpp::wrap(getmvCov_lmSF(beta, gamma1, alpha1, H01, sigmaiList, Sig, sigmaVec, XList, YList, ZList, W, survtime, cmprsk, mdata, mdataSList, bList, XsList, s, Zs, latAsso));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getQuadMix
 Rcpp::List getQuadMix(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Rcpp::List sigmaList, Rcpp::List sigmaiList, Eigen::VectorXd weight, Eigen::VectorXd absc, Eigen::MatrixXd H01, Eigen::MatrixXd H02, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk, Eigen::VectorXd& gamma1, Eigen::VectorXd& gamma2, Rcpp::List alphaList, const Eigen::VectorXd& CUH01, const Eigen::VectorXd& CUH02, const Eigen::VectorXd& HAZ01, const Eigen::VectorXd& HAZ02, const Eigen::MatrixXd& Sig, Rcpp::List betaList);
 RcppExport SEXP _FastJM_getQuadMix(SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP sigmaListSEXP, SEXP sigmaiListSEXP, SEXP weightSEXP, SEXP abscSEXP, SEXP H01SEXP, SEXP H02SEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP alphaListSEXP, SEXP CUH01SEXP, SEXP CUH02SEXP, SEXP HAZ01SEXP, SEXP HAZ02SEXP, SEXP SigSEXP, SEXP betaListSEXP) {
@@ -1733,6 +1796,74 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// normalApprox_lm
+Rcpp::List normalApprox_lm(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Eigen::VectorXd sigmaInit, Rcpp::List sigmaiList, Eigen::MatrixXd H01, Eigen::MatrixXd H02, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk, Eigen::VectorXd& gamma1, Eigen::VectorXd& gamma2, Rcpp::List alphaList, const Eigen::VectorXd& CUH01, const Eigen::VectorXd& CUH02, const Eigen::VectorXd& HAZ01, const Eigen::VectorXd& HAZ02, const Eigen::MatrixXd& Sig, Rcpp::List betaList, Rcpp::List XsList, double s, Eigen::MatrixXd Zs, std::string latAsso);
+RcppExport SEXP _FastJM_normalApprox_lm(SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP sigmaInitSEXP, SEXP sigmaiListSEXP, SEXP H01SEXP, SEXP H02SEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP gamma1SEXP, SEXP gamma2SEXP, SEXP alphaListSEXP, SEXP CUH01SEXP, SEXP CUH02SEXP, SEXP HAZ01SEXP, SEXP HAZ02SEXP, SEXP SigSEXP, SEXP betaListSEXP, SEXP XsListSEXP, SEXP sSEXP, SEXP ZsSEXP, SEXP latAssoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type XList(XListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type YList(YListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type ZList(ZListSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdata(mdataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdataSList(mdataSListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type bList(bListSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type sigmaInit(sigmaInitSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type sigmaiList(sigmaiListSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type H01(H01SEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type H02(H02SEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type survtime(survtimeSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type cmprsk(cmprskSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type gamma1(gamma1SEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type gamma2(gamma2SEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type alphaList(alphaListSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type CUH01(CUH01SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type CUH02(CUH02SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type HAZ01(HAZ01SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type HAZ02(HAZ02SEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Sig(SigSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type betaList(betaListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type XsList(XsListSEXP);
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type Zs(ZsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type latAsso(latAssoSEXP);
+    rcpp_result_gen = Rcpp::wrap(normalApprox_lm(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, H02, survtime, cmprsk, gamma1, gamma2, alphaList, CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, XsList, s, Zs, latAsso));
+    return rcpp_result_gen;
+END_RCPP
+}
+// normalApprox_lmSF
+Rcpp::List normalApprox_lmSF(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Eigen::MatrixXd& W, Rcpp::List mdata, Rcpp::List mdataSList, Rcpp::List bList, Eigen::VectorXd sigmaInit, Rcpp::List sigmaiList, Eigen::MatrixXd H01, Eigen::VectorXd& survtime, Eigen::VectorXd cmprsk, Eigen::VectorXd& gamma1, Rcpp::List alphaList, const Eigen::VectorXd& CUH01, const Eigen::VectorXd& HAZ01, const Eigen::MatrixXd& Sig, Rcpp::List betaList, Rcpp::List XsList, double s, Eigen::MatrixXd Zs, std::string latAsso);
+RcppExport SEXP _FastJM_normalApprox_lmSF(SEXP XListSEXP, SEXP YListSEXP, SEXP ZListSEXP, SEXP WSEXP, SEXP mdataSEXP, SEXP mdataSListSEXP, SEXP bListSEXP, SEXP sigmaInitSEXP, SEXP sigmaiListSEXP, SEXP H01SEXP, SEXP survtimeSEXP, SEXP cmprskSEXP, SEXP gamma1SEXP, SEXP alphaListSEXP, SEXP CUH01SEXP, SEXP HAZ01SEXP, SEXP SigSEXP, SEXP betaListSEXP, SEXP XsListSEXP, SEXP sSEXP, SEXP ZsSEXP, SEXP latAssoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type XList(XListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type YList(YListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type ZList(ZListSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdata(mdataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mdataSList(mdataSListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type bList(bListSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type sigmaInit(sigmaInitSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type sigmaiList(sigmaiListSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type H01(H01SEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type survtime(survtimeSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type cmprsk(cmprskSEXP);
+    Rcpp::traits::input_parameter< Eigen::VectorXd& >::type gamma1(gamma1SEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type alphaList(alphaListSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type CUH01(CUH01SEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type HAZ01(HAZ01SEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Sig(SigSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type betaList(betaListSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type XsList(XsListSEXP);
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type Zs(ZsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type latAsso(latAssoSEXP);
+    rcpp_result_gen = Rcpp::wrap(normalApprox_lmSF(XList, YList, ZList, W, mdata, mdataSList, bList, sigmaInit, sigmaiList, H01, survtime, cmprsk, gamma1, alphaList, CUH01, HAZ01, Sig, betaList, XsList, s, Zs, latAsso));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_FastJM_GetrisksetC", (DL_FUNC) &_FastJM_GetrisksetC, 1},
@@ -1799,9 +1930,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_FastJM_getloglikeCstandardSF", (DL_FUNC) &_FastJM_getloglikeCstandardSF, 17},
     {"_FastJM_getmvCov", (DL_FUNC) &_FastJM_getmvCov, 19},
     {"_FastJM_getmvCovSF", (DL_FUNC) &_FastJM_getmvCovSF, 16},
+    {"_FastJM_getmvCov_lm", (DL_FUNC) &_FastJM_getmvCov_lm, 23},
+    {"_FastJM_getmvCov_lmSF", (DL_FUNC) &_FastJM_getmvCov_lmSF, 20},
     {"_FastJM_getQuadMix", (DL_FUNC) &_FastJM_getQuadMix, 24},
     {"_FastJM_normalApprox", (DL_FUNC) &_FastJM_normalApprox, 22},
     {"_FastJM_normalApproxSF", (DL_FUNC) &_FastJM_normalApproxSF, 18},
+    {"_FastJM_normalApprox_lm", (DL_FUNC) &_FastJM_normalApprox_lm, 26},
+    {"_FastJM_normalApprox_lmSF", (DL_FUNC) &_FastJM_normalApprox_lmSF, 22},
     {NULL, NULL, 0}
 };
 
