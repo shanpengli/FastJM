@@ -22,44 +22,67 @@
 
 plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
   
-  if (!inherits(x, "jmcs"))
+  if (!inherits(x, "jmcs")) {
     stop("Use only with 'jmcs' objects.\n")
+  }
   
-  op <- par(mfrow = c(2, 2))
-  on.exit(par(op), add = TRUE)
+  op <- graphics::par(mfrow = c(2, 2))
+  on.exit(graphics::par(op), add = TRUE)
   
   resid.values <- x$fitted$resid
   fitted <- x$fitted$fitted
   
-  plot(
-    fitted, resid.values,
+  graphics::plot(
+    fitted,
+    resid.values,
     xlab = "Fitted Values",
     ylab = "Residuals",
     main = "Residuals vs Fitted"
   )
+  
   if (isTRUE(add.smooth)) {
-    abline(h = 0, lty = 3, col = "grey", lwd = 2)
-    panel.smooth(fitted, resid.values, lwd = 2)
+    graphics::abline(
+      h = 0,
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+    
+    graphics::panel.smooth(
+      fitted,
+      resid.values,
+      lwd = 2
+    )
   }
   
-  qqnorm(
+  stats::qqnorm(
     resid.values,
     ylab = "Standardized Residuals",
     main = "Normal Q-Q",
     ...
   )
-  qqline(resid.values, lty = 3, col = "grey50")
+  
+  stats::qqline(
+    resid.values,
+    lty = 3,
+    col = "grey50"
+  )
   
   marsurv <- as.data.frame(x$fittedSurv)
   
   cdata <- x$cdata
   surv.formula <- x$SurvivalSubmodel
   surv.var <- all.vars(surv.formula)
-  survdata <- cdata[, surv.var[1:2]]
+  
+  survdata <- cdata[, surv.var[1:2], drop = FALSE]
   colnames(survdata) <- c("time", "status")
-  km_fit <- survival::survfit(survival::Surv(time, status != 0) ~ 1,data = survdata)
-
-  plot(
+  
+  km_fit <- survival::survfit(
+    survival::Surv(time, status != 0) ~ 1,
+    data = survdata
+  )
+  
+  graphics::plot(
     marsurv$V2 ~ marsurv$V1,
     type = "l",
     lty = 1,
@@ -69,23 +92,29 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
     xlab = "Time",
     ylim = c(0, 1)
   )
-  lines(
+  
+  graphics::lines(
     km_fit,
     lty = 2,
     lwd = 2,
     conf.int = FALSE
   )
   
-  legend(
+  graphics::legend(
     "topright",
     legend = c("Estimated", "Kaplan-Meier"),
     lty = c(1, 2),
     lwd = 2,
     bty = "n"
   )
-
-  na_fit <- survival::survfit(survival::Surv(time, status != 0) ~ 1,data = survdata, type = "fh2")
-  plot(
+  
+  na_fit <- survival::survfit(
+    survival::Surv(time, status != 0) ~ 1,
+    data = survdata,
+    type = "fh2"
+  )
+  
+  graphics::plot(
     marsurv$V1,
     -log(marsurv$V2),
     type = "l",
@@ -104,14 +133,14 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
     xlab = "Time"
   )
   
-  lines(
+  graphics::lines(
     na_fit$time,
     na_fit$cumhaz,
     lty = 2,
     lwd = 2
   )
   
-  legend(
+  graphics::legend(
     "topleft",
     legend = c("Estimated", "Nelson-Aalen"),
     lty = c(1, 2),
@@ -119,6 +148,5 @@ plot.jmcs <- function(x, add.smooth = getOption("add.smooth"), ...) {
     bty = "n"
   )
   
-  invisible()
+  invisible(x)
 }
-

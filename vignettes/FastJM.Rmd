@@ -218,15 +218,16 @@ summary(res, metric = "Cindex")
 ### Landmark Multivariate Joint Model
 
 An alternative approach to characterize flexible latent associations is a landmark multivariate joint model, which specifies a landmark time so that only subjects who remain event-free beyond the landmark time contribute to the model fitting. Here, we consider the current value of the latent process as the association structure in the survival sub-model.
-```{r}
+```{r landmark-fit, eval=FALSE}
+data(mvydata)
+data(mvcdata)
 fit.mvlm <- mvjmcs(ydata = mvydata, cdata = mvcdata,
                    long.formula = list(Y1 ~ X11 + X12 + time,
                                        Y2 ~ X11 + X12 + time),
                    random = list(~ time | ID,
                             ~ 1 | ID),
                    surv.formula = Surv(survtime, cmprsk) ~ X21 + X22,
-                   control = mvjmcs_control(opt = "optim",
-                                            cpu.cores = parallel::detectCores()),
+                   control = mvjmcs_control(opt = "optim"),
                    latAsso = "presentlp",
                    landmark = TRUE,
                    s = 4,

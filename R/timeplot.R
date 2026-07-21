@@ -313,7 +313,7 @@ timeplot <- function(object,
   ydata <- ydata %>%
     dplyr::mutate(
       residual = .data[[biomarker_nm]] - fitted,
-      log_resid_sq = log(residual^2 + 1e-8)
+      log_resid_sq = log(.data$residual^2 + 1e-8)
     )
   
   traj_res <- plot_biomarker_trajectories(
@@ -356,16 +356,16 @@ timeplot <- function(object,
       dplyr::group_by(.data[[".visit_group"]]) %>%
       dplyr::summarise(
         VisitTime      = mean(.data[[time_nm]], na.rm = TRUE),
-        LowerVisitTime = VisitTime - window_days,
-        UpperVisitTime = VisitTime + window_days,
+        LowerVisitTime = .data$VisitTime - window_days,
+        UpperVisitTime = .data$VisitTime + window_days,
         .groups = "drop"
       )
     
     ydataNew <- ydata_for_p2 %>%
       dplyr::left_join(mean_biomarker, by = ".visit_group") %>%
       dplyr::filter(
-        .data[[time_nm]] >= LowerVisitTime,
-        .data[[time_nm]] <= UpperVisitTime
+        .data[[time_nm]] >= .data$LowerVisitTime,
+        .data[[time_nm]] <= .data$UpperVisitTime
       )
     
     obs_per_subject_visit <- ydataNew %>%
@@ -380,15 +380,15 @@ timeplot <- function(object,
       dplyr::summarise(
         meanday = mean(.data[[time_nm]], na.rm = TRUE),
         mean_biomarker = mean(.data[[biomarker_nm]], na.rm = TRUE),
-        meanres = mean(residual, na.rm = TRUE),
-        varres = stats::var(residual, na.rm = TRUE),
+        meanres = mean(.data$residual, na.rm = TRUE),
+        varres = stats::var(.data$residual, na.rm = TRUE),
         .groups = "drop"
       ) %>%
       as.data.frame()
     
     p2 <- ggplot2::ggplot(
       mean_biomarkerOneBin,
-      ggplot2::aes(x = meanday, y = log(varres))
+      ggplot2::aes(x = .data$meanday, y = log(.data$varres))
     ) +
       ggplot2::geom_line(linewidth = 1.1, color = "grey5", na.rm = TRUE) +
       ggplot2::geom_point(size = 1.4, color = "grey5", na.rm = TRUE) +

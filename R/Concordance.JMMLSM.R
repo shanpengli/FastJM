@@ -3,6 +3,7 @@ Concordance.JMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
   
   CompetingRisk <- object$CompetingRisk
   set.seed(seed)
+  opt <- object$opt
   cdata <- object$cdata
   ydata <- object$ydata
   long.formula <- object$LongitudinalSubmodelmean
@@ -53,7 +54,7 @@ Concordance.JMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
           maxiter = maxiter,
           quadpoint = object$quadpoint,
           initial.para = initial.para,
-          opt = object$opt
+          opt = opt
         )
       ),
       silent = TRUE

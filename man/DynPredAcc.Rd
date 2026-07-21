@@ -77,6 +77,8 @@ metrics to compute. Available options are \code{"AUC"}, \code{"Cindex"},
 \code{"Brier Score"}, \code{"MAE"}, and \code{"MAEQ"}. Default is
 \code{c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ")}.}
 
+\item{cpu.cores}{a number of cpu cores used for parallel computing.}
+
 \item{...}{Further arguments passed to model-specific methods.}
 }
 \value{

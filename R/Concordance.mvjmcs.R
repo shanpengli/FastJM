@@ -138,7 +138,7 @@ Concordance.mvjmcs <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
       getinit <- Getmvinit(cdata = val.cdata, ydata = val.ydata, long.formula = long.formula,
                            surv.formula = surv.formula,
                            model = model, ID = ID, RE = RE,
-                           REML = TRUE, random = random, opt = opt, initial.para, latAsso = "sre", landmark = FALSE)
+                           REML = TRUE, random = random, opt = "optim", initial.para, latAsso = "sre", landmark = FALSE)
       
       val.cdata2 <- getinit$cdata
       val.ydata2 <- getinit$ydata

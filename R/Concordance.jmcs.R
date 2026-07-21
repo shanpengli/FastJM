@@ -5,6 +5,7 @@ Concordance.jmcs <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
     stop("Use only with 'jmcs' xs.\n")
   
   CompetingRisk <- object$CompetingRisk
+  opt <- object$opt
   set.seed(seed)
   cdata <- object$cdata
   ydata <- object$ydata
@@ -53,7 +54,7 @@ Concordance.jmcs <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
           maxiter = maxiter,
           tol = object$tol,
           initial.para = initial.para,
-          opt = object$opt
+          opt = opt
         )
       ),
       silent = TRUE

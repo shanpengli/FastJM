@@ -123,15 +123,23 @@
 ##'                               ~ 1 | ID),
 ##'                 surv.formula = Surv(survtime, cmprsk) ~ X21 + X22)
 ##'   fit
-##'   
 ##'   # Extract the parameter estimates of longitudinal sub-model fixed effects
 ##'   fixef(fit, process = "Longitudinal")
-##'   
 ##'   # Extract the parameter estimates of survival sub-model fixed effects
 ##'   fixef(fit, process = "Event")
-##'   
 ##'   # Obtain the random effects estimates for first 6 subjects 
 ##'   head(ranef(fit))
+##'   
+##'   set.seed(08252025)
+##'   sampleID <- sample(mvcdata$ID, 2, replace = FALSE)
+##'   subcdata <- mvcdata %>%
+##'     dplyr::filter(ID %in% sampleID)
+##'   subydata <- mvydata %>%
+##'     dplyr::filter(ID %in% sampleID)
+##' # Make predictions at the horizon times
+##'   survfit.mv <- survfitJM(fit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
+##'                           u = c(7, 8, 9), obs.time = "time")
+##'   survfit.mv
 ##'   }
 ##'   
 ##' @export
@@ -141,7 +149,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    control = mvjmcs_control(),
                    latAsso = "sre", landmark = FALSE, s = NULL, ytime = NULL) {
   
-  control <- modifyList(mvjmcs_control(), control)
+  control <- utils::modifyList(mvjmcs_control(), control)
   
   maxiter      <- control$maxiter
   opt          <- control$opt
@@ -504,8 +512,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
           pos.mode, sigma, pos.cov,
           H01, H02, survtime, cmprsk,
           gamma1, gamma2, alphaList,
-          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, s = s,  Xs = subXs,
-          Zs = getinit$Zs, latAsso = latAsso
+          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, s,  subXs,
+          getinit$Zs, latAsso
         )
       }
       
@@ -807,8 +815,8 @@ mvjmcs <- function(ydata, cdata, long.formula,
           pos.mode, sigma, pos.cov,
           H01, survtime, cmprsk,
           gamma1, alphaList,
-          CUH01, HAZ01, Sig, betaList, s = s,  Xs = subXs,
-          Zs = getinit$Zs, latAsso = latAsso
+          CUH01, HAZ01, Sig, betaList, s,  subXs,
+          getinit$Zs, latAsso
         )
       }
       

@@ -138,29 +138,33 @@ summary(fit, process = "Event")
 ND <- ydata[ydata$ID \%in\% c(419, 218), ]
 ID <- unique(ND$ID)
 NDc <- cdata[cdata$ID  \%in\% ID, ]
-survfit <- survfitjmcs(fit, 
-                       ynewdata = ND, 
-                       cnewdata = NDc, 
-                       u = seq(3, 4.8, by = 0.2), 
-                       method = "GH",
-                       obs.time = "time")
+survfit <- survfitJM(fit, 
+                     ynewdata = ND, 
+                     cnewdata = NDc, 
+                     u = seq(3, 4.8, by = 0.2), 
+                     method = "GH",
+                     obs.time = "time")
 survfit
 
-res <- DynPredAccjmcs(object = fit,
-                      landmark.time = 3,
-                      horizon.time = c(3.6, 4, 4.4),
-                      obs.time = "time",
-                      method = "GH",
-                      maxiter = 1000,
-                      n.cv = 3,
-                      metrics = c("AUC", "Cindex", "Brier", "MAE", "MAEQ"))
+res <- DynPredAcc(object = fit,
+                  landmark.time = 3,
+                  horizon.time = c(3.6, 4, 4.4),
+                  obs.time = "time",
+                  method = "GH",
+                  maxiter = 1000,
+                  n.cv = 3,
+                  metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ"))
 
 # Print all available evaluation metrics for the fitted joint model
-summary(res, metric = "Brier")
+summary(res, metric = "Brier Score")
 summary(res, metric = "MAE")
 summary(res, metric = "MAEQ")
 summary(res, metric = "AUC")
 summary(res, metric = "Cindex")
+
+# Print time-independent concordance index
+Concord <- Concordance(seed = 100, fit, n.cv = 3)
+summary(Concord)
 }
 
 }
