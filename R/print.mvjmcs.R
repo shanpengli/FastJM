@@ -75,7 +75,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     # ~~~~~~~~~~~~~~~~~~~~~~~
     dat <- data.frame(x$beta, x$sebeta, x$beta/x$sebeta, 2 * pnorm(-abs(x$beta/x$sebeta)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
     cat("\n")
@@ -83,18 +83,22 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     # ~~~~~~~~~~~~~~~~~
     # print sigma^2 est
     # ~~~~~~~~~~~~~~~~~
-    dat <- data.frame(x$sigma, x$sesigma, x$sigma/x$sesigma, 2 * pnorm(-abs(x$sigma/x$sesigma)))
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
-    
-    tempName <- c()
-    for(g in 1:numBio){
-      tempName[g] <- paste0("sigma^2_","bio", g)
-    }
-    
-    rownames(dat) <- tempName
-    dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
-    print(dat)
+    sigma2 <- as.numeric(x$sigma)
+    residual_sd <- sqrt(sigma2)
+
+    residual_tab <- data.frame(
+      Variance = sigma2,
+      StdDev = residual_sd,
+      row.names = paste0("sigma_bio", seq_len(numBio)),
+      check.names = FALSE
+    )
+    residual_tab[] <- lapply(
+      residual_tab,
+      round,
+      digits = digits
+    )
+    cat("\nResidual error:\n")
+    print(residual_tab)
     
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
@@ -125,7 +129,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     colnames(dat2) <- c("Estimate", "SE", "Z value", "p-val")
     
     dat <- rbind(dat, dat2)
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     
@@ -191,7 +195,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     
     
     
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     
@@ -201,57 +205,105 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     for(g in 1:numBio){
       cat("  bio",g, ": ", format(as.formula(x$random[[g]])), "\n")
     }
+    pREtotal <- nrow(x$Sig)
     
+    Sig <- as.matrix(x$Sig)
     
-    pREtotal <- length(diag(x$Sig))
+    # Protect against negligible numerical asymmetry
+    Sig <- (Sig + t(Sig)) / 2
     
-    dat <- matrix(0, nrow = pREtotal * (pREtotal + 1)/2, ncol = 4)
-    for(i in 1:pREtotal){
-      dat[i,] <- c( x$Sig[i,i], x$seSig[i,i], x$Sig[i,i]/x$seSig[i,i], 2 * pnorm(-abs(x$Sig[i,i]/x$seSig[i,i])))
-    }
+    # ---------------------------------------------------------
+    # Construct random-effect names for all biomarkers
+    # ---------------------------------------------------------
     
-    re <- c()
-    pREvec <- c()
-    for(g in 1:numBio){
-      pREvec[g] <- length(all.vars(x$random[[g]]))
-    }
+    re_names <- character(0)
     
-    pREind <- 1
-    
-    
-    for(g in 1:numBio){
-      pRE <- pREvec[g]
-      temp <- all.vars(x$random[[g]])
-      ID <- all.vars(x$random[[g]])[length(all.vars(x$random[[g]]))]
-      if (length(temp) == 1) {
-        re[pREind:(pREind+pRE-1)] <- paste0("Intercept", g)
+    for (g in seq_len(numBio)) {
+      
+      random_vars <- all.vars(x$random[[g]])
+      
+      if (length(random_vars) > 1) {
+        random_vars <- random_vars[-length(random_vars)]
+        biomarker_names <- c(
+          paste0("Intercept", g),
+          paste0(random_vars, g)
+        )
       } else {
-        re[pREind:(pREind+pRE-1)] <- paste0(c("Intercept", 
-                                              temp[-length(temp)]), g)
+        biomarker_names <- paste0("Intercept", g)
       }
-      pREind <- pREind+pRE
+      re_names <- c(re_names, biomarker_names)
     }
     
-    name <- re
-    
-    ind <- pREtotal+1
-    for (i in 1:(pREtotal-1)) {
-      for (j in (i+1):(pREtotal)){
-        dat[ind, ] <- c(x$Sig[i, j], x$seSig[i, j], x$Sig[i, j]/x$seSig[i, j],
-                        2 * pnorm(-abs(x$Sig[i, j]/x$seSig[i, j])))
-        name[ind] <- paste0(re[i], ":", re[j])
-        ind <- ind + 1
-      }
+    if (length(re_names) != pREtotal) {
+      stop(
+        "The number of constructed random-effect names (",
+        length(re_names),
+        ") does not match the dimension of x$Sig (",
+        pREtotal,
+        ")."
+      )
     }
     
-    dat <- as.data.frame(dat)
+    # ---------------------------------------------------------
+    # Calculate standard deviations and correlations
+    # ---------------------------------------------------------
     
+    if (any(diag(Sig) < 0)) {
+      warning(
+        "Negative diagonal elements were found in x$Sig; ",
+        "the corresponding standard deviations are set to zero."
+      )
+    }
     
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    rownames(dat) <- name
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
-    dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
-    print(dat)
+    re_sd <- sqrt(pmax(diag(Sig), 0))
+    
+    # Calculate correlations safely, including zero-variance cases
+    denom <- outer(re_sd, re_sd)
+    re_cor <- Sig / denom
+    
+    re_cor[!is.finite(re_cor)] <- NA_real_
+    diag(re_cor) <- ifelse(re_sd > 0, 1, NA_real_)
+    
+    vc <- matrix(
+      "",
+      nrow = pREtotal,
+      ncol = pREtotal
+    )
+    
+    rownames(vc) <- re_names
+    
+    corr_names <- if (pREtotal > 1) {
+      re_names[seq_len(pREtotal - 1)]
+    } else {
+      character(0)
+    }
+    
+    # Shorter correlation-column labels
+    corr_names <- sub("^Intercept", "Intr", corr_names)
+    
+    colnames(vc) <- c(
+      "StdDev",
+      corr_names
+    )
+    
+    # Standard deviations
+    vc[, 1] <- formatC(
+      re_sd,
+      format = "f",
+      digits = digits
+    )
+    
+    # Lower-triangular correlations
+    if (pREtotal > 1) {
+      for (i in 2:pREtotal) {
+        vc[i, 2:i] <- formatC(
+          re_cor[i, seq_len(i - 1)],
+          format = "f",
+          digits = digits
+        )
+      }
+    }
+    print(vc, quote = FALSE, right = TRUE)
     
   } else {
     cat("Data Summary:\n")
@@ -307,26 +359,29 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     # ~~~~~~~~~~~~~~~~~~~~~~~
     dat <- data.frame(x$beta, x$sebeta, x$beta/x$sebeta, 2 * pnorm(-abs(x$beta/x$sebeta)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
     cat("\n")
-    
     # ~~~~~~~~~~~~~~~~~
     # print sigma^2 est
     # ~~~~~~~~~~~~~~~~~
-    dat <- data.frame(x$sigma, x$sesigma, x$sigma/x$sesigma, 2 * pnorm(-abs(x$sigma/x$sesigma)))
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    sigma2 <- as.numeric(x$sigma)
+    residual_sd <- sqrt(sigma2)
     
-    tempName <- c()
-    for(g in 1:numBio){
-      tempName[g] <- paste0("sigma^2_","bio", g)
-    }
-    
-    rownames(dat) <- tempName
-    dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
-    print(dat)
+    residual_tab <- data.frame(
+      Variance = sigma2,
+      StdDev = residual_sd,
+      row.names = paste0("sigma_bio", seq_len(numBio)),
+      check.names = FALSE
+    )
+    residual_tab[] <- lapply(
+      residual_tab,
+      round,
+      digits = digits
+    )
+    cat("\nResidual error:\n")
+    print(residual_tab)
     
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
@@ -345,7 +400,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     )
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
     
-    dat[, 1:3] <- round(dat[, 1:3], digits + 1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
 
@@ -368,7 +423,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
         
         if (pRE == 1){
           
-          tempName[ind] <- paste0("(Intercept)_bio", g)
+          tempName[ind] <- paste0("(Intercept)_1bio", g)
           
         } else {
           
@@ -395,7 +450,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     
     rownames(dat) <- tempName
     
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     
@@ -405,57 +460,109 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     for(g in 1:numBio){
       cat("  bio",g, ": ", format(as.formula(x$random[[g]])), "\n")
     }
+    pREtotal <- nrow(x$Sig)
     
+    Sig <- as.matrix(x$Sig)
     
-    pREtotal <- length(diag(x$Sig))
+    # Protect against negligible numerical asymmetry
+    Sig <- (Sig + t(Sig)) / 2
     
-    dat <- matrix(0, nrow = pREtotal * (pREtotal + 1)/2, ncol = 4)
-    for(i in 1:pREtotal){
-      dat[i,] <- c( x$Sig[i,i], x$seSig[i,i], x$Sig[i,i]/x$seSig[i,i], 2 * pnorm(-abs(x$Sig[i,i]/x$seSig[i,i])))
-    }
+    # ---------------------------------------------------------
+    # Construct random-effect names for all biomarkers
+    # ---------------------------------------------------------
     
-    re <- c()
-    pREvec <- c()
-    for(g in 1:numBio){
-      pREvec[g] <- length(all.vars(x$random[[g]]))
-    }
+    re_names <- character(0)
     
-    pREind <- 1
-    
-    
-    for(g in 1:numBio){
-      pRE <- pREvec[g]
-      temp <- all.vars(x$random[[g]])
-      ID <- all.vars(x$random[[g]])[length(all.vars(x$random[[g]]))]
-      if (length(temp) == 1) {
-        re[pREind:(pREind+pRE-1)] <- paste0("Intercept", g)
+    for (g in seq_len(numBio)) {
+      
+      random_vars <- all.vars(x$random[[g]])
+      
+      if (length(random_vars) > 1) {
+        random_vars <- random_vars[-length(random_vars)]
+        biomarker_names <- c(
+          paste0("Intercept", g),
+          paste0(random_vars, g)
+        )
       } else {
-        re[pREind:(pREind+pRE-1)] <- paste0(c("Intercept", 
-                                              temp[-length(temp)]), g)
+        biomarker_names <- paste0("Intercept", g)
       }
-      pREind <- pREind+pRE
+      re_names <- c(re_names, biomarker_names)
     }
     
-    name <- re
-    
-    ind <- pREtotal+1
-    for (i in 1:(pREtotal-1)) {
-      for (j in (i+1):(pREtotal)){
-        dat[ind, ] <- c(x$Sig[i, j], x$seSig[i, j], x$Sig[i, j]/x$seSig[i, j],
-                        2 * pnorm(-abs(x$Sig[i, j]/x$seSig[i, j])))
-        name[ind] <- paste0(re[i], ":", re[j])
-        ind <- ind + 1
-      }
+    if (length(re_names) != pREtotal) {
+      stop(
+        "The number of constructed random-effect names (",
+        length(re_names),
+        ") does not match the dimension of x$Sig (",
+        pREtotal,
+        ")."
+      )
     }
     
-    dat <- as.data.frame(dat)
+    # ---------------------------------------------------------
+    # Calculate standard deviations and correlations
+    # ---------------------------------------------------------
     
+    if (any(diag(Sig) < 0)) {
+      warning(
+        "Negative diagonal elements were found in x$Sig; ",
+        "the corresponding standard deviations are set to zero."
+      )
+    }
     
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    rownames(dat) <- name
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
-    dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
-    print(dat)
+    re_sd <- sqrt(pmax(diag(Sig), 0))
+    
+    # Calculate correlations safely, including zero-variance cases
+    denom <- outer(re_sd, re_sd)
+    re_cor <- Sig / denom
+    
+    re_cor[!is.finite(re_cor)] <- NA_real_
+    diag(re_cor) <- ifelse(re_sd > 0, 1, NA_real_)
+    
+    # ---------------------------------------------------------
+    # Construct JM-style display
+    # ---------------------------------------------------------
+    
+    vc <- matrix(
+      "",
+      nrow = pREtotal,
+      ncol = pREtotal
+    )
+    
+    rownames(vc) <- re_names
+    
+    corr_names <- if (pREtotal > 1) {
+      re_names[seq_len(pREtotal - 1)]
+    } else {
+      character(0)
+    }
+    
+    # Shorter correlation-column labels
+    corr_names <- sub("^Intercept", "Intr", corr_names)
+    
+    colnames(vc) <- c(
+      "StdDev",
+      corr_names
+    )
+    
+    # Standard deviations
+    vc[, 1] <- formatC(
+      re_sd,
+      format = "f",
+      digits = digits
+    )
+    
+    # Lower-triangular correlations
+    if (pREtotal > 1) {
+      for (i in 2:pREtotal) {
+        vc[i, 2:i] <- formatC(
+          re_cor[i, seq_len(i - 1)],
+          format = "f",
+          digits = digits
+        )
+      }
+    }
+    print(vc, quote = FALSE, right = TRUE)
     
   }
 }

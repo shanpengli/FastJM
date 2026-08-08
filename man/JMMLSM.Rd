@@ -38,11 +38,11 @@ model can be specified as \code{~ x1 + ... + xn | ID}.}
 \code{\link{JMMLSM_control}()}. Available options include:
 \describe{
   \item{\code{maxiter}}{Maximum number of EM iterations. The default is
-  \code{1000}.}
+  \code{10000}.}
   \item{\code{tol}}{Convergence tolerance for the EM algorithm. The default
   is \code{1e-4}.}
   \item{\code{quadpoint}}{Number of Gauss--Hermite quadrature points used
-  for numerical integration. The default is \code{15}.}
+  for numerical integration. The default is \code{6}.}
   \item{\code{verbose}}{Logical value indicating whether to print detailed
   information at each iteration. The default is \code{FALSE}.}
   \item{\code{initial.para}}{Optional list of user-supplied initial parameter
@@ -100,6 +100,7 @@ Valid only if \code{CompetingRisk = TRUE}.}
 \item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
 \item{random}{the component of the \code{random}.}
 \item{call}{the matched call.}
+\item{opt}{optimization method used to fit the initial linear mixed-effects model.}
 }
 \description{
 Joint modeling of longitudinal continuous data and competing risks

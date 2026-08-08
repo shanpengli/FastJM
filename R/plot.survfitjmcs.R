@@ -78,7 +78,7 @@ plot.survfitjmcs <- function(
             xlab = xlab,
             ylab = ylab,
             xlim = xlim,
-            main = paste("Subject", x$Last.time[i, 1], sep = " "),
+            main = paste("ID", x$Last.time[i, 1], sep = " "),
             col = "red",
             type = "l",
             ylim = ylim.surv
@@ -117,7 +117,7 @@ plot.survfitjmcs <- function(
             probmean,
             xlab = "",
             ylab = "",
-            main = paste("Subject", x$Last.time[i, 1], sep = " "),
+            main = paste("ID", x$Last.time[i, 1], sep = " "),
             xlim = xlim,
             col = "red",
             type = "l",
@@ -189,7 +189,7 @@ plot.survfitjmcs <- function(
               ylab = bquote(
                 Pr(T[i] <= u, D[i] == .(j) ~ "|" ~ T[i] > s, ~ y[i]^(s), ~ Psi)
               ),
-              main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "),
+              main = paste("ID", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "),
               col = "red",
               type = "l",
               ylim = ylim.surv,
@@ -229,7 +229,7 @@ plot.survfitjmcs <- function(
               probmean,
               xlab = "",
               ylab = "",
-              main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "),
+              main = paste("ID", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "),
               col = "red",
               type = "l",
               ylim = ylim.surv,

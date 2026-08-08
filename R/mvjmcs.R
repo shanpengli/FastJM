@@ -512,7 +512,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
           pos.mode, sigma, pos.cov,
           H01, H02, survtime, cmprsk,
           gamma1, gamma2, alphaList,
-          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, s,  subXs,
+          CUH01, CUH02, HAZ01, HAZ02, Sig, betaList, subXs, s,
           getinit$Zs, latAsso
         )
       }
@@ -815,7 +815,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
           pos.mode, sigma, pos.cov,
           H01, survtime, cmprsk,
           gamma1, alphaList,
-          CUH01, HAZ01, Sig, betaList, s,  subXs,
+          CUH01, HAZ01, Sig, betaList, subXs, s,
           getinit$Zs, latAsso
         )
       }

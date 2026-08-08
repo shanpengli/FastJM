@@ -51,7 +51,7 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     
     dat <- data.frame(x$beta, x$sebeta, x$beta/x$sebeta, 2 * pnorm(-abs(x$beta/x$sebeta)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
 
@@ -61,7 +61,7 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     
     dat <- data.frame(x$tau, x$setau, x$tau/x$setau, 2 * pnorm(-abs(x$tau/x$setau)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
 
@@ -70,13 +70,13 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     cat("\n")
     dat <- data.frame(x$gamma1, x$segamma1, x$gamma1/x$segamma1, 2 * pnorm(-abs(x$gamma1/x$segamma1)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
     
     dat <- data.frame(x$gamma2, x$segamma2, x$gamma2/x$segamma2, 2 * pnorm(-abs(x$gamma2/x$segamma2)))
     colnames(dat) <- NULL
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     
@@ -98,52 +98,84 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     colnames(datnu) <- c("Estimate", "SE", "Z value", "p-val")
     rownames(datnu) <- c("var_(Intercept)_1", "var_(Intercept)_2")
     dat <- rbind(dat, datnu)
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     cat("\n")
     
     cat("\nRandom effects:                 \n")
     cat("  Formula:", format(as.formula(x$random)), "\n")
+    p <- nrow(x$Sig)
+    Sig <- as.matrix(x$Sig)
+    Sig <- (Sig + t(Sig)) / 2
     
-     if (nrow(x$Sig) == 2) {
-      
-      dat <- matrix(0, nrow = 3, ncol = 4)
-      dat[1, ] <- c(x$Sig[1,1], x$seSig[1,1], x$Sig[1,1]/x$seSig[1,1], 2 * pnorm(-abs(x$Sig[1,1]/x$seSig[1,1])))
-      dat[2, ] <- c(x$Sig[2,2], x$seSig[2,2], x$Sig[2,2]/x$seSig[2,2], 2 * pnorm(-abs(x$Sig[2,2]/x$seSig[2,2])))
-      dat[3, ] <- c(x$Sig[1,2], x$seSig[1,2], x$Sig[1,2]/x$seSig[1,2], 2 * pnorm(-abs(x$Sig[1,2]/x$seSig[1,2])))
-      dat <- as.data.frame(dat)
-      colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-      rownames(dat) <- c("(Intercept)", "var_(Intercept)", "(Intercept):var_(Intercept)")
-      dat[, 1:3] <- round(dat[, 1:3], digits+1)
-      dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
-      print(dat)
+    # Variables from the mean-model random-effects formula.
+    # The last variable is assumed to be the grouping variable.
+    random_vars <- all.vars(x$random)
     
-    } else {
-      random.var <- all.vars(x$random)[-length(all.vars(x$random))]
-      dat <- matrix(0, nrow = (1+nrow(x$Sig))*nrow(x$Sig)/2, ncol = 4)
-      dat <- as.data.frame(dat)
-      colnames(x$Sig) <- rownames(x$Sig) <- c("(Intercept)", random.var, "var_(Intercept)")
-      for (i in 1:nrow(x$Sig)) {
-        dat[i, ] <- c(x$Sig[i,i], x$seSig[i,i], x$Sig[i,i]/x$seSig[i,i], 2 * pnorm(-abs(x$Sig[i,i]/x$seSig[i,i])))
-        rownames(dat)[i] <- colnames(x$Sig)[i]
-      }
-      count <- 1
-      for (i in 1:(nrow(x$Sig)-1)) {
-        for (j in 0:(nrow(x$Sig)-i-1)) {
-          dat[nrow(x$Sig) + count, ] <- c(x$Sig[j+1,i+j+1], x$seSig[j+1,i+j+1], x$Sig[j+1,i+j+1]/x$seSig[j+1,i+j+1], 
-                                        2 * pnorm(-abs(x$Sig[j+1,i+j+1]/x$seSig[j+1,i+j+1])))
-          rownames(dat)[nrow(x$Sig) + count] <- paste(rownames(x$Sig)[j+1], colnames(x$Sig)[i+j+1], sep = ":")
-          count <- count + 1
-        }
-      }
-
-      colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-      dat[, 1:3] <- round(dat[, 1:3], digits+1)
-      dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
-      print(dat)
-      
+    if (length(random_vars) > 0) {
+      random_vars <- random_vars[-length(random_vars)]
     }
+    # JMMLSM includes an additional random intercept for
+    # the within-subject variability submodel.
+    eff_names <- c(
+      "(Intercept)",
+      random_vars,
+      "var_(Intercept)"
+    )
+    
+    if (length(eff_names) != p) {
+      stop(
+        "The number of random-effect names (",
+        length(eff_names),
+        ") does not match nrow(x$Sig) (",
+        p,
+        ")."
+      )
+    }
+    
+    # Random-effect standard deviations
+    re_sd <- sqrt(pmax(diag(Sig), 0))
+    
+    # Random-effect correlations, calculated safely
+    re_denom <- outer(re_sd, re_sd)
+    re_cor <- Sig / re_denom
+    re_cor[!is.finite(re_cor)] <- NA_real_
+    diag(re_cor) <- ifelse(re_sd > 0, 1, NA_real_)
+    
+    vc <- matrix("", nrow = p, ncol = p)
+    
+    rownames(vc) <- eff_names
+    
+    corr_names <- if (p > 1) {
+      eff_names[seq_len(p - 1)]
+    } else {
+      character(0)
+    }
+    
+    corr_names[corr_names == "(Intercept)"] <- "(Intr)"
+    corr_names[corr_names == "var_(Intercept)"] <- "var_(Intr)"
+    
+    colnames(vc) <- c("StdDev", corr_names)
+    
+    # Standard deviations appear in the first column
+    vc[, 1] <- formatC(
+      re_sd,
+      format = "f",
+      digits = digits
+    )
+    
+    # Correlations appear in the lower triangle
+    if (p > 1) {
+      for (i in 2:p) {
+        vc[i, 2:i] <- formatC(
+          re_cor[i, seq_len(i - 1)],
+          format = "f",
+          digits = digits
+        )
+      }
+    }
+    print(vc, quote = FALSE, right = TRUE)
 
     
   } else {
@@ -165,7 +197,7 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     
     dat <- data.frame(x$beta, x$sebeta, x$beta/x$sebeta, 2 * pnorm(-abs(x$beta/x$sebeta)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
     
@@ -174,7 +206,7 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     
     dat <- data.frame(x$tau, x$setau, x$tau/x$setau, 2 * pnorm(-abs(x$tau/x$setau)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
     
@@ -183,7 +215,7 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     cat("\n")
     dat <- data.frame(x$gamma1, x$segamma1, x$gamma1/x$segamma1, 2 * pnorm(-abs(x$gamma1/x$segamma1)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
     
@@ -200,53 +232,76 @@ print.JMMLSM <- function(x, digits = 4, ...) {
     colnames(datnu) <- c("Estimate", "SE", "Z value", "p-val")
     rownames(datnu) <- c("var_(Intercept)_1")
     dat <- rbind(dat, datnu)
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     cat("\n")
     
     cat("\nRandom effects:                 \n")
     cat("  Formula:", format(as.formula(x$random)), "\n")
+    p <- nrow(x$Sig)
+    Sig <- as.matrix(x$Sig)
+    Sig <- (Sig + t(Sig)) / 2
+    # Variables from the mean-model random-effects formula.
+    # The last variable is assumed to be the grouping variable.
+    random_vars <- all.vars(x$random)
     
-    
-    if (nrow(x$Sig) == 2) {
-      
-      dat <- matrix(0, nrow = 3, ncol = 4)
-      dat[1, ] <- c(x$Sig[1,1], x$seSig[1,1], x$Sig[1,1]/x$seSig[1,1], 2 * pnorm(-abs(x$Sig[1,1]/x$seSig[1,1])))
-      dat[2, ] <- c(x$Sig[2,2], x$seSig[2,2], x$Sig[2,2]/x$seSig[2,2], 2 * pnorm(-abs(x$Sig[2,2]/x$seSig[2,2])))
-      dat[3, ] <- c(x$Sig[1,2], x$seSig[1,2], x$Sig[1,2]/x$seSig[1,2], 2 * pnorm(-abs(x$Sig[1,2]/x$seSig[1,2])))
-      dat <- as.data.frame(dat)
-      colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-      rownames(dat) <- c("(Intercept)", "var_(Intercept)", "(Intercept):var_(Intercept)")
-      dat[, 1:3] <- round(dat[, 1:3], digits+1)
-      dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
-      print(dat)
-      
-    } else {
-      random.var <- all.vars(x$random)[-length(all.vars(x$random))]
-      dat <- matrix(0, nrow = (1+nrow(x$Sig))*nrow(x$Sig)/2, ncol = 4)
-      dat <- as.data.frame(dat)
-      colnames(x$Sig) <- rownames(x$Sig) <- c("(Intercept)", random.var, "var_(Intercept)")
-      for (i in 1:nrow(x$Sig)) {
-        dat[i, ] <- c(x$Sig[i,i], x$seSig[i,i], x$Sig[i,i]/x$seSig[i,i], 2 * pnorm(-abs(x$Sig[i,i]/x$seSig[i,i])))
-        rownames(dat)[i] <- colnames(x$Sig)[i]
-      }
-      count <- 1
-      for (i in 1:(nrow(x$Sig)-1)) {
-        for (j in 0:(nrow(x$Sig)-i-1)) {
-          dat[nrow(x$Sig) + count, ] <- c(x$Sig[j+1,i+j+1], x$seSig[j+1,i+j+1], x$Sig[j+1,i+j+1]/x$seSig[j+1,i+j+1], 
-                                          2 * pnorm(-abs(x$Sig[j+1,i+j+1]/x$seSig[j+1,i+j+1])))
-          rownames(dat)[nrow(x$Sig) + count] <- paste(rownames(x$Sig)[j+1], colnames(x$Sig)[i+j+1], sep = ":")
-          count <- count + 1
-        }
-      }
-      
-      colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-      dat[, 1:3] <- round(dat[, 1:3], digits+1)
-      dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
-      print(dat)
-      
+    if (length(random_vars) > 0) {
+      random_vars <- random_vars[-length(random_vars)]
     }
+    # JMMLSM includes an additional random intercept for
+    # the within-subject variability submodel.
+    eff_names <- c(
+      "(Intercept)",
+      random_vars,
+      "var_(Intercept)"
+    )
+    if (length(eff_names) != p) {
+      stop(
+        "The number of random-effect names (",
+        length(eff_names),
+        ") does not match nrow(x$Sig) (",
+        p,
+        ")."
+      )
+    }
+    # Random-effect standard deviations
+    re_sd <- sqrt(pmax(diag(Sig), 0))
+    # Random-effect correlations, calculated safely
+    re_denom <- outer(re_sd, re_sd)
+    re_cor <- Sig / re_denom
+    re_cor[!is.finite(re_cor)] <- NA_real_
+    diag(re_cor) <- ifelse(re_sd > 0, 1, NA_real_)
+    vc <- matrix("", nrow = p, ncol = p)
+    rownames(vc) <- eff_names
+    corr_names <- if (p > 1) {
+      eff_names[seq_len(p - 1)]
+    } else {
+      character(0)
+    }
+    corr_names[corr_names == "(Intercept)"] <- "(Intr)"
+    corr_names[corr_names == "var_(Intercept)"] <- "var_(Intr)"
+    
+    colnames(vc) <- c("StdDev", corr_names)
+    
+    # Standard deviations appear in the first column
+    vc[, 1] <- formatC(
+      re_sd,
+      format = "f",
+      digits = digits
+    )
+    
+    # Correlations appear in the lower triangle
+    if (p > 1) {
+      for (i in 2:p) {
+        vc[i, 2:i] <- formatC(
+          re_cor[i, seq_len(i - 1)],
+          format = "f",
+          digits = digits
+        )
+      }
+    }
+    print(vc, quote = FALSE, right = TRUE)
     
   }
 }

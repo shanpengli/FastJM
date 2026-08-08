@@ -1,3 +1,7 @@
+# FastJM 1.7.1
+
+* Fix small bugs in an estimation procedure.
+
 # FastJM 1.7.0
 
 * Unified prediction and model evaluation across all supported joint models through the new functions `survfitJM()`, `DynPredAcc()`, and `Concordance()`.

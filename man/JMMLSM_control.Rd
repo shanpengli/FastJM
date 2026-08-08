@@ -5,22 +5,23 @@
 \title{Control Options for JMMLSM}
 \usage{
 JMMLSM_control(
-  maxiter = 1000,
+  maxiter = 10000,
   tol = 1e-04,
-  quadpoint = NULL,
+  quadpoint = 6,
   verbose = FALSE,
   initial.para = NULL,
   method = c("adaptive", "standard"),
-  opt = c("nlminb", "optim")
+  opt = c("nlminb", "optim"),
+  cpu.cores = NULL
 )
 }
 \arguments{
-\item{maxiter}{Maximum number of EM iterations. The default is \code{1000}.}
+\item{maxiter}{Maximum number of EM iterations. The default is \code{10000}.}
 
 \item{tol}{Convergence tolerance. The default is \code{1e-4}.}
 
 \item{quadpoint}{Number of Gauss--Hermite quadrature points. The default is
-\code{15}.}
+\code{6}.}
 
 \item{verbose}{Logical value indicating whether to print iteration details.
 The default is \code{FALSE}.}
@@ -35,6 +36,10 @@ options are \code{"adaptive"} and \code{"standard"}. The default is
 \item{opt}{Optimization method used to fit the initial linear mixed-effects
 model. Available options are \code{"nlminb"} and \code{"optim"}. The default
 is \code{"nlminb"}.}
+
+\item{cpu.cores}{Number of CPU cores used for parallel computation. The
+default is \code{NULL}, in which case the function uses its default
+computation strategy.}
 }
 \value{
 A list of control parameters used by \code{\link{JMMLSM}()}.

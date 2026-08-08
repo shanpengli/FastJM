@@ -83,6 +83,7 @@
 ##' If pseudo-adaptive quadrature rule is used, then return \code{pseudo-adaptive}. 
 ##' Otherwise return \code{standard}.}
 ##' \item{id}{the grouping vector for the longitudinal outcome.}
+##' \item{opt}{optimization method used to fit the initial linear mixed-effects model.}
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @seealso \code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, 
 ##' \link{residuals.jmcs}, \link{survfitjmcs}, \link{plot.jmcs},

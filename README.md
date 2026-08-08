@@ -63,42 +63,41 @@ fit
 #> 
 #> Fixed effects in the longitudinal sub-model:  response ~ time + gender + x1 + race 
 #> 
-#>             Estimate      SE   Z value  p-val
-#> (Intercept)  2.01853 0.05704  35.38803 0.0000
-#> time         0.98292 0.03147  31.22885 0.0000
-#> genderMale  -0.07766 0.05860  -1.32527 0.1851
-#> x1          -1.47810 0.05851 -25.26356 0.0000
-#> raceWhite    0.04527 0.05911   0.76581 0.4438
+#>             Estimate     SE  Z value  p-val
+#> (Intercept)   2.0185 0.0570  35.3880 0.0000
+#> time          0.9829 0.0315  31.2289 0.0000
+#> genderMale   -0.0777 0.0586  -1.3253 0.1851
+#> x1           -1.4781 0.0585 -25.2636 0.0000
+#> raceWhite     0.0453 0.0591   0.7658 0.4438
 #> 
-#>         Estimate      SE  Z value  p-val
-#> sigma^2  0.49182 0.01793 27.43751 0.0000
+#> Residual error:
+#>          Variance StdDev
+#> Residual   0.4918 0.7013
 #> 
 #> Fixed effects in the survival sub-model:  Surv(surv, failure_type) ~ x1 + gender + x2 + race 
 #> 
-#>              Estimate      SE   Z value  p-val
-#> x1_1          0.54672 0.18540   2.94892 0.0032
-#> genderMale_1 -0.18781 0.11935  -1.57359 0.1156
-#> x2_1         -1.10450 0.12731  -8.67602 0.0000
-#> raceWhite_1  -0.10027 0.11802  -0.84960 0.3955
-#> x1_2          0.62986 0.20064   3.13927 0.0017
-#> genderMale_2  0.10834 0.13065   0.82926 0.4070
-#> x2_2         -1.76738 0.15245 -11.59296 0.0000
-#> raceWhite_2   0.03194 0.13049   0.24479 0.8066
+#>              Estimate     SE  Z value  p-val
+#> x1_1           0.5467 0.1854   2.9489 0.0032
+#> genderMale_1  -0.1878 0.1194  -1.5736 0.1156
+#> x2_1          -1.1045 0.1273  -8.6760 0.0000
+#> raceWhite_1   -0.1003 0.1180  -0.8496 0.3955
+#> x1_2           0.6299 0.2006   3.1393 0.0017
+#> genderMale_2   0.1083 0.1307   0.8293 0.4070
+#> x2_2          -1.7674 0.1525 -11.5930 0.0000
+#> raceWhite_2    0.0319 0.1305   0.2448 0.8066
 #> 
 #> Association parameters:                 
-#>               Estimate      SE Z value  p-val
-#> (Intercept)_1  0.93973 0.12160 7.72809 0.0000
-#> time_1         0.31691 0.19318 1.64051 0.1009
-#> (Intercept)_2  0.96486 0.13646 7.07090 0.0000
-#> time_2         0.03772 0.24137 0.15629 0.8758
-#> 
+#>               Estimate     SE Z value  p-val
+#> (Intercept)_1   0.9397 0.1216  7.7281 0.0000
+#> time_1          0.3169 0.1932  1.6405 0.1009
+#> (Intercept)_2   0.9649 0.1365  7.0709 0.0000
+#> time_2          0.0377 0.2414  0.1563 0.8758
 #> 
 #> Random effects:                 
 #>   Formula: ~time | ID 
-#>                  Estimate      SE  Z value  p-val
-#> (Intercept)       0.52981 0.03933 13.47048 0.0000
-#> time              0.25885 0.02262 11.44217 0.0000
-#> (Intercept):time -0.02765 0.02529 -1.09330 0.2743
+#>             StdDev  (Intr)
+#> (Intercept) 0.7279        
+#> time        0.5088 -0.0747
 ```
 
 The fitted `jmcs` object also provides a standard diagnostic plotting
@@ -116,12 +115,12 @@ joint model.
 plot(fit)
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" /> We
-can further examine the fitted joint model using diagnostic plots. The
-`timeplot()` function displays the longitudinal biomarker trajectories,
-the empirical log residual variance over follow-up time, and the event
-process. For competing-risk models, the event plot is shown as
-cumulative incidence curves for the specified event types.
+<img src="man/figures/README-unnamed-chunk-3-1.png" alt="" width="100%" />
+We can further examine the fitted joint model using diagnostic plots.
+The `timeplot()` function displays the longitudinal biomarker
+trajectories, the empirical log residual variance over follow-up time,
+and the event process. For competing-risk models, the event plot is
+shown as cumulative incidence curves for the specified event types.
 
 The log residual variance plot is intended as an exploratory diagnostic.
 Apparent changes over time may reflect departures from constant residual
@@ -146,7 +145,7 @@ crplot <- timeplot(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-4-1.png" alt="" width="100%" />
 
 The `FastJM` package can make dynamic prediction given the longitudinal
 history information. Below is a toy example for competing risks data.
@@ -306,54 +305,53 @@ mvfit
 #> Model Type: joint modeling of multivariate longitudinal continuous and competing risks data 
 #> 
 #> Model summary:
-#> Runtime: 25.95 seconds 
+#> Runtime: 24.32 seconds 
 #> Longitudinal process: linear mixed effects model
 #> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
 #> 
 #> Fixed effects in the longitudinal sub-model:  list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time) 
 #> 
-#>                  Estimate      SE   Z value  p-val
-#> (Intercept)_bio1  4.97836 0.05389  92.37830 0.0000
-#> X11_bio1          1.46373 0.08052  18.17736 0.0000
-#> X12_bio1          1.99688 0.01430 139.68697 0.0000
-#> time_bio1         0.83770 0.03951  21.20086 0.0000
-#> (Intercept)_bio2  9.97514 0.04927 202.47202 0.0000
-#> X11_bio2          0.97968 0.07331  13.36384 0.0000
-#> X12_bio2          2.00928 0.01309 153.45755 0.0000
-#> time_bio2         0.99382 0.00455 218.62849 0.0000
+#>                  Estimate     SE  Z value  p-val
+#> (Intercept)_bio1   4.9784 0.0539  92.3924 0.0000
+#> X11_bio1           1.4637 0.0805  18.1883 0.0000
+#> X12_bio1           1.9969 0.0143 140.0902 0.0000
+#> time_bio1          0.8377 0.0393  21.3266 0.0000
+#> (Intercept)_bio2   9.9751 0.0492 202.6236 0.0000
+#> X11_bio2           0.9797 0.0732  13.3747 0.0000
+#> X12_bio2           2.0093 0.0131 153.4394 0.0000
+#> time_bio2          0.9938 0.0046 218.0964 0.0000
 #> 
-#>              Estimate      SE    Z value  p-val
-#> sigma^2_bio1  0.49302 0.00018 2729.81717 0.0000
-#> sigma^2_bio2  0.49757 0.00965   51.54934 0.0000
+#> 
+#> Residual error:
+#>            Variance StdDev
+#> sigma_bio1   0.4930 0.7022
+#> sigma_bio2   0.4976 0.7054
 #> 
 #> Fixed effects in the survival sub-model:  Surv(survtime, cmprsk) ~ X21 + X22 
 #> 
-#>       Estimate      SE  Z value  p-val
-#> X21_1  0.92687 0.13465  6.88331 0.0000
-#> X22_1  0.50892 0.03163 16.08946 0.0000
-#> X21_2 -0.22126 0.24916 -0.88800 0.3745
-#> X22_2  0.48336 0.05920  8.16466 0.0000
+#>       Estimate     SE Z value  p-val
+#> X21_1   0.9269 0.1343  6.9040 0.0000
+#> X22_1   0.5089 0.0310 16.3917 0.0000
+#> X21_2  -0.2213 0.2490 -0.8885 0.3743
+#> X22_2   0.4834 0.0588  8.2153 0.0000
 #> 
 #> Association parameters:                 
-#>                   Estimate      SE  Z value  p-val
-#> (Intercept)_1bio1  0.49735 0.07539  6.59671 0.0000
-#> time_1bio1         0.70010 0.08498  8.23809 0.0000
-#> (Intercept)_1bio2 -0.54465 0.07972 -6.83163 0.0000
-#> (Intercept)_2bio1  0.63098 0.13344  4.72857 0.0000
-#> time_2bio1         0.65771 0.16710  3.93611 0.0001
-#> (Intercept)_2bio2 -0.48306 0.15877 -3.04259 0.0023
+#>                   Estimate     SE Z value  p-val
+#> (Intercept)_1bio1   0.4973 0.0750  6.6293 0.0000
+#> time_1bio1          0.7001 0.0839  8.3437 0.0000
+#> (Intercept)_1bio2  -0.5446 0.0794 -6.8592 0.0000
+#> (Intercept)_2bio1   0.6310 0.1333  4.7326 0.0000
+#> time_2bio1          0.6577 0.1663  3.9540 0.0001
+#> (Intercept)_2bio2  -0.4831 0.1585 -3.0485 0.0023
 #> 
 #> 
 #> Random effects:                 
 #>   bio 1 :  ~time | ID 
 #>   bio 2 :  ~1 | ID 
-#>                       Estimate      SE  Z value  p-val
-#> Intercept1             1.02128 0.06470 15.78547 0.0000
-#> time1                  0.91442 0.05819 15.71410 0.0000
-#> Intercept2             0.88199 0.05324 16.56595 0.0000
-#> Intercept1:time1      -0.09442 0.04533 -2.08271 0.0373
-#> Intercept1:Intercept2  0.04355 0.04051  1.07499 0.2824
-#> time1:Intercept2      -0.06492 0.04223 -1.53739 0.1242
+#>            StdDev   Intr1   time1
+#> Intercept1 1.0106                
+#> time1      0.9563 -0.0977        
+#> Intercept2 0.9391  0.0459 -0.0723
 ```
 
 We can extract the components of the model as follows:
@@ -361,22 +359,24 @@ We can extract the components of the model as follows:
 ``` r
 # Longitudinal fixed effects
 fixef(mvfit, process = "Longitudinal")
-#> (Intercept)_bio1         X11_bio1         X12_bio1        time_bio1 (Intercept)_bio2         X11_bio2         X12_bio2 
-#>        4.9783622        1.4637306        1.9968810        0.8377000        9.9751421        0.9796767        2.0092771 
-#>        time_bio2 
-#>        0.9938159
+#> (Intercept)_bio1         X11_bio1         X12_bio1 
+#>        4.9783622        1.4637306        1.9968810 
+#>        time_bio1 (Intercept)_bio2         X11_bio2 
+#>        0.8377000        9.9751421        0.9796767 
+#>         X12_bio2        time_bio2 
+#>        2.0092771        0.9938159
 summary(mvfit, process = "Longitudinal")
 #>        Longitudinal   coef     SE 95%Lower 95%Upper p-values
-#> 1  (Intercept)_bio1 4.9784 0.0539   4.8727   5.0840        0
-#> 2          X11_bio1 1.4637 0.0805   1.3059   1.6216        0
-#> 3          X12_bio1 1.9969 0.0143   1.9689   2.0249        0
-#> 4         time_bio1 0.8377 0.0395   0.7603   0.9151        0
-#> 5  (Intercept)_bio2 9.9751 0.0493   9.8786  10.0717        0
-#> 6          X11_bio2 0.9797 0.0733   0.8360   1.1234        0
+#> 1  (Intercept)_bio1 4.9784 0.0539   4.8728   5.0840        0
+#> 2          X11_bio1 1.4637 0.0805   1.3060   1.6215        0
+#> 3          X12_bio1 1.9969 0.0143   1.9689   2.0248        0
+#> 4         time_bio1 0.8377 0.0393   0.7607   0.9147        0
+#> 5  (Intercept)_bio2 9.9751 0.0492   9.8787  10.0716        0
+#> 6          X11_bio2 0.9797 0.0732   0.8361   1.1232        0
 #> 7          X12_bio2 2.0093 0.0131   1.9836   2.0349        0
-#> 8         time_bio2 0.9938 0.0045   0.9849   1.0027        0
-#> 9      sigma^2_bio1 0.4930 0.0002   0.4927   0.4934        0
-#> 10     sigma^2_bio2 0.4976 0.0097   0.4787   0.5165        0
+#> 8         time_bio2 0.9938 0.0046   0.9849   1.0027        0
+#> 9      sigma^2_bio1 0.4930 0.0110   0.4715   0.5145        0
+#> 10     sigma^2_bio2 0.4976 0.0106   0.4769   0.5183        0
 
 # Survival fixed effects
 fixef(mvfit, process = "Event")
@@ -388,17 +388,28 @@ fixef(mvfit, process = "Event")
 #>      X21_2      X22_2 
 #> -0.2212556  0.4833562
 summary(mvfit, process = "Event")
-#>             Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper 95%exp(Lower) 95%exp(Upper) p-values
-#> 1              X21_1  0.9269    2.5266   0.1347   0.6629   1.1908        1.9405        3.2897   0.0000
-#> 2              X22_1  0.5089    1.6635   0.0316   0.4469   0.5709        1.5635        1.7699   0.0000
-#> 3              X21_2 -0.2213    0.8015   0.2492  -0.7096   0.2671        0.4918        1.3062   0.3745
-#> 4              X22_2  0.4834    1.6215   0.0592   0.3673   0.5994        1.4439        1.8210   0.0000
-#> 5  (Intercept)_1bio1  0.4973    1.6444   0.0754   0.3496   0.6451        1.4185        1.9062   0.0000
-#> 6         time_1bio1  0.7001    2.0139   0.0850   0.5335   0.8667        1.7049        2.3790   0.0000
-#> 7  (Intercept)_1bio2 -0.5446    0.5800   0.0797  -0.7009  -0.3884        0.4961        0.6781   0.0000
-#> 8  (Intercept)_2bio1  0.6310    1.8794   0.1334   0.3694   0.8925        1.4469        2.4413   0.0000
-#> 9         time_2bio1  0.6577    1.9304   0.1671   0.3302   0.9852        1.3912        2.6784   0.0001
-#> 10 (Intercept)_2bio2 -0.4831    0.6169   0.1588  -0.7942  -0.1719        0.4519        0.8421   0.0023
+#>             Survival    coef exp(coef) SE(coef) 95%Lower
+#> 1              X21_1  0.9269    2.5266   0.1343   0.6637
+#> 2              X22_1  0.5089    1.6635   0.0310   0.4481
+#> 3              X21_2 -0.2213    0.8015   0.2490  -0.7094
+#> 4              X22_2  0.4834    1.6215   0.0588   0.3680
+#> 5  (Intercept)_1bio1  0.4973    1.6444   0.0750   0.3503
+#> 6         time_1bio1  0.7001    2.0139   0.0839   0.5356
+#> 7  (Intercept)_1bio2 -0.5446    0.5800   0.0794  -0.7003
+#> 8  (Intercept)_2bio1  0.6310    1.8794   0.1333   0.3697
+#> 9         time_2bio1  0.6577    1.9304   0.1663   0.3317
+#> 10 (Intercept)_2bio2 -0.4831    0.6169   0.1585  -0.7936
+#>    95%Upper 95%exp(Lower) 95%exp(Upper) p-values
+#> 1    1.1900        1.9420        3.2871   0.0000
+#> 2    0.5698        1.5653        1.7679   0.0000
+#> 3    0.2669        0.4920        1.3058   0.3743
+#> 4    0.5987        1.4449        1.8197   0.0000
+#> 5    0.6444        1.4195        1.9048   0.0000
+#> 6    0.8646        1.7085        2.3740   0.0000
+#> 7   -0.3890        0.4964        0.6777   0.0000
+#> 8    0.8923        1.4472        2.4407   0.0000
+#> 9    0.9837        1.3933        2.6744   0.0001
+#> 10  -0.1725        0.4522        0.8416   0.0023
 
 # Random effects for first few subjects
 head(ranef(mvfit))
@@ -418,6 +429,19 @@ failure will be presented.
 
 ``` r
 require(dplyr)
+#> Loading required package: dplyr
+#> Warning: package 'dplyr' was built under R version 4.4.3
+#> 
+#> Attaching package: 'dplyr'
+#> The following object is masked from 'package:MASS':
+#> 
+#>     select
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
 set.seed(08252025)
 sampleID <- sample(mvcdata$ID, 5, replace = FALSE)
 
@@ -538,8 +562,8 @@ An alternative approach to characterize flexible latent associations is
 a landmark multivariate joint model, which specifies a landmark time so
 that only subjects who remain event-free beyond the landmark time
 contribute to the model fitting. Here, we consider the current value of
-the latent process as the association structure in the
-survival sub-model.
+the latent process as the association structure in the survival
+sub-model.
 
 ``` r
 fit.mvlm <- mvjmcs(ydata = mvydata, cdata = mvcdata,
@@ -572,52 +596,51 @@ fit.mvlm
 #> Model summary:
 #> Landmark analysis: Yes (s = 4)
 #> Latent association: current value of the latent process
-#> Runtime: 31.33 seconds 
+#> Runtime: 29.1 seconds 
 #> Longitudinal process: linear mixed effects model
 #> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
 #> 
 #> Fixed effects in the longitudinal sub-model:  list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time) 
 #> 
-#>                  Estimate      SE   Z value  p-val
-#> (Intercept)_bio1  4.81410 0.07479  64.36981 0.0000
-#> X11_bio1          1.45697 0.10647  13.68391 0.0000
-#> X12_bio1          1.95987 0.02248  87.19712 0.0000
-#> time_bio1         0.75874 0.04255  17.83223 0.0000
-#> (Intercept)_bio2 10.19522 0.06624 153.91370 0.0000
-#> X11_bio2          1.09421 0.09421  11.61421 0.0000
-#> X12_bio2          2.07542 0.02055 101.01219 0.0000
-#> time_bio2         0.99419 0.00468 212.57345 0.0000
+#>                  Estimate     SE  Z value  p-val
+#> (Intercept)_bio1   4.8141 0.0748  64.3698 0.0000
+#> X11_bio1           1.4570 0.1065  13.6839 0.0000
+#> X12_bio1           1.9599 0.0225  87.1971 0.0000
+#> time_bio1          0.7587 0.0425  17.8322 0.0000
+#> (Intercept)_bio2  10.1952 0.0662 153.9137 0.0000
+#> X11_bio2           1.0942 0.0942  11.6142 0.0000
+#> X12_bio2           2.0754 0.0205 101.0122 0.0000
+#> time_bio2          0.9942 0.0047 212.5735 0.0000
 #> 
-#>              Estimate      SE  Z value  p-val
-#> sigma^2_bio1  0.49695 0.01171 42.44140 0.0000
-#> sigma^2_bio2  0.50075 0.01140 43.92918 0.0000
+#> 
+#> Residual error:
+#>            Variance StdDev
+#> sigma_bio1   0.4969 0.7049
+#> sigma_bio2   0.5008 0.7076
 #> 
 #> Fixed effects in the survival sub-model:  Surv(survtime, cmprsk) ~ X21 + X22 
 #> 
-#>       Estimate      SE  Z value  p-val
-#> X21_1  0.96635 0.27747  3.48277 0.0005
-#> X22_1  0.49804 0.06135  8.11814 0.0000
-#> X21_2 -0.10523 0.53024 -0.19846 0.8427
-#> X22_2  0.39967 0.10655  3.75109 0.0002
+#>       Estimate     SE Z value  p-val
+#> X21_1   0.9664 0.2775  3.4828 0.0005
+#> X22_1   0.4980 0.0613  8.1181 0.0000
+#> X21_2  -0.1052 0.5302 -0.1985 0.8427
+#> X22_2   0.3997 0.1065  3.7511 0.0002
 #> 
 #> Association parameters:                 
-#>             Estimate      SE  Z value  p-val
-#> alpha1_bio1  0.18663 0.03808  4.90054 0.0000
-#> alpha1_bio2 -0.46160 0.20328 -2.27072 0.0232
-#> alpha2_bio1  0.32175 0.06189  5.19871 0.0000
-#> alpha2_bio2 -0.51448 0.27022 -1.90394 0.0569
+#>             Estimate     SE Z value  p-val
+#> alpha1_bio1   0.1866 0.0381  4.9005 0.0000
+#> alpha1_bio2  -0.4616 0.2033 -2.2707 0.0232
+#> alpha2_bio1   0.3217 0.0619  5.1987 0.0000
+#> alpha2_bio2  -0.5145 0.2702 -1.9039 0.0569
 #> 
 #> 
 #> Random effects:                 
 #>   bio 1 :  ~time | ID 
 #>   bio 2 :  ~1 | ID 
-#>                       Estimate      SE  Z value  p-val
-#> Intercept1             1.01139 0.08402 12.03780 0.0000
-#> time1                  0.89441 0.06412 13.94990 0.0000
-#> Intercept2             0.84360 0.06316 13.35689 0.0000
-#> Intercept1:time1      -0.14162 0.05521 -2.56522 0.0103
-#> Intercept1:Intercept2  0.05362 0.04936  1.08644 0.2773
-#> time1:Intercept2       0.00861 0.04904  0.17546 0.8607
+#>            StdDev   Intr1  time1
+#> Intercept1 1.0057               
+#> time1      0.9457 -0.1489       
+#> Intercept2 0.9185  0.0581 0.0099
 ```
 
 ## Single-biomarker joint model in the presence of heterogeneous within-subject variability (`JMMLSM`)
@@ -661,47 +684,46 @@ fit
 #> 
 #> Fixed effects in mean of longitudinal submodel:  Y ~ Z1 + Z2 + Z3 + time 
 #> 
-#>             Estimate      SE   Z value  p-val
-#> (Intercept)  4.85342 0.12451  38.97918 0.0000
-#> Z1           1.55235 0.16535   9.38841 0.0000
-#> Z2           1.93774 0.14598  13.27409 0.0000
-#> Z3           1.09289 0.05321  20.53796 0.0000
-#> time         4.01129 0.02978 134.71376 0.0000
+#>             Estimate     SE  Z value  p-val
+#> (Intercept)   4.8534 0.1245  38.9792 0.0000
+#> Z1            1.5523 0.1653   9.3884 0.0000
+#> Z2            1.9377 0.1460  13.2741 0.0000
+#> Z3            1.0929 0.0532  20.5380 0.0000
+#> time          4.0113 0.0298 134.7138 0.0000
 #> 
 #> Fixed effects in variance of longitudinal submodel:  log(sigma^2) ~ Z1 + Z2 + Z3 + time 
 #> 
-#>             Estimate      SE  Z value  p-val
-#> (Intercept)  0.50745 0.12838  3.95260 0.0001
-#> Z1           0.50509 0.16005  3.15590 0.0016
-#> Z2          -0.42508 0.13781 -3.08463 0.0020
-#> Z3           0.14405 0.04494  3.20563 0.0013
-#> time         0.09050 0.02422  3.73720 0.0002
+#>             Estimate     SE Z value  p-val
+#> (Intercept)   0.5075 0.1284  3.9526 0.0001
+#> Z1            0.5051 0.1600  3.1559 0.0016
+#> Z2           -0.4251 0.1378 -3.0846 0.0020
+#> Z3            0.1440 0.0449  3.2056 0.0013
+#> time          0.0905 0.0242  3.7372 0.0002
 #> 
 #> Survival sub-model fixed effects:  Surv(survtime, cmprsk) ~ var1 + var2 + var3 
 #> 
-#>        Estimate      SE Z value  p-val
-#> var1_1  1.09710 0.32647 3.36051 0.0008
-#> var2_1  0.19237 0.26154 0.73553 0.4620
-#> var3_1  0.49611 0.08908 5.56951 0.0000
-#>                                        
-#> var1_2 -0.88311 0.33702 -2.62037 0.0088
-#> var2_2  0.80905 0.30127  2.68549 0.0072
-#> var3_2  0.20871 0.09312  2.24143 0.0250
+#>        Estimate     SE Z value  p-val
+#> var1_1   1.0971 0.3265  3.3605 0.0008
+#> var2_1   0.1924 0.2615  0.7355 0.4620
+#> var3_1   0.4961 0.0891  5.5695 0.0000
+#>                                     
+#> var1_2 -0.8831 0.3370 -2.6204 0.0088
+#> var2_2  0.8091 0.3013  2.6855 0.0072
+#> var3_2  0.2087 0.0931  2.2414 0.0250
 #> 
 #> Association parameters:                 
-#>                   Estimate      SE  Z value  p-val
-#> (Intercept)_1      0.97480 0.62808  1.55202 0.1207
-#> (Intercept)_2     -0.18580 0.47949 -0.38750 0.6984
-#> var_(Intercept)_1  0.50030 0.58190  0.85977 0.3899
-#> var_(Intercept)_2 -0.84481 0.52520 -1.60857 0.1077
+#>                   Estimate     SE Z value  p-val
+#> (Intercept)_1       0.9748 0.6281  1.5520 0.1207
+#> (Intercept)_2      -0.1858 0.4795 -0.3875 0.6984
+#> var_(Intercept)_1   0.5003 0.5819  0.8598 0.3899
+#> var_(Intercept)_2  -0.8448 0.5252 -1.6086 0.1077
 #> 
 #> 
 #> Random effects:                 
 #>   Formula: ~1 | ID 
-#>                             Estimate      SE Z value  p-val
-#> (Intercept)                  0.49542 0.11339 4.36913 0.0000
-#> var_(Intercept)              0.45581 0.11129 4.09578 0.0000
-#> (Intercept):var_(Intercept)  0.26738 0.07854 3.40429 0.0007
+#>                 StdDev (Intr)
+#> (Intercept)     0.7039       
+#> var_(Intercept) 0.6751 0.5627
 ```
 
 ``` r
@@ -735,7 +757,7 @@ oldpar <- par(mfrow = c(2, 2), mar = c(5, 4, 4, 4))
 plot(survfit, include.y = TRUE)
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" alt="" width="100%" />
 
 ``` r
 par(oldpar)

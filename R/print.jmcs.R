@@ -37,16 +37,22 @@ print.jmcs <- function(x, digits = 4, ...) {
     
     dat <- data.frame(x$beta, x$sebeta, x$beta/x$sebeta, 2 * pnorm(-abs(x$beta/x$sebeta)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
-    cat("\n")
-    dat <- data.frame(x$sigma, x$sesigma, x$sigma/x$sesigma, 2 * pnorm(-abs(x$sigma/x$sesigma)))
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
-    rownames(dat) <- "sigma^2"
-    dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
-    print(dat)
+    sigma2 <- as.numeric(x$sigma)
+    residual_tab <- data.frame(
+      Variance = sigma2,
+      StdDev = sqrt(sigma2),
+      row.names = "Residual"
+    )
+    residual_tab[] <- lapply(
+      residual_tab,
+      round,
+      digits = digits
+    )
+    cat("\nResidual error:\n")
+    print(residual_tab)
     
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
@@ -57,7 +63,7 @@ print.jmcs <- function(x, digits = 4, ...) {
     dat2 <- data.frame(x$gamma2, x$segamma2, x$gamma2/x$segamma2, 2 * pnorm(-abs(x$gamma2/x$segamma2)))
     colnames(dat2) <- c("Estimate", "SE", "Z value", "p-val")
     dat <- rbind(dat, dat2)
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     
@@ -81,67 +87,49 @@ print.jmcs <- function(x, digits = 4, ...) {
     }
     base <- c("(Intercept)", random[seq_len(need)])
     rownames(dat) <- unlist(lapply(seq_len(G), function(k) paste0(base, "_", k)))
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     
-    cat("\n")
-    
     cat("\nRandom effects:                 \n")
     cat("  Formula:", format(as.formula(x$random)), "\n")
-    
-    stopifnot(is.matrix(x$Sig), nrow(x$Sig) == ncol(x$Sig))
-    p <- nrow(x$Sig)
-    stopifnot(is.matrix(x$seSig), all(dim(x$seSig) == c(p, p)))
-    
-    # Build effect names: "(Intercept)", then variables from x$random (up to p-1)
     vars <- all.vars(x$random)
+    p <- nrow(x$Sig)
+    Sig <- as.matrix(x$Sig)
+    Sig <- (Sig + t(Sig)) / 2
+    
+    re_sd  <- sqrt(pmax(diag(Sig), 0))
+    re_cor <- cov2cor(Sig)
+    
+    vc <- matrix("", nrow = p, ncol = p)
+    
     eff_names <- c("(Intercept)", head(vars, max(0, p - 1)))
-    if (length(eff_names) < p) {
-      # pad safely if fewer names available
-      eff_names <- c(eff_names, paste0("RE", seq_len(p - length(eff_names)) + (length(eff_names) > 0)))
+    rownames(vc) <- eff_names
+    
+    corr_names <- eff_names[seq_len(p - 1)]
+    corr_names[corr_names == "(Intercept)"] <- "(Intr)"
+    
+    colnames(vc) <- c(
+      "StdDev",
+      if (p > 1) corr_names else NULL
+    )
+    
+    vc[, 1] <- formatC(
+      re_sd,
+      format = "f",
+      digits = digits
+    )
+    
+    if (p > 1) {
+      for (i in 2:p) {
+        vc[i, 2:i] <- formatC(
+          re_cor[i, seq_len(i - 1)],
+          format = "f",
+          digits = digits
+        )
+      }
     }
-    eff_names <- eff_names[seq_len(p)]
-    
-    # Row index sets: first variances (i,i), then covariances (i<j)
-    var_idx <- cbind(seq_len(p), seq_len(p))
-    if (p >= 2) {
-      cov_idx <- t(combn(p, 2))
-      idx <- rbind(var_idx, cov_idx)
-    } else {
-      cov_idx <- matrix(integer(0), nrow = 0, ncol = 2)
-      idx <- var_idx
-    }
-    n_rows <- nrow(idx)
-    
-    # Compute estimates, SE, Z, p
-    dat <- matrix(NA_real_, nrow = n_rows, ncol = 4)
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    
-    for (r in seq_len(n_rows)) {
-      i <- idx[r, 1]; j <- idx[r, 2]
-      est <- x$Sig[i, j]
-      se  <- x$seSig[i, j]
-      z   <- if (is.finite(se) && se > 0) est / se else NA_real_
-      pval <- if (is.finite(z)) 2 * pnorm(-abs(z)) else NA_real_
-      dat[r, ] <- c(est, se, z, pval)
-    }
-    
-    # Row names
-    cov_names <- if (nrow(cov_idx) > 0) {
-      paste0(eff_names[cov_idx[, 1]], ":", eff_names[cov_idx[, 2]])
-    } else {
-      character(0)
-    }
-    
-    rownms <- c(eff_names, cov_names)
-    dat <- as.data.frame(dat, row.names = rownms)
-    
-    # Formatting
-    dat[, 1:3] <- round(dat[, 1:3], digits + 1)
-    dat[, 4]   <- sprintf(paste0("%.", digits, "f"), dat[, 4])
-    
-    print(dat)
+    print(vc, quote = FALSE, right = TRUE)
     
   } else {
     cat("Data Summary:\n")
@@ -162,23 +150,28 @@ print.jmcs <- function(x, digits = 4, ...) {
     
     dat <- data.frame(x$beta, x$sebeta, x$beta/x$sebeta, 2 * pnorm(-abs(x$beta/x$sebeta)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
-    cat("\n")
-    dat <- data.frame(x$sigma, x$sesigma, x$sigma/x$sesigma, 2 * pnorm(-abs(x$sigma/x$sesigma)))
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
-    rownames(dat) <- "sigma^2"
-    dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
-    print(dat)
-    
+    sigma2 <- as.numeric(x$sigma)
+    residual_tab <- data.frame(
+      Variance = sigma2,
+      StdDev = sqrt(sigma2),
+      row.names = "Residual"
+    )
+    residual_tab[] <- lapply(
+      residual_tab,
+      round,
+      digits = digits
+    )
+    cat("\nResidual error:\n")
+    print(residual_tab)
     cat("\nFixed effects in the survival sub-model: ",
         sprintf(format(paste(deparse(x$SurvivalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
     dat <- data.frame(x$gamma1, x$segamma1, x$gamma1/x$segamma1, 2 * pnorm(-abs(x$gamma1/x$segamma1)))
     colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat$"p-val" <- sprintf(paste("%.", digits, "f", sep = ""), dat$"p-val")
     print(dat)
     
@@ -198,7 +191,7 @@ print.jmcs <- function(x, digits = 4, ...) {
     }
     base <- c("(Intercept)", random[seq_len(need)])
     rownames(dat) <- unlist(lapply(seq_len(G), function(k) paste0(base, "_", k)))
-    dat[, 1:3] <- round(dat[, 1:3], digits+1)
+    dat[, 1:3] <- round(dat[, 1:3], digits)
     dat[, 4] <- sprintf(paste("%.", digits, "f", sep = ""), dat[, 4])
     print(dat)
     
@@ -206,63 +199,42 @@ print.jmcs <- function(x, digits = 4, ...) {
     
     cat("\nRandom effects:                 \n")
     cat("  Formula:", format(as.formula(x$random)), "\n")
-    
-    stopifnot(is.matrix(x$Sig), nrow(x$Sig) == ncol(x$Sig))
-    p <- nrow(x$Sig)
-    stopifnot(is.matrix(x$seSig), all(dim(x$seSig) == c(p, p)))
-    
-    # Build effect names: "(Intercept)", then variables from x$random (up to p-1)
     vars <- all.vars(x$random)
-    eff_names <- c("(Intercept)", head(vars, max(0, p - 1)))
-    if (length(eff_names) < p) {
-      # pad safely if fewer names available
-      eff_names <- c(eff_names, paste0("RE", seq_len(p - length(eff_names)) + (length(eff_names) > 0)))
-    }
-    eff_names <- eff_names[seq_len(p)]
-    
-    # Make sure covariance matrices keep matrix structure
+    p <- nrow(x$Sig)
     Sig <- as.matrix(x$Sig)
-    seSig <- as.matrix(x$seSig)
+    Sig <- (Sig + t(Sig)) / 2
     
-    # Row index sets: first variances (i,i), then covariances (i<j)
-    var_idx <- cbind(seq_len(p), seq_len(p))
-    if (p >= 2) {
-      cov_idx <- combn(p, 2)
-      cov_idx <- t(cov_idx)
-      idx <- rbind(var_idx, cov_idx)
-    } else {
-      cov_idx <- matrix(integer(0), nrow = 0, ncol = 2)
-      idx <- var_idx
+    re_sd  <- sqrt(pmax(diag(Sig), 0))
+    re_cor <- cov2cor(Sig)
+    
+    vc <- matrix("", nrow = p, ncol = p)
+    eff_names <- c("(Intercept)", head(vars, max(0, p - 1)))
+    rownames(vc) <- eff_names
+    
+    corr_names <- eff_names[seq_len(p - 1)]
+    corr_names[corr_names == "(Intercept)"] <- "(Intr)"
+    
+    colnames(vc) <- c(
+      "StdDev",
+      if (p > 1) corr_names else NULL
+    )
+    
+    vc[, 1] <- formatC(
+      re_sd,
+      format = "f",
+      digits = digits
+    )
+    
+    if (p > 1) {
+      for (i in 2:p) {
+        vc[i, 2:i] <- formatC(
+          re_cor[i, seq_len(i - 1)],
+          format = "f",
+          digits = digits
+        )
+      }
     }
-    n_rows <- nrow(idx)
-    
-    # Compute estimates, SE, Z, p
-    dat <- matrix(NA_real_, nrow = n_rows, ncol = 4)
-    colnames(dat) <- c("Estimate", "SE", "Z value", "p-val")
-    
-    for (r in seq_len(n_rows)) {
-      i <- idx[r, 1]; j <- idx[r, 2]
-      est <- x$Sig[i, j]
-      se  <- x$seSig[i, j]
-      z   <- if (is.finite(se) && se > 0) est / se else NA_real_
-      pval <- if (is.finite(z)) 2 * pnorm(-abs(z)) else NA_real_
-      dat[r, ] <- c(est, se, z, pval)
-    }
-    
-    # Row names: variances get eff_names; covariances get "name_i:name_j"
-    cov_names <- if (nrow(cov_idx) > 0) {
-      paste0(eff_names[cov_idx[, 1]], ":", eff_names[cov_idx[, 2]])
-    } else {
-      character(0)
-    }
-    rownms <- c(eff_names, cov_names)
-    dat <- as.data.frame(dat, row.names = rownms)
-    
-    # Formatting
-    dat[, 1:3] <- round(dat[, 1:3], digits + 1)
-    dat[, 4]   <- sprintf(paste0("%.", digits, "f"), dat[, 4])
-    
-    print(dat)
+    print(vc, quote = FALSE, right = TRUE)
     
   }
 }

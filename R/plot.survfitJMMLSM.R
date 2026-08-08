@@ -52,7 +52,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
           if (is.null(ylab)) ylab <- expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
                                                       ", ", y[i]^(s), ", ",  Psi,")", sep = " "))
           plot(times, probmean, xlab = xlab, ylab = ylab, xlim = xlim,
-               main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim.surv)
+               main = paste("ID", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim.surv)
           segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                    y1 = 1,
                    lwd = 1)
@@ -63,7 +63,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
           title(ylab = ylab, line=2.5)
           par(new = TRUE)    
           plot(times, probmean, xlab = "", ylab = "", 
-               main = paste("Subject", x$Last.time[i, 1], sep = " "), xlim = xlim, col = "red", type = "l", 
+               main = paste("ID", x$Last.time[i, 1], sep = " "), xlim = xlim, col = "red", type = "l", 
                ylim = ylim.surv, axes = FALSE)
           axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
           mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
@@ -105,7 +105,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
             plot(times, probmean, xlab = xlab, ylab = bquote(
               Pr(T[i] <= u, D[i] == .(j) ~ "|" ~ T[i] > s, ~ y[i]^(s), ~ Psi)
               ), 
-                 main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
+                 main = paste("ID", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
                  col = "red", type = "l", ylim = ylim.surv, xlim = xlim)
             segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                      y1 = 1,
@@ -117,7 +117,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
             title(ylab = ylab, line=2.5)
             par(new = TRUE)    
             plot(times, probmean, xlab = "", ylab = "", 
-                 main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
+                 main = paste("ID", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
                  col = "red", type = "l", ylim = ylim.surv, axes = FALSE, xlim = xlim)
             axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
             mtext(bquote(

@@ -250,7 +250,7 @@ plot.survfitmvjmcs <- function(x,
           paste(
             "No longitudinal observations found for biomarker",
             g,
-            "and subject",
+            "and ID",
             subject.id.panel
           )
         )
@@ -297,7 +297,7 @@ plot.survfitmvjmcs <- function(x,
       # Top title only on first biomarker row.
       if (g == 1) {
         title(
-          main = paste("Subject", subject.id.panel),
+          main = paste("ID", subject.id.panel),
           cex.main = 0.95,
           line = 0.4
         )

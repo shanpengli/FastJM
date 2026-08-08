@@ -5,10 +5,10 @@
 ##'
 ##' @title Control Options for JMMLSM
 ##'
-##' @param maxiter Maximum number of EM iterations. The default is \code{1000}.
+##' @param maxiter Maximum number of EM iterations. The default is \code{10000}.
 ##' @param tol Convergence tolerance. The default is \code{1e-4}.
 ##' @param quadpoint Number of Gauss--Hermite quadrature points. The default is
-##' \code{15}.
+##' \code{6}.
 ##' @param verbose Logical value indicating whether to print iteration details.
 ##' The default is \code{FALSE}.
 ##' @param initial.para Optional list of user-supplied initial parameter values.
@@ -19,16 +19,20 @@
 ##' @param opt Optimization method used to fit the initial linear mixed-effects
 ##' model. Available options are \code{"nlminb"} and \code{"optim"}. The default
 ##' is \code{"nlminb"}.
+##' @param cpu.cores Number of CPU cores used for parallel computation. The
+##' default is \code{NULL}, in which case the function uses its default
+##' computation strategy.
 ##'
 ##' @return A list of control parameters used by \code{\link{JMMLSM}()}.
 ##' @export
-JMMLSM_control <- function(maxiter = 1000,
+JMMLSM_control <- function(maxiter = 10000,
                            tol = 1e-4,
-                           quadpoint = NULL,
+                           quadpoint = 6,
                            verbose = FALSE,
                            initial.para = NULL,
                            method = c("adaptive", "standard"),
-                           opt = c("nlminb", "optim")) {
+                           opt = c("nlminb", "optim"),
+                           cpu.cores = NULL) {
   
   method <- match.arg(method)
   opt <- match.arg(opt)
@@ -50,6 +54,12 @@ JMMLSM_control <- function(maxiter = 1000,
     stop("'verbose' must be TRUE or FALSE.")
   }
   
+  if (!is.null(cpu.cores) &&
+      (!is.numeric(cpu.cores) || length(cpu.cores) != 1 ||
+       cpu.cores <= 0 || cpu.cores != floor(cpu.cores))) {
+    stop("'cpu.cores' must be a positive integer or NULL.")
+  }
+  
   list(
     maxiter = maxiter,
     tol = tol,
@@ -57,6 +67,7 @@ JMMLSM_control <- function(maxiter = 1000,
     verbose = verbose,
     initial.para = initial.para,
     method = method,
-    opt = opt
+    opt = opt,
+    cpu.cores = cpu.cores
   )
 }

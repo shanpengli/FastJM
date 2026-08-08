@@ -59,7 +59,8 @@ GetE.JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01,
 }
 
 GetEad.JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02, 
-                   Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, initial.optimizer) {
+                       Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, 
+                       wsmatrix, initial.optimizer, n_threads) {
   
   
   n <- nrow(X2)
@@ -75,40 +76,91 @@ GetEad.JMH <- function(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H0
   
   getHazard(CumuH01, CumuH02, survtime, cmprsk, H01, H02, CUH01, CUH02, HAZ01, HAZ02)
   
-  posterior.mode <- matrix(0, nrow = n, ncol = nsig)
-  posterior.var <- matrix(0, nrow = nsig*n, ncol = nsig)
-  for (i in 1:n) {
-    
-    if (i != n) {
-      subY <- Y[mdataS[i]:(mdataS[i+1]-1)]
-      subW <- matrix(W[mdataS[i]:(mdataS[i+1]-1), ], ncol = ncol(W))
-      subX1 <- matrix(X1[mdataS[i]:(mdataS[i+1]-1), ], ncol = ncol(X1))
-      subZ <- matrix(Z[mdataS[i]:(mdataS[i+1]-1), ], ncol = ncol(Z))
+  subject_data <- lapply(seq_len(n), function(i) {
+    rows <- if (i < n) {
+      mdataS[i]:(mdataS[i + 1L] - 1L)
     } else {
-      subY <- Y[mdataS[i]:length(Y)]
-      subW <- matrix(W[mdataS[i]:length(Y), ], ncol = ncol(W))
-      subX1 <- matrix(X1[mdataS[i]:length(Y), ], ncol = ncol(X1))
-      subZ <- matrix(Z[mdataS[i]:length(Y), ], ncol = ncol(Z))
+      mdataS[i]:length(Y)
     }
-    CH001 <- CUH01[i]
-    CH002 <- CUH02[i]
-    HAZ001 <- HAZ01[i]
-    HAZ002 <- HAZ02[i]
     
-    data <- list(subY, subX1, subZ, subW, t(as.matrix(X2[i, ])), CH001, CH002, 
-                 HAZ001, HAZ002, beta, tau, gamma1, gamma2, alpha1, alpha2, 
-                 vee1, vee2, Sig, cmprsk[i])
-    names(data) <- c("Y", "X", "Z", "W", "X2", "CH01", "CH02", 
-                     "HAZ01", "HAZ02", "beta", "tau",
-                     "gamma1", "gamma2", "alpha1", "alpha2", "nu1", "nu2", "Sig", "D")
-    opt <- optim(rep(0, nsig), logLikCR.learn.JMH, data = data, method = initial.optimizer, hessian = TRUE)
-    posterior.mode[i, ] <- opt$par
-    posterior.var[(nsig*(i-1) + 1):(i * nsig), 1:nsig] <- solve(opt$hessian)
-  }
+    list(
+      subject = i,
+      Y        = Y[rows],
+      X        = X1[rows, , drop = FALSE],
+      Z        = Z[rows, , drop = FALSE],
+      W        = W[rows, , drop = FALSE],
+      X2       = X2[i, , drop = FALSE],
+      CH01     = CUH01[i],
+      CH02     = CUH02[i],
+      HAZ01    = HAZ01[i],
+      HAZ02    = HAZ02[i],
+      D        = cmprsk[i]
+    )
+  })
+  n_threads.opt <- max(floor(n_threads/2), 1)
+  future::plan(
+    future::multisession,
+    workers = n_threads.opt
+  )
+  
+  results <- future.apply::future_lapply(
+    subject_data,
+    function(data_i) {
+      # Add smaller shared model parameters.
+      i <- data_i$subject
+      data_i$beta   <- beta
+      data_i$tau    <- tau
+      data_i$gamma1 <- gamma1
+      data_i$gamma2 <- gamma2
+      data_i$alpha1 <- alpha1
+      data_i$alpha2 <- alpha2
+      data_i$nu1    <- vee1
+      data_i$nu2    <- vee2
+      data_i$Sig    <- Sig
+      
+      opt <- optim(
+        par = rep(0, nsig),
+        fn = logLikCR.learn.JMH,
+        data = data_i,
+        method = initial.optimizer,
+        hessian = TRUE
+      )
+      
+      posterior_var <- tryCatch(
+        solve(opt$hessian),
+        error = function(e) {
+          warning(sprintf(
+            "Could not invert Hessian for subject %d: %s",
+            i,
+            conditionMessage(e)
+          ))
+          
+          matrix(NA_real_, nsig, nsig)
+        }
+      )
+      
+      list(
+        mode = opt$par,
+        variance = posterior_var,
+        convergence = opt$convergence,
+        subject = i
+      )
+    },
+    future.scheduling = 2
+  )
+  future::plan(future::sequential)
+  posterior.mode <- do.call(
+    rbind,
+    lapply(results, `[[`, "mode")
+  )
+  posterior.var <- do.call(
+    rbind,
+    lapply(results, `[[`, "variance")
+  )
   
   status = getECad(beta, tau, gamma1,  gamma2, alpha1, alpha2, vee1, vee2,  H01,
                    H02, Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix,
-                   wsmatrix, CUH01, CUH02, HAZ01, HAZ02, posterior.mode, posterior.var)
+                   wsmatrix, CUH01, CUH02, HAZ01, HAZ02, posterior.mode, posterior.var, n_threads)
   
   return(status)
   
