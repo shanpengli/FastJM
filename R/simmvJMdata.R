@@ -1,5 +1,5 @@
 ##' Data simulation from the joint model of multivariate longitudinal biomarkers and time-to-event data
-##' @title Joint modeling of multivariate longitudinal and competing risks data
+##' @title Simulate multivariate longitudinal and competing risks data
 ##' @name simmvJMdata
 ##' @param seed a random seed number specified for simulating a joint model dataset.
 ##' @param N an integer to specify the sample size.

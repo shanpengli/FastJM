@@ -8,6 +8,8 @@ survfitJM.JMMLSM <- function(object, seed = 100, ynewdata = NULL, cnewdata = NUL
                              method = c("Laplace", "GH"),
                              quadpoint = NULL, ...) {
   
+  method <- match.arg(method)
+  
   survfitJMMLSM(
     object = object,
     seed = seed,

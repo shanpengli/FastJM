@@ -2,7 +2,7 @@
 % Please edit documentation in R/mvjmcs_control.R
 \name{mvjmcs_control}
 \alias{mvjmcs_control}
-\title{Control Options for mvjmcs}
+\title{Control options for mvjmcs}
 \usage{
 mvjmcs_control(
   maxiter = 10000,

@@ -1,22 +1,57 @@
-##' @title Plot conditional probabilities for new subjects
-##' @name plot
-##' @aliases plot.survfitjmcs
-##' @description Plot conditional probabilities for new subjects. 
-##' If \code{CompetingRisk = FALSE}, print the survival probabilities. 
-##' Otherwise, print the cumulative incidence probabilities for each failure type.
-##' @param x x of class \code{survfitjmcs}.
-##' @param include.y include longitudinal responses of this subject versus time. Default is FALSE.
-##' @param xlab X axis label.
-##' @param ylab Y axis label.
-##' @param xlim X axis support.
-##' @param ylim.long Y axis support for the longitudinal outcome.
-##' @param ylim.surv Y axis support for the event / survival probability.
-##' @param ... further arguments passed to or from other methods.
-##' @return plots of conditional probabilities over different pre-specified time points for subjects. 
-##' If single failure type, then survival probabilities will be returned. 
-##' Otherwise, cumulative incidence probabilities for each failure type will be returned.
+##' @title Plot dynamic predictions from joint models
+##' @name plot.survfit
+##' @description Plot subject-specific dynamic predictions, optionally
+##'   together with observed longitudinal responses.
+##'
+##' @param x An object of class \code{survfitjmcs},
+##'   \code{survfitJMMLSM}, or \code{survfitmvjmcs}.
+##' @param include.y Logical. For \code{survfitjmcs} and
+##'   \code{survfitJMMLSM}, include observed longitudinal responses
+##'   when \code{TRUE}; the default is \code{FALSE}.
+##'   For \code{survfitmvjmcs}, the default is \code{TRUE}, and
+##'   longitudinal biomarker panels are always displayed regardless
+##'   of this argument.
+##' @param xlab Label for the time axis. If \code{NULL},
+##'   \code{"Time"} is used.
+##' @param ylab Label for the response or probability axis, as
+##'   applicable. For \code{survfitmvjmcs}, a character vector with
+##'   one label per biomarker. If \code{NULL}, default labels are used.
+##' @param xlim Numeric vector of length two specifying the time-axis
+##'   limits, or \code{NULL} for automatic limits.
+##' @param ylim.long Numeric vector of length two specifying the
+##'   longitudinal response-axis limits. Applies to
+##'   \code{survfitjmcs} and \code{survfitJMMLSM} when
+##'   \code{include.y = TRUE}.
+##' @param ylim.surv Numeric vector of length two specifying the
+##'   probability-axis limits. If \code{NULL}, method-specific
+##'   defaults are used.
+##' @param subject For \code{survfitmvjmcs} only, subject IDs or
+##'   numeric subject indices. IDs are matched first; numeric indices
+##'   are used if ID matching fails. If \code{NULL}, all subjects in
+##'   \code{x$Last.time} are selected. At least two subjects must
+##'   be selected.
+##' @param risk For \code{survfitmvjmcs} only, the event type whose
+##'   cumulative incidence is plotted. Default is \code{1}.
+##' @param ... For \code{survfitmvjmcs}, additional graphical
+##'   arguments passed to the biomarker point plots.
+##'   Currently unused by the other two methods.
+##'
+##' @details
+##' For \code{survfitjmcs} and \code{survfitJMMLSM}, single-failure
+##' models produce conditional survival curves, and competing-risks
+##' models produce conditional cumulative incidence curves.
+##'
+##' The current \code{survfitmvjmcs} method supports competing-risks
+##' predictions only. Subjects are arranged in columns, biomarker
+##' trajectories in the upper rows, and cumulative incidence curves
+##' for the selected event type in the bottom row.
+##'
+##' @return Called for its graphical side effects.
+##'   The \code{survfitjmcs} and \code{survfitJMMLSM} methods return
+##'   \code{NULL} invisibly. The \code{survfitmvjmcs} method returns
+##'   \code{x} invisibly.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{survfitjmcs}}
+##' @seealso \code{\link{survfitJM}}
 ##' @export
 
 plot.survfitjmcs <- function(

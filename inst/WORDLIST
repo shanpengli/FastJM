@@ -4,6 +4,7 @@ Cindex
 JMH
 JMMLSM
 Kaplan
+Nonconverged
 al
 arXiv
 biomarker
@@ -21,12 +22,11 @@ mvcdata
 mvjmcs
 mvydata
 pre
+recomputation
 scalable
 summarization
-survfitJMMLSM
-survfitjmcs
-survfitmvjmcs
 testthat
+unrounded
 ydata
 ydatah
 ynewdata

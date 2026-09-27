@@ -2,7 +2,7 @@
 % Please edit documentation in R/simmvJMdata.R
 \name{simmvJMdata}
 \alias{simmvJMdata}
-\title{Joint modeling of multivariate longitudinal and competing risks data}
+\title{Simulate multivariate longitudinal and competing risks data}
 \usage{
 simmvJMdata(
   seed = 100,

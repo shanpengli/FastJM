@@ -1,9 +1,9 @@
-logLik <- function(data, b) {
+joint_neglog_kernel <- function(data, b) {
   sum((data$Y - data$X%*%data$beta - data$Z%*%b)^2/(2*data$sigma)) + data$CH0*exp(data$X2%*%data$gamma + data$nu%*%b) +
     t(b)%*%solve(data$Sig)%*%b/2
 }
 
-logLik.learn <- function(data, b) {
+joint_neglog_learn <- function(data, b) {
   total <- sum((data$Y - data$X%*%data$beta - data$Z%*%b)^2/(2*data$sigma) + 0.5*log(data$sigma)) + 
     data$CH01*exp(data$X2%*%data$gamma1 + data$nu1%*%b) +
     t(b)%*%solve(data$Sig)%*%b/2 + 0.5*log(det(data$Sig))
@@ -15,7 +15,7 @@ logLik.learn <- function(data, b) {
   }
 }
 
-logLik.JMH <- function(data, bw) {
+joint_neglog_JMH <- function(data, bw) {
   p1a <- nrow(data$Sig) - 1
   b <- as.vector(bw[1:p1a])
   w <- bw[p1a+1]
@@ -24,7 +24,7 @@ logLik.JMH <- function(data, bw) {
     t(bw)%*%solve(data$Sig)%*%bw/2 + 0.5*log(det(data$Sig))
 }
 
-logLik.learn.JMH <- function(data, bw) {
+joint_neglog_learn_JMH <- function(data, bw) {
   p1a <- nrow(data$Sig) - 1
   b <- as.vector(bw[1:p1a])
   w <- bw[p1a+1]
@@ -40,7 +40,7 @@ logLik.learn.JMH <- function(data, bw) {
   }
 }
 
-logLik.learn.mv <- function(data, bSig) {
+joint_neglog_learn_mv <- function(data, bSig) {
   
   Y <- data$Y
   X <- data$X # update so both biomarkers accountted for

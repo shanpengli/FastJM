@@ -150,5 +150,5 @@ based on event-specific cumulative incidence functions.
 }
 \seealso{
 \code{\link{jmcs}}, \code{\link{JMMLSM}}, \code{\link{mvjmcs}},
-\code{\link{survfitjmcs}}, \code{\link{survfitJMMLSM}}, \code{\link{survfitmvjmcs}}
+\code{\link{survfitJM}}
 }

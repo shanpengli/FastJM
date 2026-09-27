@@ -1,13 +1,6 @@
-##' @title Print survfitJMMLSM
-##' @name print.survfitJMMLSM
-##' @aliases print.survfitJMMLSM
-##' @param x x of class 'survfitJMMLSM'.
-##' @param ... Further arguments passed to or from other methods.
-##' @return a list of matrices with conditional probabilities for subjects.
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{JMMLSM}, \link{survfitJMMLSM}}
+##' @rdname print.survfit
 ##' @export
-##' 
+
 print.survfitJMMLSM <- function (x, ...) {
   if (!inherits(x, "survfitJMMLSM"))
     stop("Use only with 'survfitJMMLSM' xs.\n")

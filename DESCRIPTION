@@ -1,15 +1,17 @@
 Package: FastJM
 Type: Package
 Title: Semi-Parametric Joint Modeling of Longitudinal and Survival Data
-Version: 1.7.1
-Date: 2026-08-20
+Version: 1.7.2
+Date: 2026-09-26
 Authors@R: c(
     person("Shanpeng", "Li", email = "lishanpeng0913@ucla.edu", 
         role = c("aut", "cre")),
     person("Ace", "Mejia-Sanchez", email = "aceisabel.mejiasanchez1@ucr.edu", 
         role = "ctb"),  
     person("Emily", "Ouyang", email = "eouya001@ucr.edu", 
-        role = "ctb"),   
+        role = "ctb"),  
+    person("Xinping", "Cui", email = "xinping.cui@ucr.edu", 
+        role = "ctb"),
     person("Gang", "Li", email = "vli@ucla.edu", 
         role = "ctb")
     )
@@ -29,9 +31,9 @@ Description: Implements scalable joint models for large-scale competing risks ti
              variability via functionality adapted from the 'JMH' package.
 License: GPL (>= 3)
 NeedsCompilation: yes
-Imports: Rcpp (>= 1.0.7), dplyr, nlme, caret, pec, future, future.apply, tidycmprsk, rlang (>= 0.4.11), ggsurvfit, ggplot2, ggpubr
+Imports: Rcpp (>= 1.0.7), dplyr, utils, stats, nlme, MASS, survival, statmod, magrittr, caret, pec, future, future.apply, tidycmprsk, rlang (>= 0.4.11), ggsurvfit, ggplot2, ggpubr
 LinkingTo: Rcpp, RcppEigen
-Depends: R (>= 3.5.0), survival, utils, MASS, statmod, magrittr, stats
+Depends: R (>= 3.5.0)
 RoxygenNote: 7.3.2
 LazyData: true
 Packaged: 2021-12-19 02:16:44 UTC; shanpengli

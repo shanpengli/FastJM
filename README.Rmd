@@ -137,13 +137,8 @@ mvfit
 We can extract the components of the model as follows:
 
 ```{r, eval=TRUE}
-# Longitudinal fixed effects
-fixef(mvfit, process = "Longitudinal")
-summary(mvfit, process = "Longitudinal")
-
-# Survival fixed effects
-fixef(mvfit, process = "Event")
-summary(mvfit, process = "Event")
+# Longitudinal and survival fixed effects
+summary(mvfit)
 
 # Random effects for first few subjects
 head(ranef(mvfit))

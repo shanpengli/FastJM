@@ -2,7 +2,7 @@
 % Please edit documentation in R/jmcs_control.R
 \name{jmcs_control}
 \alias{jmcs_control}
-\title{Control Options for jmcs}
+\title{Control options for jmcs}
 \usage{
 jmcs_control(
   quadpoint = NULL,

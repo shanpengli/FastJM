@@ -305,9 +305,11 @@ mvfit
 #> Model Type: joint modeling of multivariate longitudinal continuous and competing risks data 
 #> 
 #> Model summary:
-#> Runtime: 24.32 seconds 
+#> Runtime: 25.9 seconds 
 #> Longitudinal process: linear mixed effects model
 #> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
+#> 
+#> Loglikelihood:  -17917.77 
 #> 
 #> Fixed effects in the longitudinal sub-model:  list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time) 
 #> 
@@ -357,59 +359,34 @@ mvfit
 We can extract the components of the model as follows:
 
 ``` r
-# Longitudinal fixed effects
-fixef(mvfit, process = "Longitudinal")
-#> (Intercept)_bio1         X11_bio1         X12_bio1 
-#>        4.9783622        1.4637306        1.9968810 
-#>        time_bio1 (Intercept)_bio2         X11_bio2 
-#>        0.8377000        9.9751421        0.9796767 
-#>         X12_bio2        time_bio2 
-#>        2.0092771        0.9938159
-summary(mvfit, process = "Longitudinal")
-#>        Longitudinal   coef     SE 95%Lower 95%Upper p-values
-#> 1  (Intercept)_bio1 4.9784 0.0539   4.8728   5.0840        0
-#> 2          X11_bio1 1.4637 0.0805   1.3060   1.6215        0
-#> 3          X12_bio1 1.9969 0.0143   1.9689   2.0248        0
-#> 4         time_bio1 0.8377 0.0393   0.7607   0.9147        0
-#> 5  (Intercept)_bio2 9.9751 0.0492   9.8787  10.0716        0
-#> 6          X11_bio2 0.9797 0.0732   0.8361   1.1232        0
-#> 7          X12_bio2 2.0093 0.0131   1.9836   2.0349        0
-#> 8         time_bio2 0.9938 0.0046   0.9849   1.0027        0
-#> 9      sigma^2_bio1 0.4930 0.0110   0.4715   0.5145        0
-#> 10     sigma^2_bio2 0.4976 0.0106   0.4769   0.5183        0
-
-# Survival fixed effects
-fixef(mvfit, process = "Event")
-#> $Risk1
-#>     X21_1     X22_1 
-#> 0.9268691 0.5089241 
+# Longitudinal and survival fixed effects
+summary(mvfit)
 #> 
-#> $Risk2
-#>      X21_2      X22_2 
-#> -0.2212556  0.4833562
-summary(mvfit, process = "Event")
-#>             Survival    coef exp(coef) SE(coef) 95%Lower
-#> 1              X21_1  0.9269    2.5266   0.1343   0.6637
-#> 2              X22_1  0.5089    1.6635   0.0310   0.4481
-#> 3              X21_2 -0.2213    0.8015   0.2490  -0.7094
-#> 4              X22_2  0.4834    1.6215   0.0588   0.3680
-#> 5  (Intercept)_1bio1  0.4973    1.6444   0.0750   0.3503
-#> 6         time_1bio1  0.7001    2.0139   0.0839   0.5356
-#> 7  (Intercept)_1bio2 -0.5446    0.5800   0.0794  -0.7003
-#> 8  (Intercept)_2bio1  0.6310    1.8794   0.1333   0.3697
-#> 9         time_2bio1  0.6577    1.9304   0.1663   0.3317
-#> 10 (Intercept)_2bio2 -0.4831    0.6169   0.1585  -0.7936
-#>    95%Upper 95%exp(Lower) 95%exp(Upper) p-values
-#> 1    1.1900        1.9420        3.2871   0.0000
-#> 2    0.5698        1.5653        1.7679   0.0000
-#> 3    0.2669        0.4920        1.3058   0.3743
-#> 4    0.5987        1.4449        1.8197   0.0000
-#> 5    0.6444        1.4195        1.9048   0.0000
-#> 6    0.8646        1.7085        2.3740   0.0000
-#> 7   -0.3890        0.4964        0.6777   0.0000
-#> 8    0.8923        1.4472        2.4407   0.0000
-#> 9    0.9837        1.3933        2.6744   0.0001
-#> 10  -0.1725        0.4522        0.8416   0.0023
+#> Longitudinal submodel:
+#>      Longitudinal   coef     SE 95%Lower 95%Upper p-values
+#>  (Intercept)_bio1 4.9784 0.0539   4.8728   5.0840        0
+#>          X11_bio1 1.4637 0.0805   1.3060   1.6215        0
+#>          X12_bio1 1.9969 0.0143   1.9689   2.0248        0
+#>         time_bio1 0.8377 0.0393   0.7607   0.9147        0
+#>  (Intercept)_bio2 9.9751 0.0492   9.8787  10.0716        0
+#>          X11_bio2 0.9797 0.0732   0.8361   1.1232        0
+#>          X12_bio2 2.0093 0.0131   1.9836   2.0349        0
+#>         time_bio2 0.9938 0.0046   0.9849   1.0027        0
+#>      sigma^2_bio1 0.4930 0.0110   0.4715   0.5145        0
+#>      sigma^2_bio2 0.4976 0.0106   0.4769   0.5183        0
+#> 
+#> Event submodel:
+#>           Survival    coef exp(coef) SE(coef) 95%Lower 95%Upper 95%exp(Lower) 95%exp(Upper) p-values
+#>              X21_1  0.9269    2.5266   0.1343   0.6637   1.1900        1.9420        3.2871   0.0000
+#>              X22_1  0.5089    1.6635   0.0310   0.4481   0.5698        1.5653        1.7679   0.0000
+#>              X21_2 -0.2213    0.8015   0.2490  -0.7094   0.2669        0.4920        1.3058   0.3743
+#>              X22_2  0.4834    1.6215   0.0588   0.3680   0.5987        1.4449        1.8197   0.0000
+#>  (Intercept)_1bio1  0.4973    1.6444   0.0750   0.3503   0.6444        1.4195        1.9048   0.0000
+#>         time_1bio1  0.7001    2.0139   0.0839   0.5356   0.8646        1.7085        2.3740   0.0000
+#>  (Intercept)_1bio2 -0.5446    0.5800   0.0794  -0.7003  -0.3890        0.4964        0.6777   0.0000
+#>  (Intercept)_2bio1  0.6310    1.8794   0.1333   0.3697   0.8923        1.4472        2.4407   0.0000
+#>         time_2bio1  0.6577    1.9304   0.1663   0.3317   0.9837        1.3933        2.6744   0.0001
+#>  (Intercept)_2bio2 -0.4831    0.6169   0.1585  -0.7936  -0.1725        0.4522        0.8416   0.0023
 
 # Random effects for first few subjects
 head(ranef(mvfit))
@@ -429,19 +406,6 @@ failure will be presented.
 
 ``` r
 require(dplyr)
-#> Loading required package: dplyr
-#> Warning: package 'dplyr' was built under R version 4.4.3
-#> 
-#> Attaching package: 'dplyr'
-#> The following object is masked from 'package:MASS':
-#> 
-#>     select
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 set.seed(08252025)
 sampleID <- sample(mvcdata$ID, 5, replace = FALSE)
 
@@ -596,9 +560,11 @@ fit.mvlm
 #> Model summary:
 #> Landmark analysis: Yes (s = 4)
 #> Latent association: current value of the latent process
-#> Runtime: 29.1 seconds 
+#> Runtime: 31.27 seconds 
 #> Longitudinal process: linear mixed effects model
 #> Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard
+#> 
+#> Loglikelihood:  -13162.23 
 #> 
 #> Fixed effects in the longitudinal sub-model:  list(Y1 ~ X11 + X12 + time, Y2 ~ X11 + X12 + time) 
 #> 

@@ -132,16 +132,25 @@
 ##'   
 ##'   set.seed(08252025)
 ##'   sampleID <- sample(mvcdata$ID, 2, replace = FALSE)
-##'   subcdata <- mvcdata %>%
-##'     dplyr::filter(ID %in% sampleID)
-##'   subydata <- mvydata %>%
-##'     dplyr::filter(ID %in% sampleID)
+##'   subcdata <- mvcdata[mvcdata$ID %in% sampleID, , drop = FALSE]
+##'   subydata <- mvydata[mvydata$ID %in% sampleID, , drop = FALSE]
 ##' # Make predictions at the horizon times
 ##'   survfit.mv <- survfitJM(fit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
 ##'                           u = c(7, 8, 9), obs.time = "time")
 ##'   survfit.mv
 ##'   }
 ##'   
+##' @details The fitted object stores a Laplace approximation to the
+##'   marginal log-likelihood in \code{loglike}, with subject contributions
+##'   in \code{loglike.subject}, approximation name in \code{loglike.method},
+##'   and the number of fitted subjects in \code{nobs}. The approximation
+##'   uses the final parameter estimates and restores the longitudinal
+##'   Gaussian normalizing constants omitted from the optimization kernel.
+##'   It describes the working likelihood used by the fitting routines;
+##'   landmark fits refer to the retained fitting data, not the original
+##'   unfiltered sample. It does not introduce a new selection-normalized
+##'   landmark likelihood. Nonconverged fits or failed final posterior
+##'   optimizations have an unavailable (\code{NA}) log-likelihood.
 ##' @export
 
 mvjmcs <- function(ydata, cdata, long.formula,
@@ -555,9 +564,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
     }
     
+    # Final-parameter likelihood; leave unavailable for nonconverged fits.
+    likelihood <- list(value = NA_real_, contributions = NULL,
+                       nobs = numSubj, method = "Laplace", failed = NULL)
     if (iter == maxiter) {
       writeLines("program stops because of nonconvergence")
       convergence = 0
+      FisherInfo <- Score <- NULL
       sebeta <- sesigma <- segamma1 <- segamma2 <- sealpha1 <- sealpha2 <- seSig <- vcov <- NULL
       
     } else {
@@ -586,6 +599,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
                                          data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
       pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
+      likelihood <- getmvLoglike(data, res)
       
       if(latAsso == "sre"){
         SEest <- getmvCov(beta, gamma1, gamma2,
@@ -645,6 +659,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
                    runtime = runtime, latAsso = latAsso, landmark = landmark, s = s, ytime = ytime)
     
+    result$loglike <- likelihood$value
+    result$loglike.subject <- likelihood$contributions
+    result$loglike.method <- likelihood$method
+    result$loglike.failed <- likelihood$failed
+    result$nobs <- likelihood$nobs
+
     class(result) <- "mvjmcs"
     
     return(result)
@@ -857,9 +877,13 @@ mvjmcs <- function(ydata, cdata, long.formula,
       
     }
     
+    # Final-parameter likelihood; leave unavailable for nonconverged fits.
+    likelihood <- list(value = NA_real_, contributions = NULL,
+                       nobs = numSubj, method = "Laplace", failed = NULL)
     if (iter == maxiter) {
       writeLines("program stops because of nonconvergence")
       convergence = 0
+      FisherInfo <- Score <- NULL
       sebeta <- sesigma <- segamma1 <- sealpha1 <- seSig <- vcov <- NULL
       
     } else {
@@ -883,6 +907,7 @@ mvjmcs <- function(ydata, cdata, long.formula,
       res <- future.apply::future_lapply(seq_len(numSubj), estepMV_workerSF, future.seed = TRUE, future.scheduling = 2, data, pREtotal)
       pos.mode <- lapply(res, `[[`, "mode")
       pos.cov  <- lapply(res, function(x) crossprod(x$ccov))
+      likelihood <- getmvLoglike(data, res)
       
       if(latAsso == "sre"){
         SEest <- getmvCovSF(beta, gamma1, 
@@ -940,6 +965,12 @@ mvjmcs <- function(ydata, cdata, long.formula,
                    SurvivalSubmodel = surv.formula, random = random, call = call, id = ID, opt = opt,
                    runtime = runtime, latAsso = latAsso, landmark = landmark, s = s, ytime = ytime)
     
+    result$loglike <- likelihood$value
+    result$loglike.subject <- likelihood$contributions
+    result$loglike.method <- likelihood$method
+    result$loglike.failed <- likelihood$failed
+    result$nobs <- likelihood$nobs
+
     class(result) <- "mvjmcs"
     
     return(result)

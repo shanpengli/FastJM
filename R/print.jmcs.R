@@ -1,14 +1,18 @@
-##' @title Print jmcs
+##' @title Print fitted joint models
 ##' @name print
-##' @aliases print.jmcs
-##' @param x Object of class 'jmcs'.
-##' @param digits the number of significant digits to use when printing. 
+##' @description Print data summaries, model information, and
+##'   parameter estimates from fitted joint models.
+##' @param x A fitted model of class \code{jmcs},
+##'   \code{JMMLSM}, or \code{mvjmcs}.
+##' @param digits Number of decimal places used when formatting
+##'   parameter estimates. Default is \code{4}.
 ##' @param ... Further arguments passed to or from other methods.
-##' @return a summary of data, joint model, log likelihood, and parameter estimates.
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}}
+##' @return The input object \code{x}, invisibly.
+##' @seealso \code{\link{jmcs}}, \code{\link{JMMLSM}},
+##'   \code{\link{mvjmcs}}
 ##' @export
-##' 
+##'
+
 print.jmcs <- function(x, digits = 4, ...) {
   if (!inherits(x, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")

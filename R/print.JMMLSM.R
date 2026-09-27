@@ -1,13 +1,6 @@
-##' Print contents of JMMLSM object.
-##' @title Print JMMLSM
-##' @param x Object of class 'JMMLSM'.
-##' @param digits number of digits of decimal to be printed.
-##' @param ... Further arguments passed to or from other methods.
-##' @return a summary of data, joint model, log likelihood, and parameter estimates.
-##' @seealso \code{\link{JMMLSM}}
-##' @author Shanpeng Li
+##' @rdname print
 ##' @export
-##' 
+ 
 print.JMMLSM <- function(x, digits = 4, ...) {
   if (!inherits(x, "JMMLSM"))
     stop("Use only with 'JMMLSM' objects.\n")

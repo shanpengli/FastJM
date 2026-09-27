@@ -1,30 +1,4 @@
-##' @title Plot conditional probabilities for new subjects
-##' @name plot
-##' @aliases plot.survfitmvjmcs
-##'
-##' @description
-##' Plot subject-specific conditional survival probabilities or cumulative
-##' incidence probabilities from a \code{survfitmvjmcs} object. Longitudinal
-##' observations for multiple biomarkers are stacked vertically, with the
-##' predicted survival or cumulative incidence curve overlaid on each panel.
-##'
-##' @param x An object of class \code{survfitmvjmcs}.
-##' @param subject Optional subject or subjects to plot. Can be a subject ID,
-##' a numeric subject index, or a vector of IDs or indices. If \code{NULL}, all
-##' subjects in \code{x$Last.time} are plotted. Default is \code{NULL}.
-##' @param risk Failure type to plot when \code{x$CompetingRisk = TRUE}.
-##' Default is \code{1}.
-##' @param include.y Logical; retained for consistency with other plotting
-##' methods. The current method always displays longitudinal biomarker panels.
-##' Default is \code{TRUE}.
-##' @param xlab X axis label.
-##' @param ylab Y axis label.
-##' @param xlim X axis support.
-##' @param ylim.surv Y axis support for the event / survival probability.
-##' @param ... Additional graphical arguments passed to the biomarker point plot.
-##'
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{survfitmvjmcs}}
+##' @rdname plot.survfit
 ##' @export
 
 plot.survfitmvjmcs <- function(x,

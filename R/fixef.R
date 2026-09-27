@@ -1,4 +1,4 @@
-##' @title Estimated coefficients estimates for joint models
+##' @title Extract fixed effects estimates from joint models
 ##' @name fixef
 ##' @description Extracts the fixed effects for a fitted joint model.
 ##' @param object an object inheriting from class \code{jmcs}, \code{JMMLSM}, or \code{mvjmcs}.
@@ -27,6 +27,8 @@ fixef <- function(object, process = c("Longitudinal", "Event"), ...) {
       !inherits(object, "mvjmcs") && 
       !inherits(object, "JMMLSM"))
     stop("Use only with 'jmcs', 'JMMLSM', or 'mvjmcs' objects.\n")
+  
+  process <- match.arg(process)
   
   if (process == "Longitudinal") {
     # If model contains tau, extract it

@@ -1,14 +1,6 @@
-##' @title Variance-covariance matrix of the estimated parameters for joint models
-##' @name vcov
-##' @aliases vcov.JMMLSM
-##' @description Extract variance-covariance matrix for joint models.
-##' @param object an object inheriting from class \code{JMMLSM}.
-##' @param ... further arguments passed to or from other methods.
-##' @return a matrix of variance covariance of all parameter estimates.
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{JMMLSM}}
+##' @rdname vcov
 ##' @export
-##' 
+ 
 vcov.JMMLSM <- function(object, ...) {
   if (!inherits(object, "JMMLSM"))
     stop("Use only with 'JMMLSM' objects.\n")

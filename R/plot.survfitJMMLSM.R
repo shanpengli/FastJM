@@ -1,24 +1,6 @@
-##' @title Plot conditional probabilities for new subjects
-##' @name plot
-##' @aliases plot.survfitJMMLSM
-##' @description Plot conditional probabilities for new subjects. 
-##' If \code{CompetingRisk = FALSE}, print the survival probabilities. 
-##' Otherwise, print the cumulative incidence probabilities for each failure type.
-##' @param x x of class \code{survfitJMMLSM}.
-##' @param include.y include longitudinal responses of this subject versus time. Default is FALSE.
-##' @param xlab X axis label.
-##' @param ylab Y axis label.
-##' @param xlim X axis support.
-##' @param ylim.long Y axis support for the longitudinal outcome.
-##' @param ylim.surv Y axis support for the event / survival probability.
-##' @param ... further arguments passed to or from other methods.
-##' @return plots of conditional probabilities over different pre-specified time points for subjects. 
-##' If single failure type, then survival probabilities will be returned. 
-##' Otherwise, cumulative incidence probabilities for each failure type will be returned.
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{survfitJMMLSM}}
+##' @rdname plot.survfit
 ##' @export
-##' 
+
 plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL, 
                               xlim = NULL, ylim.long = NULL, ylim.surv = NULL, ...) {
   

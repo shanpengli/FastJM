@@ -86,7 +86,7 @@ GetESFad.JMH <- function(beta, tau, gamma1, alpha1, vee1, H01, Sig, Z, X1, W, Y,
     names(data) <- c("Y", "X", "Z", "W", "X2", "CH01", 
                      "HAZ01", "beta", "tau",
                      "gamma1", "alpha1", "nu1", "Sig", "D")
-    opt <- optim(rep(0, nsig), logLik.learn.JMH, data = data, method = initial.optimizer, hessian = TRUE)
+    opt <- optim(rep(0, nsig), joint_neglog_learn_JMH, data = data, method = initial.optimizer, hessian = TRUE)
     posterior.mode[i, ] <- opt$par
     posterior.var[(nsig*(i-1) + 1):(i * nsig), 1:nsig] <- solve(opt$hessian)
   }

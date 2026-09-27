@@ -2,7 +2,7 @@
 % Please edit documentation in R/JMMLSM_control.R
 \name{JMMLSM_control}
 \alias{JMMLSM_control}
-\title{Control Options for JMMLSM}
+\title{Control options for JMMLSM}
 \usage{
 JMMLSM_control(
   maxiter = 10000,

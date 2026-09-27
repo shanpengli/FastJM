@@ -1,6 +1,5 @@
-##' @title Fitted values for joint models
+##' @title Diagnostic plots for fitted jmcs models
 ##' @name plot.jmcs
-##' @aliases plot.jmcs
 ##' @description Plot Diagnostics for Joint Models.
 ##' @param x x of class 'jmcs'.
 ##' @param add.smooth logical; if \code{TRUE} a smooth line is superimposed in the "Residuals vs Fitted" plot.

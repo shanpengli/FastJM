@@ -3,7 +3,7 @@
 ##' Specifies numerical integration, convergence, initialization, and optimizer
 ##' settings for \code{\link{JMMLSM}()}.
 ##'
-##' @title Control Options for JMMLSM
+##' @title Control options for JMMLSM
 ##'
 ##' @param maxiter Maximum number of EM iterations. The default is \code{10000}.
 ##' @param tol Convergence tolerance. The default is \code{1e-4}.

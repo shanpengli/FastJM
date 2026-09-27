@@ -1,10 +1,10 @@
-##' Joint modeling of longitudinal continuous data and competing risks
+##' Joint modeling of longitudinal means, within-subject variability, and survival
 ##'
 ##' Fits a joint mean and within-subject variability model for longitudinal
 ##' continuous outcomes and competing risks or single-failure time-to-event
 ##' outcomes.
 ##'
-##' @title Joint Modeling for Continuous Outcomes
+##' @title Joint modeling of longitudinal means, within-subject variability, and survival
 ##'
 ##' @param ydata A longitudinal data frame in long format.
 ##' @param cdata A survival data frame with one row per subject, containing the
@@ -86,18 +86,19 @@
 ##' \item{opt}{optimization method used to fit the initial linear mixed-effects model.}
 ##' @examples
 ##' require(FastJM)
-##' data(ydata)
-##' data(cdata)
+##' data(ydatah)
+##' data(cdatah)
 ##' ## fit a joint model
-##' \dontrun{
-##' fit <- JMMLSM(cdata = cdata, ydata = ydata, 
+##' \donttest{
+##' fit <- JMMLSM(cdata = cdatah, ydata = ydatah, 
 ##'               long.formula = Y ~ Z1 + Z2 + Z3 + time,
 ##'               surv.formula = Surv(survtime, cmprsk) ~ var1 + var2 + var3,
-##'               variance.formula = ~ Z1 + Z2 + Z3 + time)
+##'               variance.formula = ~ Z1 + Z2 + Z3 + time,
+##'               random = ~ 1 | ID)
 ##'               
 ##' ## make dynamic prediction of two subjects
-##' cnewdata <- cdata[cdata$ID %in% c(122, 152), ]
-##' ynewdata <- ydata[ydata$ID %in% c(122, 152), ]
+##' cnewdata <- cdatah[cdatah$ID %in% c(122, 152), ]
+##' ynewdata <- ydatah[ydatah$ID %in% c(122, 152), ]
 ##' survfit <- survfitJM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
 ##'                      u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
 ##'                      obs.time = "time", method = "GH")

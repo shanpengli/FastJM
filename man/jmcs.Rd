@@ -168,7 +168,7 @@ summary(res, metric = "Cindex")
 }
 \seealso{
 \code{\link{ranef}, \link{fixef}, \link{fitted.jmcs}, 
-\link{residuals.jmcs}, \link{survfitjmcs}, \link{plot.jmcs},
+\link{residuals.jmcs}, \link{survfitJM}, \link{plot.jmcs},
 \link{vcov.jmcs}}
 }
 \author{

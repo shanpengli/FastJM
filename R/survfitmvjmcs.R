@@ -1,17 +1,13 @@
-##' @title Prediction in Joint Models
+##' @title Dynamic predictions from mvjmcs models
 ##' @name survfitmvjmcs
 ##' @aliases survfitmvjmcs
 ##' @description This function computes the conditional probability of 
 ##' surviving later times than the last observed time for which a longitudinal 
 ##' measurement was available.
 ##' 
-##' @details
-##' This is a model-specific dynamic prediction function for objects fitted by
-##' \code{\link{mvjmcs}}. It is retained for backward compatibility and for users
-##' who prefer direct access to the multivariate prediction routine. For routine
-##' use, users are encouraged to call \code{\link{survfitJM}}, which dispatches
-##' automatically according to the class of the fitted model object.
-##' 
+##' @details Internal implementation used by \code{\link{survfitJM}}.
+##' Call \code{survfitJM()} for dynamic predictions.
+##'
 ##' @param object an object inheriting from class \code{mvjmcs}.
 ##' @param seed a random seed number to proceed Monte Carlo simulation. Default is 100.
 ##' @param ynewdata a data frame that contains the longitudinal and covariate information for the subjects 
@@ -34,7 +30,7 @@
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @seealso \code{\link{mvjmcs}}
-##' @export
+##' @keywords internal
 survfitmvjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL, 
                         u = NULL, Last.time = NULL, obs.time = NULL, 
                         LOCF = FALSE, LOCFcovariate = NULL, clongdata = NULL, ...) {

@@ -1,12 +1,6 @@
-##' @title Print mvjmcs
-##' @name print
-##' @aliases print.mvjmcs
-##' @param x Object of class 'mvjmcs'.
-##' @param digits the number of significant digits to use when printing.
-##' @param ... Further arguments passed to or from other methods.
-##' @return a summary of data, joint model, log likelihood, and parameter estimates.
-##' @seealso \code{\link{mvjmcs}}
+##' @rdname print
 ##' @export
+
 print.mvjmcs <- function(x, digits = 4, ...) {
   if (!inherits(x, "mvjmcs"))
     stop("Use only with 'mvjmcs' objects.\n")
@@ -65,7 +59,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: cause-specific Cox proportional hazard model with non-parametric baseline hazard\n\n")
-    
+    cat("Loglikelihood: ", x$loglike, "\n\n")
     cat("Fixed effects in the longitudinal sub-model: ",
         sprintf(format(paste(deparse(x$LongitudinalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")
@@ -350,6 +344,7 @@ print.mvjmcs <- function(x, digits = 4, ...) {
     }
     cat("Longitudinal process: linear mixed effects model\n")
     cat("Event process: Cox proportional hazard model with non-parametric baseline hazard\n\n")
+    cat("Loglikelihood: ", x$loglike, "\n\n")
     cat("Fixed effects in the longitudinal submodel: ",
         sprintf(format(paste(deparse(x$LongitudinalSubmodel, width.cutoff = 500), collapse=""))), "\n")
     cat("\n")

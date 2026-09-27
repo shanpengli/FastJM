@@ -135,6 +135,19 @@ An object of class \code{mvjmcs}, returned as a list containing:
 \description{
 Joint modeling of multivariate longitudinal and competing risks data
 }
+\details{
+The fitted object stores a Laplace approximation to the
+  marginal log-likelihood in \code{loglike}, with subject contributions
+  in \code{loglike.subject}, approximation name in \code{loglike.method},
+  and the number of fitted subjects in \code{nobs}. The approximation
+  uses the final parameter estimates and restores the longitudinal
+  Gaussian normalizing constants omitted from the optimization kernel.
+  It describes the working likelihood used by the fitting routines;
+  landmark fits refer to the retained fitting data, not the original
+  unfiltered sample. It does not introduce a new selection-normalized
+  landmark likelihood. Nonconverged fits or failed final posterior
+  optimizations have an unavailable (\code{NA}) log-likelihood.
+}
 \examples{
   require(FastJM)
   require(survival)
@@ -162,10 +175,8 @@ Joint modeling of multivariate longitudinal and competing risks data
   
   set.seed(08252025)
   sampleID <- sample(mvcdata$ID, 2, replace = FALSE)
-  subcdata <- mvcdata \%>\%
-    dplyr::filter(ID \%in\% sampleID)
-  subydata <- mvydata \%>\%
-    dplyr::filter(ID \%in\% sampleID)
+  subcdata <- mvcdata[mvcdata$ID \%in\% sampleID, , drop = FALSE]
+  subydata <- mvydata[mvydata$ID \%in\% sampleID, , drop = FALSE]
 # Make predictions at the horizon times
   survfit.mv <- survfitJM(fit, seed = 100, ynewdata = subydata, cnewdata = subcdata,
                           u = c(7, 8, 9), obs.time = "time")
