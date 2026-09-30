@@ -1,3 +1,9 @@
+# FastJM 1.7.2
+
+* Add ```coef()``` and ```logLik()``` to extract the estimated coefficients and log likelihood values.
+* Fix small bugs in ```summary()```.
+* Fix coding issues in the example for running ```JMMLSM()```.
+
 # FastJM 1.7.1
 
 * Fix small bugs in an estimation procedure.
