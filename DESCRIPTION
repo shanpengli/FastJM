@@ -17,7 +17,7 @@ Authors@R: c(
     )
 Maintainer: Shanpeng Li <lishanpeng0913@ucla.edu>
 Encoding: UTF-8
-Description: Implements scalable joint models for large-scale competing risks time-to-event data with one or multiple longitudinal biomarkers using the efficient algorithms developed by Li et al. (2022) <doi:10.1155/2022/1362913> and <doi:10.48550/arXiv.2506.12741>.
+Description: Implements scalable joint models for large-scale competing risks time-to-event data with one or multiple longitudinal biomarkers using the efficient algorithms developed by Li et al. (2022) <doi:10.1155/2022/1362913> and <doi:10.1214/26-AOAS2218>.
              The time-to-event process is modeled using a cause-specific Cox proportional hazards model
              with time-fixed covariates, while longitudinal biomarkers are modeled
              using linear mixed-effects models. The association between the longitudinal
