@@ -3,6 +3,7 @@
 * Add ```coef()``` and ```logLik()``` to extract the estimated coefficients and log likelihood values.
 * Fix small bugs in ```summary()```.
 * Fix coding issues in the example for running ```JMMLSM()```.
+* Remove ```survfitjmcs()```, ```survfitJMMLSM()```, and ```survfitmvjmcs()```, and add ```survfitJM()``` as a unified interface function to make dynamic predictions for new subjects.
 
 # FastJM 1.7.1
 
