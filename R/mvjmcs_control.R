@@ -22,7 +22,7 @@
 ##'
 ##' @export
 mvjmcs_control <- function(maxiter = 10000,
-                           opt = c("nlminb", "optim"),
+                           opt = c("optim", "nlminb"),
                            tol = 0.005,
                            verbose = FALSE,
                            initial.para = NULL,
