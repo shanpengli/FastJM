@@ -116,7 +116,7 @@ DynPredAcc <- function(seed = 100, object, landmark.time = NULL, horizon.time = 
                        obs.time = NULL, method = c("Laplace", "GH"),
                        quadpoint = NULL, maxiter = NULL, n.cv = 3,
                        quantile.width = 0.25,
-                       opt = c("nlminb", "optim"),
+                       opt = c("optim", "nlminb"),
                        LOCF = FALSE, LOCFcovariate = NULL, clongdata = NULL,
                        metrics = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ"), 
                        cpu.cores = 1, ...) {

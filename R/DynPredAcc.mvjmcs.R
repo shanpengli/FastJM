@@ -6,7 +6,7 @@ DynPredAcc.mvjmcs <- function(seed = 100,
                              maxiter = NULL,
                              n.cv = 3,
                              quantile.width = 0.25,
-                             opt = c("nlminb", "optim"),
+                             opt = c( "optim", "nlminb"),
                              LOCF = FALSE, LOCFcovariate = NULL,
                              clongdata = NULL,
                              metrics = c("AUC", "Cindex", 
@@ -36,6 +36,8 @@ DynPredAcc.mvjmcs <- function(seed = 100,
   if (is.null(maxiter)) {
     maxiter <- 10000
   }
+  
+  opt <- match.arg(opt)
   
   metrics[metrics == "Brier Score"] <- "Brier Score"
   
@@ -136,6 +138,9 @@ DynPredAcc.mvjmcs <- function(seed = 100,
       next
     }
     
+    latAsso <- object$latAsso
+    landmark <- latAsso %in% c("present", "presentlp")
+    
     fit <- try(
       mvjmcs(
         cdata = train.cdata,
@@ -143,17 +148,23 @@ DynPredAcc.mvjmcs <- function(seed = 100,
         long.formula = long.formula,
         surv.formula = surv.formula,
         random = random,
+        latAsso = latAsso,
+        landmark = landmark,
+        s = object$s,
+        ytime = obs.time,
         control = mvjmcs_control(
           cpu.cores = cpu.cores,
           maxiter = maxiter,
           tol = object$tol,
           opt = opt
         )
-      ), 
+      ),
       silent = TRUE
     )
     
+    
     if ("try-error" %in% class(fit)) {
+      # print(fit)
       msg <- paste0("Error occurred in the ", t, " th training!")
       writeLines(msg)
       failed.folds[[as.character(t)]] <- msg
