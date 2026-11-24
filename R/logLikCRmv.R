@@ -68,11 +68,11 @@ logLikCRmv <- function(data, b) {
   latent2 <- as.numeric(sum.alpha2i)
   
   # association contribution
-  if(latAsso == "sre"){
+  # if(latAsso == "sre"){
     # only consider for sre; CH01 is cum hazard at time = s--> CH01 = 0 ow
     total <- total + data$CH01*exp(data$W%*%data$gamma1 + latent1) +
       data$CH02*exp(data$W%*%data$gamma2 + latent2)
-  }
+  # }
   
   # RE contribution
   total = total  + t(b)%*%solve(data$Sig)%*%b/2
