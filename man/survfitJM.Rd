@@ -110,12 +110,9 @@ dispatches to the corresponding model-specific prediction routine:
 \code{survfitJM.jmcs()}, \code{survfitJM.JMMLSM()}, or
 \code{survfitJM.mvjmcs()}.
 
-The model-specific functions \code{survfitjmcs()},
-\code{survfitJMMLSM()}, and \code{survfitmvjmcs()} are retained as
-lower-level functions for backward compatibility.
+The model-specific prediction calculations are implemented by internal
+helper functions. Use this generic as the public prediction interface.
 }
 \seealso{
-\code{\link{jmcs}}, \code{\link{JMMLSM}}, \code{\link{mvjmcs}},
-  \code{\link{survfitjmcs}}, \code{\link{survfitJMMLSM}},
-  \code{\link{survfitmvjmcs}}
+\code{\link{jmcs}}, \code{\link{JMMLSM}}, \code{\link{mvjmcs}}
 }

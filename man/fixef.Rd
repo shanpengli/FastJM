@@ -2,7 +2,7 @@
 % Please edit documentation in R/fixef.R
 \name{fixef}
 \alias{fixef}
-\title{Estimated coefficients estimates for joint models}
+\title{Extract fixed effects estimates from joint models}
 \usage{
 fixef(object, process = c("Longitudinal", "Event"), ...)
 }

@@ -15,21 +15,65 @@ P.us.JMH <- function(data, CH0u, bwl) {
 
 P.us.mvjmcs <- function(data, CH0u, bl, numBio, pREvec) {
   
-  # Splitting the stacked random-effects vector into 
-  # biomarker-specific pieces
+  ## EDIT THIS PART
+  
+  latAsso <- data$latAsso
+  
+  # split stacked RE by biomarker
   b_list <- split(as.vector(bl), rep(seq_len(numBio), times = pREvec))
   
-  # For saving sum_g alpha_g^T b_g
-  alpha_b_terms <- numeric(numBio)
   
-  # Looping through biomarkers
+  # Calculate association term
+  alpha_b_sum <- 0
+  
   for (g in seq_len(numBio)) {
-    alpha_b_terms[g] <- data$alpha1[[g]] %*% b_list[[g]]
+    
+    bg <- b_list[[g]]
+    
+    if (latAsso == "sre") {
+      
+      # Shared random effects
+      alpha_b_sum <- alpha_b_sum +
+        as.numeric(data$alpha1[[g]] %*% bg)
+      
+    } else if (latAsso == "presentlp") {
+      
+      # Present latent process at landmark s
+      latent <- as.numeric(data$Zs_i[[g]] %*% bg)
+      
+      alpha_b_sum <- alpha_b_sum +
+        data$alpha1[[g]] * latent
+      
+    } else if (latAsso == "present") {
+      
+      # Present value at landmark s
+      latent <- as.numeric(
+        data$Xs_i[[g]] %*% data$beta[[g]] +
+          data$Zs_i[[g]] %*% bg
+      )
+      
+      alpha_b_sum <- alpha_b_sum +
+        data$alpha1[[g]] * latent
+      
+    } else {
+      stop("Unsupported association structure: ", latAsso)
+    }
   }
   
-  alpha_b_sum <- sum(alpha_b_terms)
+  # if(latAsso == "sre"){
+  #   (exp(-data$CH01 * exp(data$W %*% data$gamma1 + alpha_b_sum)) -
+  #      exp(-CH0u * exp(data$W %*% data$gamma1 + alpha_b_sum))) /
+  #     exp(-data$CH01 * exp(data$W %*% data$gamma1 + alpha_b_sum))
+  # }
+  # # if use landmarking
+  # else{
+  #   1-exp(-CH0u * exp(data$W %*% data$gamma1 + alpha_b_sum))
+  # }
   
-  (exp(-data$CH01 * exp(data$W %*% data$gamma1 + alpha_b_sum)) -
-      exp(-CH0u * exp(data$W %*% data$gamma1 + alpha_b_sum))) /
-    exp(-data$CH01 * exp(data$W %*% data$gamma1 + alpha_b_sum))
+  # calc hazard multiplier
+  hazmult1 <- exp(data$W %*% data$gamma1 + alpha_b_sum)
+  
+  # calc conditional failure probability from prediction time to u
+  1 - exp(-(CH0u - data$CH01) * hazmult1)
+  
 }

@@ -3,7 +3,7 @@
 ##' Specifies numerical integration, convergence, initialization, and optimizer
 ##' settings for \code{\link{jmcs}()}.
 ##'
-##' @title Control Options for jmcs
+##' @title Control options for jmcs
 ##'
 ##' @param quadpoint Number of Gauss--Hermite quadrature points used for numerical
 ##' integration. The default is \code{NULL}.

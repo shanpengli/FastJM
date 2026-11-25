@@ -1,6 +1,5 @@
 ##' @title Fitted values for joint models
 ##' @name fitted
-##' @aliases fitted.jmcs
 ##' @description Extract fitted values for joint models.
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param type for which type of fitted values to calculate.
@@ -31,6 +30,9 @@ fitted.jmcs <- function(object, type = c("Marginal", "Subject"),
                         process = c("Longitudinal", "Event"), ...) {
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
+  
+  type <- match.arg(type)
+  process <- match.arg(process)
   
   if (type == "Marginal" & process == "Longitudinal") {
     fitted <- object$fitted$fittedmar 

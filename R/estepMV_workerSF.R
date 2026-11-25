@@ -33,5 +33,6 @@ estepMV_workerSF<- function(j, data,pREtotal) {
     hessian = TRUE
   )
   
-  list(mode = opt$par, ccov = chol(solve(opt$hessian)))
+  list(mode = opt$par, ccov = chol(solve(opt$hessian)),
+       objective = as.numeric(opt$value), optim.convergence = opt$convergence)
 }

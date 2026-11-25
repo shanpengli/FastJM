@@ -3,7 +3,7 @@
 ##' Specifies convergence, initialization, optimizer, verbosity, and parallel
 ##' computing settings for \code{\link{mvjmcs}()}.
 ##'
-##' @title Control Options for mvjmcs
+##' @title Control options for mvjmcs
 ##'
 ##' @param maxiter Maximum number of EM iterations. The default is \code{10000}.
 ##' @param opt Optimization method used to fit the initial mixed-effects models.
@@ -22,7 +22,7 @@
 ##'
 ##' @export
 mvjmcs_control <- function(maxiter = 10000,
-                           opt = c("nlminb", "optim"),
+                           opt = c("optim", "nlminb"),
                            tol = 0.005,
                            verbose = FALSE,
                            initial.para = NULL,

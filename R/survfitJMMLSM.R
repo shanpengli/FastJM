@@ -1,18 +1,13 @@
-##' @title Prediction in Joint Models
+##' @title Dynamic predictions from JMMLSM models
 ##' @name survfitJMMLSM
 ##' @aliases survfitJMMLSM
 ##' @description This function computes the conditional probability of 
 ##' surviving later times than the last observed time for which a longitudinal 
 ##' measurement was available.
 ##' 
-##' @details
-##' This is a model-specific dynamic prediction function for objects fitted by
-##' \code{\link{JMMLSM}}. It is retained for backward compatibility and for users
-##' who prefer direct access to the mixed-effects location-scale prediction
-##' routine. For routine use, users are encouraged to call
-##' \code{\link{survfitJM}}, which dispatches automatically according to the class
-##' of the fitted model object.
-##' 
+##' @details Internal implementation used by \code{\link{survfitJM}}.
+##' Call \code{survfitJM()} for dynamic predictions.
+##'
 ##' @param object an object inheriting from class \code{JMMLSM}.
 ##' @param seed a random seed number to proceed non-parametric bootstrap. Default is 100.
 ##' @param ynewdata a data frame that contains the longitudinal and covariate information for the subjects 
@@ -39,7 +34,7 @@
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @seealso \code{\link{JMMLSM}}
-##' @export
+##' @keywords internal
 ##' 
 survfitJMMLSM <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL, 
                           u = NULL, Last.time = NULL, obs.time = NULL, 
@@ -307,7 +302,7 @@ survfitJMMLSM <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
         ## find out E(theta_i)
         data <- list(Y, X, Z, W, X2, CH0, beta, tau, gamma, alpha, nu, Sig)
         names(data) <- c("Y", "X", "Z", "W", "X2", "CH0", "beta", "tau", "gamma", "alpha", "nu", "Sig")
-        opt <- optim(rep(0, nsig), logLik.JMH, data = data, method = "BFGS", hessian = TRUE)
+        opt <- optim(rep(0, nsig), joint_neglog_JMH, data = data, method = "BFGS", hessian = TRUE)
         meanbw <- opt$par
         for (jj in 1:lengthu) {
           Pi <- P.us.JMH(data, CH0u[jj], meanbw)
@@ -325,7 +320,7 @@ survfitJMMLSM <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
             data <- list(Y, X, Z, W, X2, CH0, beta, tau, gamma, alpha, nu, Sig)
             names(data) <- c("Y", "X", "Z", "W", "X2", "CH0", "beta", "tau",
                              "gamma1", "alpha1", "nu1", "Sig")
-            opt <- optim(rep(0, nsig), logLik.JMH, data = data, method = "BFGS", hessian = TRUE)
+            opt <- optim(rep(0, nsig), joint_neglog_JMH, data = data, method = "BFGS", hessian = TRUE)
             Posmean <- opt$par
             PosCov <- solve(opt$hessian)
             

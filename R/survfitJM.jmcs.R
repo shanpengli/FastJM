@@ -8,6 +8,8 @@ survfitJM.jmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
                            method = c("Laplace", "GH"),
                            quadpoint = NULL, ...) {
   
+  method <- match.arg(method)
+  
   survfitjmcs(
     object = object,
     seed = seed,

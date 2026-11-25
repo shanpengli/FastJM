@@ -1,13 +1,15 @@
-##' @title Print survfitjmcs
-##' @name print.survfitjmcs
-##' @aliases print.survfitjmcs
-##' @param x x of class 'survfitjmcs'.
+##' @title Print dynamic predictions from joint models
+##' @name print.survfit
+##' @description Print subject-specific conditional survival
+##'   probabilities for single-failure models or conditional
+##'   cumulative incidence probabilities for competing-risks models.
+##' @param x A prediction object of class \code{survfitjmcs},
+##'   \code{survfitJMMLSM}, or \code{survfitmvjmcs}.
 ##' @param ... Further arguments passed to or from other methods.
-##' @return a list of matrices with conditional probabilities for subjects.
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}, \link{survfitjmcs}}
+##' @return The input object \code{x}, invisibly.
+##' @seealso \code{\link{survfitJM}}
 ##' @export
-##' 
+
 print.survfitjmcs <- function (x, ...) {
   if (!inherits(x, "survfitjmcs"))
     stop("Use only with 'survfitjmcs' xs.\n")

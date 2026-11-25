@@ -225,7 +225,7 @@ Rcpp::List getmvCov(const Eigen::VectorXd beta,
 
     index = 0;
     S = Eigen::VectorXd::Zero(d); // vector that stores observed score vector of each subject; when looping, will clear up for each subject!!
-
+    BAssociation = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~
     //

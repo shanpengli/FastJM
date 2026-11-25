@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.jmcs.R
 \name{plot.jmcs}
 \alias{plot.jmcs}
-\title{Fitted values for joint models}
+\title{Diagnostic plots for fitted jmcs models}
 \usage{
 \method{plot}{jmcs}(x, add.smooth = getOption("add.smooth"), ...)
 }

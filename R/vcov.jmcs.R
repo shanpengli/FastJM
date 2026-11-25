@@ -1,14 +1,17 @@
-##' @title Variance-covariance matrix of the estimated parameters for joint models
+##' @title Extract variance-covariance matrices from fitted joint models
 ##' @name vcov
-##' @aliases vcov.jmcs
-##' @description Extract variance-covariance matrix for joint models.
-##' @param object an object inheriting from class \code{jmcs}.
+##' @description Extract the variance-covariance matrix of estimated
+##'   parameters from a fitted joint model.
+##' @param object A fitted model of class \code{jmcs},
+##'   \code{JMMLSM}, or \code{mvjmcs}.
 ##' @param ... further arguments passed to or from other methods.
-##' @return a matrix of variance covariance of all parameter estimates.
+##' @return A data frame containing the variance-covariance matrix
+##'   of the parameter estimates, with rows and columns named
+##'   by parameter.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{jmcs}}
+##' @seealso \code{\link{jmcs}}, \code{\link{JMMLSM}},
+##'   \code{\link{mvjmcs}}
 ##' @export
-##' 
 
 vcov.jmcs <- function(object, ...) {
   if (!inherits(object, "jmcs"))

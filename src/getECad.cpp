@@ -1,5 +1,9 @@
 #include <RcppEigen.h>
+#include <atomic>
 #include "basics.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // [[Rcpp::depends(RcppEigen)]]
 
@@ -21,12 +25,26 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
                  const Eigen::VectorXd & HAZ01, 
                  const Eigen::VectorXd & HAZ02,
                  const Eigen::MatrixXd & Posbwi,
-                 const Eigen::MatrixXd & Poscov){ 
+                 const Eigen::MatrixXd & Poscov,
+                 const int n_threads = 1){ 
+
+  if (n_threads < 1) {
+    Rcpp::stop("n_threads must be at least 1.");
+  }
+
+#ifdef _OPENMP
+  omp_set_num_threads(n_threads);
+#else
+  if (n_threads != 1) {
+    Rcpp::warning(
+      "FastJM was compiled without OpenMP; getECad will use one thread.");
+  }
+#endif
   
   //calculate the square root of random effect covariance matrix 
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(Sig.inverse(), Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::VectorXd eigenSQ = svd.singularValues();
-  int i,j,q,t,db,u;
+  int i;
   for (i=0;i<eigenSQ.size();i++) {
     eigenSQ(i) = sqrt(eigenSQ(i));
   }
@@ -34,18 +52,6 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
   
   int k=mdata.size();
   int p1a=Z.cols();
-  
-  double dem,cuh01,cuh02,haz01,haz02,xgamma1,xgamma2,temp,mu,sigma,zb,wi;
-  Eigen::VectorXd bwi(p1a+1);
-  Eigen::VectorXd bwii(p1a+1);
-  Eigen::VectorXd bwi2(p1a+1);
-  Eigen::VectorXd bi(p1a);
-  Eigen::VectorXd weightbwi(p1a+1);
-  Eigen::VectorXd ri(p1a+1);
-  Eigen::VectorXd rii(p1a+1);
-  
-  Eigen::MatrixXd Hi(p1a+1, p1a+1);
-  Eigen::MatrixXd Hi2(p1a+1, p1a+1);
   
   /* Define functions of bi wi*/
   //exp(-w)
@@ -76,52 +82,70 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
   Eigen::MatrixXd FUNWSEC = Eigen::MatrixXd::Zero(2,k);
   
   int point=wsmatrix.rows();
+  std::atomic<int> failed_subject(-1);
   
-  for(j=0;j<k;j++)
+  // Each subject writes only to output column j. All working storage is
+  // therefore local to the iteration and safe for parallel execution.
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+  for(int j=0;j<k;j++)
   {
-    dem=0;
-    q=mdata(j);
-    cuh01=CUH01(j);
-    cuh02=CUH02(j);
-    haz01=HAZ01(j);
-    haz02=HAZ02(j);
+    if (failed_subject.load(std::memory_order_relaxed) >= 0) continue;
+
+    double dem=0;
+    int q=mdata(j);
+    double cuh01=CUH01(j);
+    double cuh02=CUH02(j);
+    double haz01=HAZ01(j);
+    double haz02=HAZ02(j);
     
 
     // 
-    xgamma1=MultVV(X2.row(j),gamma1);
+    double xgamma1=MultVV(X2.row(j),gamma1);
     
-    xgamma2=MultVV(X2.row(j),gamma2);
+    double xgamma2=MultVV(X2.row(j),gamma2);
+
+    Eigen::VectorXd bwi(p1a+1);
+    Eigen::VectorXd bwii(p1a+1);
+    Eigen::VectorXd bwi2(p1a+1);
+    Eigen::VectorXd bi(p1a);
+    Eigen::VectorXd weightbwi(p1a+1);
+    Eigen::VectorXd ri(p1a+1);
+    Eigen::VectorXd rii(p1a+1);
+    Eigen::MatrixXd Hi(p1a+1, p1a+1);
+    Eigen::MatrixXd Hi2(p1a+1, p1a+1);
     
     //calculate the square root of covariance of Empirical Bayes estimates
-    for (i=0;i<(p1a+1);i++) Hi.row(i) = Poscov.row(j*(p1a+1)+i);
+    for (int i=0;i<(p1a+1);i++) Hi.row(i) = Poscov.row(j*(p1a+1)+i);
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(Hi, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::VectorXd eigenSQ = svd.singularValues();
-    for (i=0;i<eigenSQ.size();i++) {
+    for (int i=0;i<eigenSQ.size();i++) {
       eigenSQ(i) = sqrt(eigenSQ(i));
     }
     Hi2  = svd.matrixU() * eigenSQ.asDiagonal() * svd.matrixV().transpose();
     
     
-    for (db=0;db<point;db++) {
+    for (int db=0;db<point;db++) {
       
       bwi = xsmatrix.row(db);
       weightbwi = wsmatrix.row(db);
       bwii = Posbwi.row(j);
       ri = bwii + sqrt(2)*Hi2*bwi;
       rii = SigSQRT*ri;
-      temp=exp(10);
+      double temp=exp(10);
       
       // if (db<1) {
       //   Rprintf("%d th subject temp is: %f\n", j, temp);
       // }
       
-      for (i=0;i<p1a;i++) bi(i)=ri(i);
-      wi=ri(p1a);
+      for (int i=0;i<p1a;i++) bi(i)=ri(i);
+      double wi=ri(p1a);
       
-      for (i=0;i<q;i++) {
-        mu=MultVV(X1.row(mdataS(j)-1+i),beta);
-        zb=MultVV(Z.row(mdataS(j)-1+i),bi);
-        sigma=exp(MultVV(W.row(mdataS(j)-1+i),tau) + wi);
+      for (int i=0;i<q;i++) {
+        double mu=MultVV(X1.row(mdataS(j)-1+i),beta);
+        double zb=MultVV(Z.row(mdataS(j)-1+i),bi);
+        double sigma=exp(MultVV(W.row(mdataS(j)-1+i),tau) + wi);
         temp*=1/sqrt(sigma)*exp(-1/(2*sigma)*pow((Y(mdataS(j)-1+i) - mu - zb), 2)); 
       }
       
@@ -129,7 +153,7 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
       if(cmprsk(j)==2)  temp*=haz02*exp(xgamma2+MultVV(alpha2,bi)+vee2*wi);
       
       temp*=exp(0-cuh01*exp(xgamma1+MultVV(alpha1,bi)+vee1*wi)-cuh02*exp(xgamma2+MultVV(alpha2,bi)+vee2*wi));
-      for (i=0;i<(p1a+1);i++) temp*=weightbwi(i);
+      for (int i=0;i<(p1a+1);i++) temp*=weightbwi(i);
       bwi2 = xsmatrix.row(db);
       temp*=exp(-pow(rii.norm(), 2)/2)*exp(pow(bwi2.norm(), 2));
       
@@ -141,16 +165,16 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
       FUNW(j)+=wi*temp;
       FUNENW(j)+=exp(-wi)*temp;
       FUNBENW.col(j)+=exp(-wi)*temp*bi;
-      for (i=0;i<p1a;i++) {
+      for (int i=0;i<p1a;i++) {
         FUNBS(i,j)+=temp*pow(bi(i),2);
         FUNBSENW(i,j)+=temp*exp(-wi)*pow(bi(i),2);
       }
       
       if (p1a > 1) {
-        u=0;
-        for(i=1;i<p1a;i++)
+        int u=0;
+        for(int i=1;i<p1a;i++)
         {
-          for(t=0;t<p1a-i;t++) {
+          for(int t=0;t<p1a-i;t++) {
             FUNBS(p1a+u,j) += temp*bi(t)*bi(t+i);
             FUNBSENW(p1a+u,j) += temp*exp(-wi)*bi(t)*bi(t+i);
             u++;
@@ -164,21 +188,21 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
       FUNEC(0,j)+=temp*exp(MultVV(alpha1,bi)+vee1*wi);
       FUNEC(1,j)+=temp*exp(MultVV(alpha2,bi)+vee2*wi);
       
-      for (i=0;i<p1a;i++) {
+      for (int i=0;i<p1a;i++) {
         FUNBEC(i,j)+=temp*bi(i)*exp(MultVV(alpha1,bi)+vee1*wi);
         FUNBEC(p1a+i,j)+=temp*bi(i)*exp(MultVV(alpha2,bi)+vee2*wi);
       }
       
-      for (i=0;i<p1a;i++) {
+      for (int i=0;i<p1a;i++) {
         FUNBSEC(i,j)+=temp*exp(MultVV(alpha1,bi)+vee1*wi)*pow(bi(i),2);
         FUNBSEC(p1a*(p1a+1)/2+i,j)+=temp*exp(MultVV(alpha2,bi)+vee2*wi)*pow(bi(i),2);
       }
       
       if (p1a > 1) {
-        u=0;
-        for(i=1;i<p1a;i++)
+        int u=0;
+        for(int i=1;i<p1a;i++)
         {
-          for(t=0;t<p1a-i;t++)
+          for(int t=0;t<p1a-i;t++)
           {
             FUNBSEC(p1a+u,j)+=temp*exp(MultVV(alpha1,bi)+vee1*wi)*bi(t)*bi(t+i);
             FUNBSEC(p1a*(p1a+1)/2+p1a+u,j)+=temp*exp(MultVV(alpha2,bi)+vee2*wi)*bi(t)*bi(t+i);
@@ -198,8 +222,10 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
     }
     
     if(dem==0) {
-      Rprintf("E step ran into issue for the %dth subject. Program stops.\n", j);
-      return ( 100.0 );
+      int expected=-1;
+      failed_subject.compare_exchange_strong(
+        expected, j, std::memory_order_relaxed);
+      continue;
     } 
     
     FUNB.col(j)/=dem;
@@ -242,6 +268,12 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
     //   }
     
   }
+
+  if(failed_subject.load() >= 0) {
+    Rprintf("E step ran into issue for the %dth subject. Program stops.\n",
+            failed_subject.load());
+    return ( 100.0 );
+  }
   
   return Rcpp::List::create(Rcpp::Named("FUNB")=FUNB,
                             Rcpp::Named("FUNW")=FUNW,
@@ -257,5 +289,3 @@ Rcpp::List getECad(const Eigen::VectorXd & beta, const Eigen::VectorXd & tau,
                             Rcpp::Named("FUNWEC")=FUNWEC,
                             Rcpp::Named("FUNWSEC")=FUNWSEC);
 }
-
-

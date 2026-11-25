@@ -1,7 +1,5 @@
 ##' @title Residuals for joint models
-##' @name residuals.jmcs
-##' @aliases residuals.jmcs
-##' @method residuals jmcs
+##' @name residuals
 ##' @description Extract residuals for joint models.
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param type what type of residuals to calculate. 
@@ -29,6 +27,8 @@
 residuals.jmcs <- function(object, type = c("Marginal", "Subject"), ...) {
   if (!inherits(object, "jmcs"))
     stop("Use only with 'jmcs' objects.\n")
+  
+  type <- match.arg(type)
   
   if (type == "Marginal") {
     resid <- object$fitted$residmar 

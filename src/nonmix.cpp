@@ -204,7 +204,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
   // ----------------------
   //   Hazard
   // ----------------------
-  double denomH = 0;
   
   double dem1 = 0;
   double dem2 = 0;
@@ -308,7 +307,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
     }
     else continue;
     
-    
   }
   
   // HAZARD 2
@@ -321,8 +319,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
     
     Eigen::VectorXd bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
     // Eigen::VectorXd bVecig = bVeci.segment(pREindex, pRE);
-    
-    index = 0;
     
     double muH2, tausq2;
     muH2 = MultVV(W.row(i), gamma2) + MultVV(alpha2, bVeci);
@@ -350,8 +346,6 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
         {
           
           bVeci = Rcpp::as<Eigen::VectorXd>(bList[i]);
-          
-          index = 0;
           
           sigmai = Rcpp::as<Eigen::MatrixXd>(sigmaiList[i]);
           muH2 = MultVV(W.row(i), gamma2) + MultVV(alpha2, bVeci);
@@ -647,9 +641,9 @@ Rcpp::List normalApprox(Rcpp::List XList, Rcpp::List YList, Rcpp::List ZList, Ei
   // std::cout<< "info " << info.inverse() << std::endl;
   phi1 << gamma1, alpha1;
   phi1 += info.inverse() * (Sfull_inter - Sfull_new);
-  // gamma1 += Sww_new.inverse()*(Sw_inter - Sw_new);
-  // alpha1 += Sll_new.inverse()*(Sl_inter - Sl_new);
-  // phi1 << gamma1, alpha1;
+  
+  
+  // phi 2 ~~
   
   Sw_new = Eigen::VectorXd::Zero(dimW);
   Sw_inter = Eigen::VectorXd::Zero(dimW);

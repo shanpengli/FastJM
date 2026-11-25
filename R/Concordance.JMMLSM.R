@@ -8,6 +8,7 @@ Concordance.JMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
   ydata <- object$ydata
   long.formula <- object$LongitudinalSubmodelmean
   surv.formula <- object$SurvivalSubmodel
+  n.cores <- parallel::detectCores()
   surv.var <- all.vars(surv.formula)
   variance.formula <- as.formula(paste("", object$LongitudinalSubmodelvariance[3], sep = "~"))
   random.form <- all.vars(object$random) 
@@ -54,7 +55,8 @@ Concordance.JMMLSM <- function(seed = 100, object, n.cv = 3, maxiter = 10000,
           maxiter = maxiter,
           quadpoint = object$quadpoint,
           initial.para = initial.para,
-          opt = opt
+          opt = opt,
+          cpu.cores = n.cores
         )
       ),
       silent = TRUE

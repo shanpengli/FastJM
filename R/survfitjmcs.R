@@ -1,17 +1,13 @@
-##' @title Prediction in Joint Models
+##' @title Dynamic predictions from jmcs models
 ##' @name survfitjmcs
 ##' @aliases survfitjmcs
 ##' @description This function computes the conditional probability of 
 ##' surviving later times than the last observed time for which a longitudinal 
 ##' measurement was available.
 ##' 
-##' @details
-##' This is a model-specific dynamic prediction function for objects fitted by
-##' \code{\link{jmcs}}. It is retained for backward compatibility and for users
-##' who prefer direct access to the single-marker prediction routine. For routine
-##' use, users are encouraged to call \code{\link{survfitJM}}, which dispatches
-##' automatically according to the class of the fitted model object.
-##' 
+##' @details Internal implementation used by \code{\link{survfitJM}}.
+##' Call \code{survfitJM()} for dynamic predictions.
+##'
 ##' @param object an object inheriting from class \code{jmcs}.
 ##' @param seed a random seed number to proceed Monte Carlo simulation. Default is 100.
 ##' @param ynewdata a data frame that contains the longitudinal and covariate information for the subjects 
@@ -39,7 +35,7 @@
 ##' @return a list of matrices with conditional probabilities for subjects.
 ##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
 ##' @seealso \code{\link{jmcs}}
-##' @export
+##' @keywords internal
 ##' 
 survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL, 
                         u = NULL, Last.time = NULL, obs.time = NULL, 
@@ -285,7 +281,7 @@ survfitjmcs <- function(object, seed = 100, ynewdata = NULL, cnewdata = NULL,
       ## find out E(bi)
       data <- list(Y, X, Z, X2, CH0, beta, gamma, nu, sigma, Sig)
       names(data) <- c("Y", "X", "Z", "X2", "CH0", "beta", "gamma", "nu", "sigma", "Sig")
-      opt <- optim(rep(0, nsig), logLik, data = data, method = "BFGS", hessian = TRUE)
+      opt <- optim(rep(0, nsig), joint_neglog_kernel, data = data, method = "BFGS", hessian = TRUE)
       meanb <- opt$par
       Poscov <- solve(opt$hessian)
 

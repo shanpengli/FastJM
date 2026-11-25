@@ -1,10 +1,10 @@
-##' Joint modeling of longitudinal continuous data and competing risks
+##' Joint modeling of longitudinal means, within-subject variability, and survival
 ##'
 ##' Fits a joint mean and within-subject variability model for longitudinal
 ##' continuous outcomes and competing risks or single-failure time-to-event
 ##' outcomes.
 ##'
-##' @title Joint Modeling for Continuous Outcomes
+##' @title Joint modeling of longitudinal means, within-subject variability, and survival
 ##'
 ##' @param ydata A longitudinal data frame in long format.
 ##' @param cdata A survival data frame with one row per subject, containing the
@@ -23,11 +23,11 @@
 ##' \code{\link{JMMLSM_control}()}. Available options include:
 ##' \describe{
 ##'   \item{\code{maxiter}}{Maximum number of EM iterations. The default is
-##'   \code{1000}.}
+##'   \code{10000}.}
 ##'   \item{\code{tol}}{Convergence tolerance for the EM algorithm. The default
 ##'   is \code{1e-4}.}
 ##'   \item{\code{quadpoint}}{Number of Gauss--Hermite quadrature points used
-##'   for numerical integration. The default is \code{15}.}
+##'   for numerical integration. The default is \code{6}.}
 ##'   \item{\code{verbose}}{Logical value indicating whether to print detailed
 ##'   information at each iteration. The default is \code{FALSE}.}
 ##'   \item{\code{initial.para}}{Optional list of user-supplied initial parameter
@@ -83,20 +83,22 @@
 ##' \item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
 ##' \item{random}{the component of the \code{random}.}
 ##' \item{call}{the matched call.}
+##' \item{opt}{optimization method used to fit the initial linear mixed-effects model.}
 ##' @examples
 ##' require(FastJM)
-##' data(ydata)
-##' data(cdata)
+##' data(ydatah)
+##' data(cdatah)
 ##' ## fit a joint model
-##' \dontrun{
-##' fit <- JMMLSM(cdata = cdata, ydata = ydata, 
+##' \donttest{
+##' fit <- JMMLSM(cdata = cdatah, ydata = ydatah, 
 ##'               long.formula = Y ~ Z1 + Z2 + Z3 + time,
 ##'               surv.formula = Surv(survtime, cmprsk) ~ var1 + var2 + var3,
-##'               variance.formula = ~ Z1 + Z2 + Z3 + time)
+##'               variance.formula = ~ Z1 + Z2 + Z3 + time,
+##'               random = ~ 1 | ID)
 ##'               
 ##' ## make dynamic prediction of two subjects
-##' cnewdata <- cdata[cdata$ID %in% c(122, 152), ]
-##' ynewdata <- ydata[ydata$ID %in% c(122, 152), ]
+##' cnewdata <- cdatah[cdatah$ID %in% c(122, 152), ]
+##' ynewdata <- ydatah[ydatah$ID %in% c(122, 152), ]
 ##' survfit <- survfitJM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
 ##'                      u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
 ##'                      obs.time = "time", method = "GH")
@@ -123,6 +125,7 @@ JMMLSM <- function(cdata, ydata,
   initial.para <- control$initial.para
   method       <- control$method
   opt          <- control$opt
+  cpu.cores    <- control$cpu.cores
   
   if (!inherits(long.formula, "formula") || length(long.formula) != 3) {
     stop("\nMean sub-part of location scale model must be a formula of the form \"resp ~ pred\"")
@@ -141,6 +144,11 @@ JMMLSM <- function(cdata, ydata,
   
   if (method == "standard" & is.null(quadpoint)) {
     quadpoint <- 20
+  }
+  
+  # ---- CPU setup ----
+  if(is.null(cpu.cores)){
+    cpu.cores <- 1
   }
   
   long <- all.vars(long.formula)
@@ -313,7 +321,8 @@ JMMLSM <- function(cdata, ydata,
                         Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix)
       } else if (method == "adaptive") {
         GetEfun <- GetEad.JMH(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02,
-                           Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, initial.optimizer = "BFGS")
+                           Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, 
+                           xsmatrix, wsmatrix, initial.optimizer = "BFGS", n_threads = cpu.cores)
       } else {
         stop("Please choose one of the following methods for numerical integration in the E-step: standard, adaptive.")
       }
@@ -407,7 +416,8 @@ JMMLSM <- function(cdata, ydata,
                         Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix)
       } else if (method == "adaptive") {
         GetEfun <- GetEad.JMH(beta, tau, gamma1, gamma2, alpha1, alpha2, vee1, vee2, H01, H02,
-                          Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, xsmatrix, wsmatrix, initial.optimizer = "BFGS")
+                          Sig, Z, X1, W, Y, X2, survtime, cmprsk, mdata, mdataS, 
+                          xsmatrix, wsmatrix, initial.optimizer = "BFGS", n_threads = cpu.cores)
       } else {
         stop("Please choose one of the following methods for numerical integration in the E-step: standard, adaptive.")
       }
@@ -472,7 +482,7 @@ JMMLSM <- function(cdata, ydata,
                      H02, Sig, iter, convergence, vcov, sebeta, setau, segamma1,
                      segamma2, sealpha1, sealpha2, sevee1, sevee2, seSig, getloglike,
                      EFuntheta, CompetingRisk, quadpoint, rawydata, rawcdata, PropComp, 
-                     FunCall_long, FunCall_longVar, FunCall_survival, random, method, mycall, tol)
+                     FunCall_long, FunCall_longVar, FunCall_survival, random, method, mycall, tol, opt)
       
       names(result) <- c("beta", "tau", "gamma1", "gamma2", "alpha1", "alpha2", "vee1",
                          "vee2", "H01", "H02", "Sig", "iter", "convergence", "vcov",
@@ -481,7 +491,7 @@ JMMLSM <- function(cdata, ydata,
                          "CompetingRisk", "quadpoint",
                          "ydata", "cdata", "PropEventType", "LongitudinalSubmodelmean",
                          "LongitudinalSubmodelvariance", "SurvivalSubmodel", "random", "method",
-                         "call", "tol")
+                         "call", "tol", "opt")
       
       class(result) <- "JMMLSM"
       
@@ -657,14 +667,14 @@ JMMLSM <- function(cdata, ydata,
       result <- list(beta, tau, gamma1, alpha1, vee1, H01, Sig, iter, convergence, 
                      vcov, sebeta, setau, segamma1, sealpha1, sevee1, seSig, getloglike, EFuntheta,
                      CompetingRisk, quadpoint, rawydata, rawcdata, PropComp, 
-                     FunCall_long, FunCall_longVar, FunCall_survival, random, mycall, method, tol)
+                     FunCall_long, FunCall_longVar, FunCall_survival, random, mycall, method, tol, opt)
       
       names(result) <- c("beta", "tau", "gamma1", "alpha1", "vee1", "H01", "Sig", 
                          "iter", "convergence", "vcov", "sebeta", "setau", "segamma1", 
                          "sealpha1", "sevee1", "seSig", "loglike", "EFuntheta", "CompetingRisk", "quadpoint",
                          "ydata", "cdata", "PropEventType", "LongitudinalSubmodelmean",
                          "LongitudinalSubmodelvariance", "SurvivalSubmodel", "random",
-                         "call", "method", "tol")
+                         "call", "method", "tol", "opt")
       
       class(result) <- "JMMLSM"
       

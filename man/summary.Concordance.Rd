@@ -2,26 +2,25 @@
 % Please edit documentation in R/summary.Concordance.R
 \name{summary.Concordance}
 \alias{summary.Concordance}
-\title{Summarize Concordance}
+\title{Summarize concordance estimates}
 \usage{
 \method{summary}{Concordance}(object, digits = 4, ...)
 }
 \arguments{
-\item{object}{An object of class 'Concordance'.}
+\item{object}{An object of class \code{Concordance}.}
 
-\item{digits}{Number of decimal places to be printed. Default is \code{4}.}
+\item{digits}{Number of decimal places used for rounding.
+Default is \code{4}.}
 
 \item{...}{Further arguments passed to or from other methods.}
 }
 \value{
-A data frame containing the cross-validation averaged concordance estimate.
+A data frame containing the averaged concordance estimates.
 }
 \description{
-Summarize Concordance
+Summarize concordance estimates averaged across
+  cross-validation folds.
 }
 \seealso{
-\code{\link{Concordance}}, \code{\link{jmcs}}, \code{\link{JMMLSM}}
-}
-\author{
-Shanpeng Li \email{lishanpeng0913@ucla.edu}
+\code{\link{Concordance}}
 }

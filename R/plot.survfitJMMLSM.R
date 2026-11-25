@@ -1,24 +1,6 @@
-##' @title Plot conditional probabilities for new subjects
-##' @name plot
-##' @aliases plot.survfitJMMLSM
-##' @description Plot conditional probabilities for new subjects. 
-##' If \code{CompetingRisk = FALSE}, print the survival probabilities. 
-##' Otherwise, print the cumulative incidence probabilities for each failure type.
-##' @param x x of class \code{survfitJMMLSM}.
-##' @param include.y include longitudinal responses of this subject versus time. Default is FALSE.
-##' @param xlab X axis label.
-##' @param ylab Y axis label.
-##' @param xlim X axis support.
-##' @param ylim.long Y axis support for the longitudinal outcome.
-##' @param ylim.surv Y axis support for the event / survival probability.
-##' @param ... further arguments passed to or from other methods.
-##' @return plots of conditional probabilities over different pre-specified time points for subjects. 
-##' If single failure type, then survival probabilities will be returned. 
-##' Otherwise, cumulative incidence probabilities for each failure type will be returned.
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{survfitJMMLSM}}
+##' @rdname plot.survfit
 ##' @export
-##' 
+
 plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL, 
                               xlim = NULL, ylim.long = NULL, ylim.surv = NULL, ...) {
   
@@ -52,7 +34,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
           if (is.null(ylab)) ylab <- expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
                                                       ", ", y[i]^(s), ", ",  Psi,")", sep = " "))
           plot(times, probmean, xlab = xlab, ylab = ylab, xlim = xlim,
-               main = paste("Subject", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim.surv)
+               main = paste("ID", x$Last.time[i, 1], sep = " "), col = "red", type = "l", ylim = ylim.surv)
           segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                    y1 = 1,
                    lwd = 1)
@@ -63,7 +45,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
           title(ylab = ylab, line=2.5)
           par(new = TRUE)    
           plot(times, probmean, xlab = "", ylab = "", 
-               main = paste("Subject", x$Last.time[i, 1], sep = " "), xlim = xlim, col = "red", type = "l", 
+               main = paste("ID", x$Last.time[i, 1], sep = " "), xlim = xlim, col = "red", type = "l", 
                ylim = ylim.surv, axes = FALSE)
           axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
           mtext(expression(paste("Pr(", T[i] >= u, " | ", T[i] > s, 
@@ -105,7 +87,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
             plot(times, probmean, xlab = xlab, ylab = bquote(
               Pr(T[i] <= u, D[i] == .(j) ~ "|" ~ T[i] > s, ~ y[i]^(s), ~ Psi)
               ), 
-                 main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
+                 main = paste("ID", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
                  col = "red", type = "l", ylim = ylim.surv, xlim = xlim)
             segments(x0 = as.numeric(x$Last.time[i, 2]), x1 = as.numeric(x$Last.time[i, 2]), y0 = -1,
                      y1 = 1,
@@ -117,7 +99,7 @@ plot.survfitJMMLSM <- function (x, include.y = FALSE, xlab = NULL, ylab = NULL,
             title(ylab = ylab, line=2.5)
             par(new = TRUE)    
             plot(times, probmean, xlab = "", ylab = "", 
-                 main = paste("Subject", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
+                 main = paste("ID", x$Last.time[i, 1], "- Competing risks: risk", j, sep = " "), 
                  col = "red", type = "l", ylim = ylim.surv, axes = FALSE, xlim = xlim)
             axis(side = 4, at = pretty(range(ylim.surv)), line = 0) 
             mtext(bquote(

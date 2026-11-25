@@ -1,18 +1,15 @@
-##' @title Summarize Concordance
+##' @title Summarize concordance estimates
 ##' @name summary.Concordance
-##' @aliases summary.Concordance
-##' @method summary Concordance
-##'
-##' @param object An object of class 'Concordance'.
-##' @param digits Number of decimal places to be printed. Default is \code{4}.
+##' @description Summarize concordance estimates averaged across
+##'   cross-validation folds.
+##' @param object An object of class \code{Concordance}.
+##' @param digits Number of decimal places used for rounding.
+##'   Default is \code{4}.
 ##' @param ... Further arguments passed to or from other methods.
-##'
-##' @return A data frame containing the cross-validation averaged concordance estimate.
-##'
-##' @author Shanpeng Li \email{lishanpeng0913@ucla.edu}
-##' @seealso \code{\link{Concordance}}, \code{\link{jmcs}}, \code{\link{JMMLSM}}
-##'
+##' @return A data frame containing the averaged concordance estimates.
+##' @seealso \code{\link{Concordance}}
 ##' @export
+
 summary.Concordance <- function(object, digits = 4, ...) {
   
   if (!inherits(object, "Concordance")) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/survfitJMMLSM.R
 \name{survfitJMMLSM}
 \alias{survfitJMMLSM}
-\title{Prediction in Joint Models}
+\title{Dynamic predictions from JMMLSM models}
 \usage{
 survfitJMMLSM(
   object,
@@ -66,12 +66,8 @@ surviving later times than the last observed time for which a longitudinal
 measurement was available.
 }
 \details{
-This is a model-specific dynamic prediction function for objects fitted by
-\code{\link{JMMLSM}}. It is retained for backward compatibility and for users
-who prefer direct access to the mixed-effects location-scale prediction
-routine. For routine use, users are encouraged to call
-\code{\link{survfitJM}}, which dispatches automatically according to the class
-of the fitted model object.
+Internal implementation used by \code{\link{survfitJM}}.
+Call \code{survfitJM()} for dynamic predictions.
 }
 \seealso{
 \code{\link{JMMLSM}}
@@ -79,3 +75,4 @@ of the fitted model object.
 \author{
 Shanpeng Li \email{lishanpeng0913@ucla.edu}
 }
+\keyword{internal}

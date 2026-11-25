@@ -2,7 +2,7 @@
 % Please edit documentation in R/JMMLSM.R
 \name{JMMLSM}
 \alias{JMMLSM}
-\title{Joint Modeling for Continuous Outcomes}
+\title{Joint modeling of longitudinal means, within-subject variability, and survival}
 \usage{
 JMMLSM(
   cdata,
@@ -38,11 +38,11 @@ model can be specified as \code{~ x1 + ... + xn | ID}.}
 \code{\link{JMMLSM_control}()}. Available options include:
 \describe{
   \item{\code{maxiter}}{Maximum number of EM iterations. The default is
-  \code{1000}.}
+  \code{10000}.}
   \item{\code{tol}}{Convergence tolerance for the EM algorithm. The default
   is \code{1e-4}.}
   \item{\code{quadpoint}}{Number of Gauss--Hermite quadrature points used
-  for numerical integration. The default is \code{15}.}
+  for numerical integration. The default is \code{6}.}
   \item{\code{verbose}}{Logical value indicating whether to print detailed
   information at each iteration. The default is \code{FALSE}.}
   \item{\code{initial.para}}{Optional list of user-supplied initial parameter
@@ -100,9 +100,10 @@ Valid only if \code{CompetingRisk = TRUE}.}
 \item{SurvivalSubmodel}{the component of the \code{surv.formula}.}
 \item{random}{the component of the \code{random}.}
 \item{call}{the matched call.}
+\item{opt}{optimization method used to fit the initial linear mixed-effects model.}
 }
 \description{
-Joint modeling of longitudinal continuous data and competing risks
+Joint modeling of longitudinal means, within-subject variability, and survival
 }
 \details{
 Fits a joint mean and within-subject variability model for longitudinal
@@ -111,18 +112,19 @@ outcomes.
 }
 \examples{
 require(FastJM)
-data(ydata)
-data(cdata)
+data(ydatah)
+data(cdatah)
 ## fit a joint model
-\dontrun{
-fit <- JMMLSM(cdata = cdata, ydata = ydata, 
+\donttest{
+fit <- JMMLSM(cdata = cdatah, ydata = ydatah, 
               long.formula = Y ~ Z1 + Z2 + Z3 + time,
               surv.formula = Surv(survtime, cmprsk) ~ var1 + var2 + var3,
-              variance.formula = ~ Z1 + Z2 + Z3 + time)
+              variance.formula = ~ Z1 + Z2 + Z3 + time,
+              random = ~ 1 | ID)
               
 ## make dynamic prediction of two subjects
-cnewdata <- cdata[cdata$ID \%in\% c(122, 152), ]
-ynewdata <- ydata[ydata$ID \%in\% c(122, 152), ]
+cnewdata <- cdatah[cdatah$ID \%in\% c(122, 152), ]
+ynewdata <- ydatah[ydatah$ID \%in\% c(122, 152), ]
 survfit <- survfitJM(fit, seed = 100, ynewdata = ynewdata, cnewdata = cnewdata, 
                      u = seq(5.2, 7.2, by = 0.5), Last.time = "survtime",
                      obs.time = "time", method = "GH")

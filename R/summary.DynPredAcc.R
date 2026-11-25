@@ -1,12 +1,21 @@
-##' @title Summaries of evaluation metrics for joint models
-##' @name summary
-##' @aliases summary.DynPredAcc
-##' @param object object of class 'DynPredAcc'.
-##' @param metric a list to indicate what metric to summarize
+##' @title Summarize dynamic prediction accuracy
+##' @name summary.DynPredAcc
+##' @description Summarize prediction accuracy estimates averaged
+##'   across cross-validation folds.
+##' @param object An object of class \code{DynPredAcc}.
+##' @param metric A character string specifying the metric:
+##'   \code{"AUC"}, \code{"Cindex"}, \code{"Brier Score"},
+##'   \code{"MAE"}, or \code{"MAEQ"}.
+##'   The metric must have been computed in \code{object}.
+##'   Default is \code{"AUC"}.
+##' @param digits Number of decimal places used for rounding.
+##'   Default is \code{4}.
 ##' @param ... Further arguments passed to or from other methods.
-##' @return a summary of the list of matrices with conditional probabilities for subjects.
+##' @return A data frame containing the selected metric averaged
+##'   across cross-validation folds at the prediction horizons.
+##' @seealso \code{\link{DynPredAcc}}
 ##' @export
-##' 
+
 summary.DynPredAcc <- function(object,
                              metric = c("AUC", "Cindex", "Brier Score", "MAE", "MAEQ"),
                              digits = 4, ...) {

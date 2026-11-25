@@ -79,7 +79,7 @@ GetBayesSF <- function(beta, sigma, gamma1, nu1, H01,
     names(data) <- c("Y", "X", "Z", "X2", "CH01", 
                      "HAZ01", "beta", "sigma",
                      "gamma1", "nu1", "Sig", "D")
-    opt <- optim(rep(0, p1a), logLik.learn, data = data, method = initial.optimizer, hessian = FALSE)
+    opt <- optim(rep(0, p1a), joint_neglog_learn, data = data, method = initial.optimizer, hessian = FALSE)
     posterior.mode[i, ] <- opt$par
   }
   
@@ -122,7 +122,7 @@ GetBayesSF.JMH <- function(beta, tau, gamma1, alpha1, vee1, H01,
                  HAZ001, beta, tau, gamma1, alpha1, vee1, Sig, cmprsk[i])
     names(data) <- c("Y", "X", "Z", "W", "X2", "CH01", "HAZ01", "beta", "tau",
                      "gamma1", "alpha1", "nu1", "Sig", "D")
-    opt <- optim(rep(0, nsig), logLik.learn.JMH, data = data, method = initial.optimizer, hessian = FALSE)
+    opt <- optim(rep(0, nsig), joint_neglog_learn_JMH, data = data, method = initial.optimizer, hessian = FALSE)
     posterior.mode[i, ] <- opt$par
   }
   
@@ -230,7 +230,7 @@ GetBayesSF.mv <- function(beta, sigma, gamma1, alpha, H01,
     names(data) <- c("Y", "X", "Z", "W", "CH01", 
                      "HAZ01", "beta", "sigma",
                      "gamma1", "alphaList", "Sig", "Wcmprsk")
-    opt <- optim(rep(0, q), logLik.learn.mv, data = data, method = initial.optimizer, hessian = FALSE)
+    opt <- optim(rep(0, q), joint_neglog_learn_mv, data = data, method = initial.optimizer, hessian = FALSE)
     pos.mode[j, ] <- opt$par
   }
   
